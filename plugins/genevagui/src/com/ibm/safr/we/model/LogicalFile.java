@@ -94,10 +94,8 @@ public class LogicalFile extends SAFREnvironmentalComponent {
 		physicalFileAssociations = new SAFRAssociationList<FileAssociation>();
 		if (!trans.isForImport()) {
 			// load only if already stored in DB.
-			logicalRecordAssociations = SAFRAssociationFactory
-					.getLogicalFileToLogicalRecordAssociations(this);
-			physicalFileAssociations = SAFRAssociationFactory
-					.getLogicalFileToPhysicalFileAssociations(this);
+			logicalRecordAssociations = SAFRAssociationFactory.getLogicalFileToLogicalRecordAssociations(this);
+			physicalFileAssociations = SAFRAssociationFactory.getLogicalFileToPhysicalFileAssociations(this);
 		}
 	}
 
@@ -347,14 +345,12 @@ public class LogicalFile extends SAFREnvironmentalComponent {
 
 					// call DAO to delete
 					if (deletionIds.size() > 0) {
-						DAOFactoryHolder.getDAOFactory().getLogicalFileDAO()
-								.deleteAssociatedPFs(getEnvironmentId(), deletionIds);
+						DAOFactoryHolder.getDAOFactory().getLogicalFileDAO().deleteAssociatedPFs(getEnvironmentId(), deletionIds);
 					}
 
 					// call DAO to add/update
 					if (daoList.size() > 0) {
-						daoList = DAOFactoryHolder.getDAOFactory()
-								.getLogicalFileDAO().persistAssociatedPFs(daoList,id);
+						daoList = DAOFactoryHolder.getDAOFactory().getLogicalFileDAO().persistAssociatedPFs(daoList,id);
 						for (FileAssociationTransfer assocTrans : daoList) {
 							FileAssociation fileAssoc = map.get(assocTrans);
 							fileAssoc.setObjectFromTransfer(assocTrans);
@@ -371,8 +367,7 @@ public class LogicalFile extends SAFREnvironmentalComponent {
 
 				} catch (DAOUOWInterruptedException e) {
 					// UOW interrupted so retry it
-					if (DAOFactoryHolder.getDAOFactory().getDAOUOW()
-							.isMultiComponentScope()) {
+					if (DAOFactoryHolder.getDAOFactory().getDAOUOW().isMultiComponentScope()) {
 						throw e;
 					} else {
 						continue;

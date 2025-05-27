@@ -31,6 +31,10 @@ public abstract class SAFRQueryBean implements Comparable<SAFRQueryBean> {
 	private Date modifyTime;
 	private String modifyBy;
 	private ComponentType componentType;
+	
+	public SAFRQueryBean() {
+		
+	}
 
 	/**
 	 * Parameterized constructor to initialize values.
@@ -53,6 +57,10 @@ public abstract class SAFRQueryBean implements Comparable<SAFRQueryBean> {
 
 	public String getName() {
 		return name;
+	}
+	
+	public void setName(String n) {
+		name = n;
 	}
 
 	public String getNameLabel() {

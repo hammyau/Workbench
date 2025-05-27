@@ -20,6 +20,8 @@ package com.ibm.safr.we.data.transfer;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * An abstract class providing a common type reference for all data transfer
  * objects.
@@ -27,6 +29,7 @@ import java.util.Date;
 public abstract class SAFRTransfer {
 
 	// indicates whether the object is already persistent
+	@JsonIgnore
 	private boolean persistent=true;
 
 	// common fields set by the user
@@ -39,9 +42,11 @@ public abstract class SAFRTransfer {
 	private String modifyBy;
 
 	//indicates whether the object is used for Import.
+	@JsonIgnore
 	private boolean forImport=false; 
 	
 	//CQ9682 indicates the object is to be migrated
+	@JsonIgnore
 	private boolean forMigration = false;
 
 	public Boolean isPersistent() {
@@ -108,6 +113,7 @@ public abstract class SAFRTransfer {
 		this.forMigration = forMigration;
 	}
 	
+	@JsonIgnore
 	public boolean isForImportOrMigration() {
 		return isForImport() || isForMigration();
 	}

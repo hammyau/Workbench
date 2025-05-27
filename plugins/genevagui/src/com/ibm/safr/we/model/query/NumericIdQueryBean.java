@@ -23,6 +23,10 @@ import java.util.Date;
 public abstract class NumericIdQueryBean extends SAFRQueryBean {
 
 	private Integer id;
+	
+	public NumericIdQueryBean() {
+		
+	}
 
 	public NumericIdQueryBean(Integer id, String name, Date createTime,
 			String createBy, Date modifyTime, String modifyBy) {
@@ -32,6 +36,10 @@ public abstract class NumericIdQueryBean extends SAFRQueryBean {
 
 	public Integer getId() {
 		return id;
+	}
+	
+	public void setId(int i) {
+		id = i;
 	}
 
 	public String getIdLabel() {

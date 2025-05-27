@@ -68,8 +68,7 @@ public class SplashHandler extends EclipseSplashHandler {
 	public void init(Shell splash) {
 		super.init(splash);
 
-		ImageDescriptor descriptor = AbstractUIPlugin
-				.imageDescriptorFromPlugin("GenevaERS", ImageKeys.ABOUT_SAFR);
+		ImageDescriptor descriptor = AbstractUIPlugin.imageDescriptorFromPlugin("GenevaERS", ImageKeys.ABOUT_SAFR);
 		if (descriptor != null)
 			image = descriptor.createImage();
 
@@ -93,12 +92,10 @@ public class SplashHandler extends EclipseSplashHandler {
 
 		// logon should be called after this point so it doesn't interrupt the
 		// splash screen
-		SAFRConnectionManager CManager = new SAFRConnectionManager(Display
-				.getCurrent().getActiveShell());
+		SAFRConnectionManager CManager = new SAFRConnectionManager(Display.getCurrent().getActiveShell());
 		// Check whether connection settings are already saved.
 		try {
-			if (!(SAFRPreferences.getSAFRPreferences()
-					.nodeExists(UserPreferencesNodes.SAVED_CONNECTION))) {
+			if (!(SAFRPreferences.getSAFRPreferences().nodeExists(UserPreferencesNodes.SAVED_CONNECTION))) {
 				if (CManager.open() == IDialogConstants.CANCEL_ID) {
 					WorkbenchPlugin.unsetSplashShell(Display.getCurrent());
 					System.exit(0);
@@ -113,39 +110,42 @@ public class SplashHandler extends EclipseSplashHandler {
         String pass=null;
         String env=null;
         String grp=null;
+        boolean yaml=false;
 		String args[]=  Platform.getCommandLineArgs();
 		int i=0;
-		while (i < args.length-1) {
+		while (i < args.length) {
 		    if (args[i].equalsIgnoreCase("-usr")) {
                 i++;
 		        user = args[i++];
-		        continue;
 		    }
 		    else if (args[i].equalsIgnoreCase("-pass")) {
                 i++;
                 pass = args[i++];
-                continue;
             }
             else if (args[i].equalsIgnoreCase("-env")) {
                 i++;
                 env = args[i++];
-                continue;
             }
             else if (args[i].equalsIgnoreCase("-grp")) {
                 i++;
                 grp = args[i++];
-                continue;
+            }
+            else if (args[i].equalsIgnoreCase("-yaml")) {
+                i++;
+                yaml=true;
             }
 		    i++;
 		}
 		
-		if (user == null || env==null) {
+		if(yaml) {
+			yamlLogin();
+		} else if (user == null || env==null) {
 			// do the login before loading the workbench
 			SAFRLogin login = new SAFRLogin(Display.getCurrent().getActiveShell());
 			int returnCode;
 			returnCode = login.open();
 			if (returnCode == IDialogConstants.CANCEL_ID) {
-				// user canceled login
+				 //user canceled login
 				WorkbenchPlugin.unsetSplashShell(Display.getCurrent());
 				System.exit(0);
 			}			
@@ -153,13 +153,54 @@ public class SplashHandler extends EclipseSplashHandler {
 		else {
 			// grab settings from parameters
 			try {
-				login(user, pass, env, grp);
+				if(!yaml) {
+					login(user, pass, env, grp);
+				}
 			} catch (Exception e) {
 				UIUtilities.handleWEExceptions(e,"Error logging in.", null);				
 				System.exit(0);
 			}
 		}
 		
+	}
+
+	private boolean yamlLogin() {
+	    SAFRLogger.logAllStamp(logger, Level.INFO, "====== START GenevaERS WORKBENCH SESSION ======");
+	    SAFRLogger.logAllStamp(logger, Level.INFO, "Workbench Eclipse (WE) " + UIUtilities.getVersionDetails().split("\n")[0]);
+		
+		// Check if the supplied user exists and the password is correct
+		User currentUser = new User(System.getProperty("user.name"));
+		//currentUser = SAFRApplication.getSAFRFactory().getUser(userID.toUpperCase());
+		currentUser.setSystemAdmin(true);
+	
+
+		Environment currentEnv = new Environment(); //SAFRApplication.getSAFRFactory().getEnvironment(1);
+
+		SAFRApplication.setUserSession(new UserSession(currentUser, currentEnv, null));
+		
+		// log the SAFR user, Environment and Group
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("GenevaERS Login Details:");
+		buffer.append(SAFRUtilities.LINEBREAK + "GenevaERS Userid  "
+				+ currentUser.getUserid());
+		buffer.append(SAFRUtilities.LINEBREAK + "Environment  "
+				+ currentEnv.getDescriptor());
+		if (currentUser.isSystemAdmin()) {
+			buffer.append(SAFRUtilities.LINEBREAK
+					+ "Group        [not applicable]");
+		}
+		if (currentUser.isSystemAdmin()) {
+			buffer.append(SAFRUtilities.LINEBREAK + "Authority    System administrator");
+		}
+		SAFRLogger.logAllStamp(logger, Level.INFO, buffer.toString());
+
+		String version= "Fix me";
+		if (version != null)
+		{
+		    SAFRLogger.logAll(logger, Level.INFO, "Compiler version is " + version);
+		}
+		
+		return true;
 	}
 
 	public boolean login(String userID, String pass, String env, String group) throws SAFRException {

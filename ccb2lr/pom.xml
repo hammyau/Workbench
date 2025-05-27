@@ -33,7 +33,7 @@ under the License.
   <url>http://org.genevaers</url>
 
   <parent>
-    <version>4.21.1</version>
+    <version>5.0.0</version>
     <groupId>org.genevaers</groupId>
     <artifactId>wb</artifactId>
   </parent>

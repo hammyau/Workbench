@@ -190,8 +190,7 @@ public class SAFRQuery {
 	 */
 	static public List<ViewFolderQueryBean> queryAllViewFolders(
 			Integer environmentId, SortType sortType) throws DAOException {
-		return DAOFactoryHolder.getDAOFactory().getViewFolderDAO()
-				.queryAllViewFolders(environmentId, sortType);
+		return DAOFactoryHolder.getDAOFactory().getViewFolderDAO().queryAllViewFolders(environmentId, sortType);
 	}
 
 	/**
@@ -880,8 +879,7 @@ public class SAFRQuery {
 	 * @return
 	 * @throws DAOException
 	 */
-	static public List<EnvComponentQueryBean> queryComponentsInEnvironments(Integer id,
-			ComponentType type) throws DAOException {
+	static public List<EnvComponentQueryBean> queryComponentsInEnvironments(Integer id,	ComponentType type) throws DAOException {
 		return DAOFactoryHolder.getDAOFactory().getEnvironmentDAO().queryComponentEnvironments(id, type);
 	}
 	

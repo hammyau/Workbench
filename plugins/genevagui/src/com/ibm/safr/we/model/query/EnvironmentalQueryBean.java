@@ -26,6 +26,10 @@ public abstract class EnvironmentalQueryBean extends NumericIdQueryBean {
 
 	private Integer environmentId;
 	private EditRights rights;
+	
+	public EnvironmentalQueryBean() {
+		
+	}
 
 	public EnvironmentalQueryBean(Integer environmentId, Integer id,
 			String name, EditRights rights,

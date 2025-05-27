@@ -1,4 +1,4 @@
-package com.ibm.safr.we.data;
+package com.ibm.safr.we.internal.data;
 
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
@@ -18,8 +18,31 @@ package com.ibm.safr.we.data;
  */
 
 
-public enum DBType {
-	Db2,
-	PostgresQL,
-	YAML
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import com.ibm.safr.we.data.DAOException;
+import com.ibm.safr.we.data.DAOFactoryHolder;
+import com.ibm.safr.we.data.DAOUOW;
+import com.ibm.safr.we.data.DataUtilities;
+
+/**
+ * A DB2 specific implementation of DAOUOW, based on the singleton pattern.
+ * 
+ */
+public class YAMLDAOUOW extends DAOUOW {
+
+	// Package private ctor to restrict instantiation to dao factory.
+	YAMLDAOUOW() {
+	}
+
+	protected void doBegin() throws DAOException {
+	}
+
+	protected void doEnd() throws DAOException {
+	}
+
+	protected void doFail() throws DAOException {
+	}
+
 }

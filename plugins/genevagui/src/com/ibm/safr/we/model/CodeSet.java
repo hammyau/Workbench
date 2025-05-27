@@ -34,6 +34,9 @@ public class CodeSet extends SAFRObject {
 	private String codeCategory;
 	private List<Code> codes;
 
+	public CodeSet() {
+		
+	}
 	/**
 	 * Create an CodeSet object.
 	 * 

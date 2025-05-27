@@ -194,6 +194,8 @@ public class SAFRConnectionManager extends TitleAreaDialog implements Listener {
         databaseType.setText("Db2");
         databaseType.add("PostgresQL");
         databaseType.setText("PostgresQL");
+        databaseType.add("YAML");
+        databaseType.setText("YAML");
     
         GridData gridCombo = new GridData(SWT.FILL, SWT.FILL, true, true);
         databaseType.setLayoutData(gridCombo);
@@ -430,30 +432,33 @@ public class SAFRConnectionManager extends TitleAreaDialog implements Listener {
 			databaseType.setFocus();
 			setErrorMessage("Please enter database type");
 			return false;
-		} else if (databaseName.getText() == "") {
-			databaseName.setFocus();
-			setErrorMessage("Please enter database name");
-			return false;
-		} else if (server.getText() == "") {
-			server.setFocus();
-			setErrorMessage("Please enter server");
-			return false;
-		} else if (port.getText() == "") {
-			port.setFocus();
-			setErrorMessage("Please enter port");
-			return false;
-		} else if (schema.getText() == "") {
-			schema.setFocus();
-			setErrorMessage("Please enter schema");
-			return false;
-		} else if (userid.getText() == "") {
-			userid.setFocus();
-			setErrorMessage("Please enter userID");
-			return false;
-		} else if (pswd.getText() == "") {
-			pswd.setFocus();
-			setErrorMessage("please enter password");
-			return false;
+		}
+		if(!databaseType.getText().equals("YAML")) {
+			if (databaseName.getText() == "") {
+				databaseName.setFocus();
+				setErrorMessage("Please enter database name");
+				return false;
+			} else if (server.getText() == "") {
+				server.setFocus();
+				setErrorMessage("Please enter server");
+				return false;
+			} else if (port.getText() == "") {
+				port.setFocus();
+				setErrorMessage("Please enter port");
+				return false;
+			} else if (schema.getText() == "") {
+				schema.setFocus();
+				setErrorMessage("Please enter schema");
+				return false;
+			} else if (userid.getText() == "") {
+				userid.setFocus();
+				setErrorMessage("Please enter userID");
+				return false;
+			} else if (pswd.getText() == "") {
+				pswd.setFocus();
+				setErrorMessage("please enter password");
+				return false;
+			}
 		}
 
 		return true;

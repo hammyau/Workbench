@@ -29,6 +29,8 @@ import com.ibm.safr.we.SAFRUtilities;
 import com.ibm.safr.we.constants.UserPreferencesNodes;
 import com.ibm.safr.we.internal.data.DB2DAOFactory;
 import com.ibm.safr.we.internal.data.PGDAOFactory;
+import com.ibm.safr.we.internal.data.YAMLDAOFactory;
+import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.preferences.SAFRPreferences;
 
 public class DAOFactoryHolder {
@@ -39,76 +41,78 @@ public class DAOFactoryHolder {
     static DAOFactory backupDaoFactory = null;
 
 	static void initWithPreferences() throws DAOException {
-		// Get Connection settings from preferences
-		Preferences preferences = SAFRPreferences.getDefaultConnectionPreferences();
-		if (preferences == null) {
-			throw new NullPointerException(
-					"User Preferences file for connection is either absent or corrupted.");
-		}
-		Preferences connection = preferences;
-		try {
-
-			ConnectionParameters params = new ConnectionParameters();
-			String dbtype = connection.get(UserPreferencesNodes.DATABASETYPE, "");
-			String enableSSL = SAFRPreferences.getSAFRPreferences().get(UserPreferencesNodes.ENABLE_SSL, "");
-			if (dbtype != null && dbtype.length()>0) {
-			    params.setType(DBType.valueOf(dbtype));
+//		if(!SAFRApplication.getUserSession().getUser().getUserid().equals(System.getProperty("user.name")) ) {
+			// Get Connection settings from preferences
+			Preferences preferences = SAFRPreferences.getDefaultConnectionPreferences();
+			if (preferences == null) {
+				throw new NullPointerException(
+						"User Preferences file for connection is either absent or corrupted.");
 			}
-			if(params.getType() == DBType.Db2) {
-				String url = "jdbc:"
-						+ connection.get(UserPreferencesNodes.DATABASETYPE, "")
-								.toLowerCase() + "://"
-						+ connection.get(UserPreferencesNodes.SERVER, "") + ":"
-						+ connection.get(UserPreferencesNodes.PORT, "") + "/"
-						+ connection.get(UserPreferencesNodes.DATABASENAME, "");
-				if(enableSSL.equalsIgnoreCase("Y")) {
-					String trustStore = SAFRPreferences.getSAFRPreferences().get(UserPreferencesNodes.SSL_TRUST_STORELOCATION, "");
-					url += ":sslConnection=true;sslTrustStoreLocation=" + trustStore + ";";
-				}
-						// Uncomment for JDBC trace 
-	/*            		+ ":traceDirectory=c:\\temp"
-	            		+ ";traceFile=trace"
-	            		+ ";traceFileAppend=false"
-	            		+ ";traceLevel=" + com.ibm.db2.jcc.DB2BaseDataSource.TRACE_STATEMENT_CALLS + ";";*/
+			Preferences connection = preferences;
+			try {
 	
-				params.setUrl(url);
-	
-				params.setDatabase(connection.get(
-						UserPreferencesNodes.DATABASENAME, ""));
-				params.setPort(connection.get(UserPreferencesNodes.PORT, ""));
-				params.setServer(connection.get(UserPreferencesNodes.SERVER, ""));
-	
-				params.setSchema(connection.get(UserPreferencesNodes.SCHEMA, ""));
-				params.setUserName(connection.get(UserPreferencesNodes.USERID, ""));
-				params.setPassWord(SAFRUtilities.decrypt(connection.get(UserPreferencesNodes.PD, "")));
-			} else if(params.getType() == DBType.PostgresQL) {
+				ConnectionParameters params = new ConnectionParameters();
+				String dbtype = connection.get(UserPreferencesNodes.DATABASETYPE, "");
+				String enableSSL = SAFRPreferences.getSAFRPreferences().get(UserPreferencesNodes.ENABLE_SSL, "");
 				if (dbtype != null && dbtype.length()>0) {
 				    params.setType(DBType.valueOf(dbtype));
 				}
-				String url = "jdbc:"
-						+ connection.get(UserPreferencesNodes.DATABASETYPE, "")
-								.toLowerCase() + "://"
-						+ connection.get(UserPreferencesNodes.SERVER, "") + ":"
-						+ connection.get(UserPreferencesNodes.PORT, "") + "/"
-						+ connection.get(UserPreferencesNodes.DATABASENAME, "") + "?currentSchema="
-						+ connection.get(UserPreferencesNodes.SCHEMA, "");
-
-				params.setUrl(url);
-
-				params.setDatabase(connection.get(
-						UserPreferencesNodes.DATABASENAME, ""));
-				params.setPort(connection.get(UserPreferencesNodes.PORT, ""));
-				params.setServer(connection.get(UserPreferencesNodes.SERVER, ""));
-
-				params.setSchema(connection.get(UserPreferencesNodes.SCHEMA, ""));
-				params.setUserName(connection.get(UserPreferencesNodes.USERID, ""));				
-			}
-			genDAOFactory(params);
-
-		} catch (IllegalStateException e) {
-			throw new IllegalStateException(
-					"User Preferences file for connection is either absent or corrupted.");
-		}
+				if(params.getType() == DBType.Db2) {
+					String url = "jdbc:"
+							+ connection.get(UserPreferencesNodes.DATABASETYPE, "")
+									.toLowerCase() + "://"
+							+ connection.get(UserPreferencesNodes.SERVER, "") + ":"
+							+ connection.get(UserPreferencesNodes.PORT, "") + "/"
+							+ connection.get(UserPreferencesNodes.DATABASENAME, "");
+					if(enableSSL.equalsIgnoreCase("Y")) {
+						String trustStore = SAFRPreferences.getSAFRPreferences().get(UserPreferencesNodes.SSL_TRUST_STORELOCATION, "");
+						url += ":sslConnection=true;sslTrustStoreLocation=" + trustStore + ";";
+					}
+							// Uncomment for JDBC trace 
+		/*            		+ ":traceDirectory=c:\\temp"
+		            		+ ";traceFile=trace"
+		            		+ ";traceFileAppend=false"
+		            		+ ";traceLevel=" + com.ibm.db2.jcc.DB2BaseDataSource.TRACE_STATEMENT_CALLS + ";";*/
+		
+					params.setUrl(url);
+		
+					params.setDatabase(connection.get(
+							UserPreferencesNodes.DATABASENAME, ""));
+					params.setPort(connection.get(UserPreferencesNodes.PORT, ""));
+					params.setServer(connection.get(UserPreferencesNodes.SERVER, ""));
+		
+					params.setSchema(connection.get(UserPreferencesNodes.SCHEMA, ""));
+					params.setUserName(connection.get(UserPreferencesNodes.USERID, ""));
+					params.setPassWord(SAFRUtilities.decrypt(connection.get(UserPreferencesNodes.PD, "")));
+				} else if(params.getType() == DBType.PostgresQL) {
+					if (dbtype != null && dbtype.length()>0) {
+					    params.setType(DBType.valueOf(dbtype));
+					}
+					String url = "jdbc:"
+							+ connection.get(UserPreferencesNodes.DATABASETYPE, "")
+									.toLowerCase() + "://"
+							+ connection.get(UserPreferencesNodes.SERVER, "") + ":"
+							+ connection.get(UserPreferencesNodes.PORT, "") + "/"
+							+ connection.get(UserPreferencesNodes.DATABASENAME, "") + "?currentSchema="
+							+ connection.get(UserPreferencesNodes.SCHEMA, "");
+	
+					params.setUrl(url);
+	
+					params.setDatabase(connection.get(
+							UserPreferencesNodes.DATABASENAME, ""));
+					params.setPort(connection.get(UserPreferencesNodes.PORT, ""));
+					params.setServer(connection.get(UserPreferencesNodes.SERVER, ""));
+	
+					params.setSchema(connection.get(UserPreferencesNodes.SCHEMA, ""));
+					params.setUserName(connection.get(UserPreferencesNodes.USERID, ""));				
+				}
+				genDAOFactory(params);
+	
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(
+						"User Preferences file for connection is either absent or corrupted.");
+			} 
+		//}
 	}
 
 	public static void initWithPropertiesFile(InputStream file) throws DAOException {
@@ -245,6 +249,8 @@ public class DAOFactoryHolder {
 				daoFactory = new DB2DAOFactory(params);
 			}else if (params.getType() == DBType.PostgresQL) {
 				daoFactory = new PGDAOFactory(params);
+			}else if(params.getType() == DBType.YAML) {
+				daoFactory = new YAMLDAOFactory(params);
 			} else {
 				logger.severe("Invalid Database type" + params.getType().toString());
 				throw new DAOException("Invalid Database type");

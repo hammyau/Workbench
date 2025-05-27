@@ -166,13 +166,9 @@ public class ControlRecord extends SAFREnvironmentalComponent {
 		// CQ 7329 Kanchan Rauthan 03/03/2010 To show error if control record is
 		// already deleted from database and user still tries to save it.
 		try {
-			trans = DAOFactoryHolder.getDAOFactory().getControlRecordDAO()
-					.persistControlRecord(trans);
-
+			trans = DAOFactoryHolder.getDAOFactory().getControlRecordDAO().persistControlRecord(trans);
 			setObjectData(trans);
-			
-	        SAFRApplication.getModelCount().incCount(this.getClass(), 1);			
-
+			SAFRApplication.getModelCount().incCount(this.getClass(), 1);			
 		} catch (SAFRNotFoundException snfe) {
 			throw new SAFRException(
 					"The control record with id "

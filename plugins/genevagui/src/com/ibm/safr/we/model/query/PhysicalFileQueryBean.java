@@ -36,6 +36,10 @@ public class PhysicalFileQueryBean extends EnvironmentalQueryBean {
     private String inputDSN;
     private String outputDD;
     
+	public PhysicalFileQueryBean() {
+	}
+    
+    
 	/**
 	 *Parameterized constructor to initialize values
 	 */

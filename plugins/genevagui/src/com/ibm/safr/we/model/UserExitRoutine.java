@@ -486,8 +486,7 @@ public class UserExitRoutine extends SAFREnvironmentalComponent {
                     .makeViewsInactive(deactivatedViewList, getEnvironmentId());
             }
 		    
-			trans = DAOFactoryHolder.getDAOFactory().getUserExitRoutineDAO()
-					.persistUserExitRoutine(trans);
+			trans = DAOFactoryHolder.getDAOFactory().getUserExitRoutineDAO().persistUserExitRoutine(trans);
 			setObjectData(trans);
 			
 			if (isForMigration()) {

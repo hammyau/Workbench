@@ -19,7 +19,10 @@ package com.ibm.safr.we.ui.dialogs;
 
 import org.genevaers.ccb2lr.Copybook2LR;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -65,6 +68,9 @@ import com.ibm.safr.we.data.DBType;
 import com.ibm.safr.we.exceptions.SAFRException;
 import com.ibm.safr.we.exceptions.SAFRFatalException;
 import com.ibm.safr.we.exceptions.SAFRNotFoundException;
+import com.ibm.safr.we.internal.data.YAMLDAOFactory;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLizer;
+import com.ibm.safr.we.model.CodeSet;
 import com.ibm.safr.we.model.Environment;
 import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.model.User;
@@ -407,11 +413,18 @@ public class SAFRLogin extends TitleAreaDialog {
                     manageConnections.setEnabled(false);                    
 
                     try {
-                		if(currentUser.isSystemAdmin()) {
+                    	if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+                			SAFRLogger.logAll(logger, Level.INFO, "YAML environments to come");
+                            preferences.setLastUser(userID.getText());
+        					//saveAndClose(IDialogConstants.PROCEED_ID);
                 			handleSysAdminEnvironmentSelectionEvent(environmentSelectionEvent.SYSADMIN_SELECTION_INIT);
-                		} else {
-                			handleUserSelectionEvent(environmentSelectionEvent.ENV_SELECTION_INIT);
-                		}
+                    	} else {
+	                		if(currentUser.isSystemAdmin()) {
+	                			handleSysAdminEnvironmentSelectionEvent(environmentSelectionEvent.SYSADMIN_SELECTION_INIT);
+	                		} else {
+	                			handleUserSelectionEvent(environmentSelectionEvent.ENV_SELECTION_INIT);
+	                		}
+                    	}
                         
                         // Store the current user id to preferences
                         preferences.setLastUser(userID.getText());
@@ -426,6 +439,7 @@ public class SAFRLogin extends TitleAreaDialog {
                 }
                 ApplicationMediator.getAppMediator().normalCursor();                
             }
+
         });
         
         reset.addSelectionListener(new SelectionAdapter() {
@@ -522,8 +536,7 @@ public class SAFRLogin extends TitleAreaDialog {
 	protected boolean populateEnvironmentAndCheckDefaulted() throws DAOException, SAFRException {
 		boolean defaulted = false;
 		List<EnvironmentQueryBean> envList = new ArrayList<EnvironmentQueryBean>();
-		envList = SAFRQuery.queryAllEnvironments(SortType.SORT_BY_NAME,
-				currentUser);
+		envList = SAFRQuery.queryAllEnvironments(SortType.SORT_BY_NAME,	currentUser);
 		EnvironmentQueryBean curEnv;
 
 		User user = currentUser;
@@ -533,8 +546,7 @@ public class SAFRLogin extends TitleAreaDialog {
 				defaultenv = user.getDefaultEnvironment().getId();
 			}
 		} catch (SAFRException se) {
-			UIUtilities.handleWEExceptions(se,
-					"Error populating the default Environment.", null);
+			UIUtilities.handleWEExceptions(se, "Error populating the default Environment.", null);
 		}
 		ListIterator<EnvironmentQueryBean> iterator = envList.listIterator();
 		comboEnvViewer.setInput(envList);
@@ -701,7 +713,9 @@ public class SAFRLogin extends TitleAreaDialog {
 	private Boolean checkUser() {
 		String utext = userID.getText().trim();
 		String spversion = "";
-		if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.Db2) {
+		if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+			userID.setText(System.getProperty("user.name"));			
+		}else if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.Db2) {
 			userID.setText(utext.toUpperCase());
 		} else {
 			userID.setText(utext);			
@@ -714,7 +728,10 @@ public class SAFRLogin extends TitleAreaDialog {
 		try {
 			//Basing this on the connection name is wrong
 			//We should be getting it from say the parms/Preferences?
-			if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.PostgresQL) {
+			if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+				currentUser = new User(System.getProperty("user.name"));	
+				currentUser.setSystemAdmin(true);
+			} else if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.PostgresQL) {
 				ConnectionParameters conParms = DAOFactoryHolder.getDAOFactory().getConnectionParameters();
 				conParms.setUserName(userID.getText());
 				conParms.setPassWord(pswd.getText());
@@ -750,26 +767,31 @@ public class SAFRLogin extends TitleAreaDialog {
 		}		
 
 		// log stored procedure version
-		try {
-		    spversion = SAFRApplication.getStoredProcedureVersion();
-		    SAFRLogger.logAll(logger, Level.INFO, "Stored Procedure Version is " + spversion);
-        } catch (SAFRException e) {
-            logger.log(Level.SEVERE, "Stored Procedure Version is unavailable", e);
-        }
-
-		int result = checkSPVersion(spversion);
-        if (result == SWT.YES) {
+		if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+		    SAFRLogger.logAll(logger, Level.INFO, "YAML Login - no stored procedures");				
             return true;
-        } else {
-            logger.log(Level.SEVERE, "Stored Procedure Version is invalid");
-            MessageBox errorMsg = new MessageBox(getShell(), SWT.ERROR
-                    | SWT.OK);
-            errorMsg.setMessage("Version: " + spversion + " is invalid.\nPlease contact your GenevaERS Support Team.");
-            errorMsg.setText("Stored Procedures");
-            errorMsg.open();
-            System.exit(0);
-			return false;
-        }
+		} else {
+			try {
+			    spversion = SAFRApplication.getStoredProcedureVersion();
+			    SAFRLogger.logAll(logger, Level.INFO, "Stored Procedure Version is " + spversion);
+	        } catch (SAFRException e) {
+	            logger.log(Level.SEVERE, "Stored Procedure Version is unavailable", e);
+	        }
+	
+			int result = checkSPVersion(spversion);
+	        if (result == SWT.YES) {
+	            return true;
+	        } else {
+	            logger.log(Level.SEVERE, "Stored Procedure Version is invalid");
+	            MessageBox errorMsg = new MessageBox(getShell(), SWT.ERROR
+	                    | SWT.OK);
+	            errorMsg.setMessage("Version: " + spversion + " is invalid.\nPlease contact your GenevaERS Support Team.");
+	            errorMsg.setText("Stored Procedures");
+	            errorMsg.open();
+	            System.exit(0);
+				return false;
+	        }
+		}
 	}
 
 	private int checkSPVersion(String spversion) {

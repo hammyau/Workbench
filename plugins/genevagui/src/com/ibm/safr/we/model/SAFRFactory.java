@@ -31,6 +31,7 @@ import com.ibm.safr.we.constants.EditRights;
 import com.ibm.safr.we.constants.SAFRValidationType;
 import com.ibm.safr.we.data.DAOException;
 import com.ibm.safr.we.data.DAOFactoryHolder;
+import com.ibm.safr.we.data.DBType;
 import com.ibm.safr.we.data.transfer.CodeTransfer;
 import com.ibm.safr.we.data.transfer.ControlRecordTransfer;
 import com.ibm.safr.we.data.transfer.DependentComponentTransfer;
@@ -53,6 +54,7 @@ import com.ibm.safr.we.exceptions.SAFRDependencyException;
 import com.ibm.safr.we.exceptions.SAFRException;
 import com.ibm.safr.we.exceptions.SAFRNotFoundException;
 import com.ibm.safr.we.exceptions.SAFRValidationException;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLCodeSetDAO;
 import com.ibm.safr.we.model.associations.ComponentAssociation;
 import com.ibm.safr.we.model.base.SAFREnvironmentalComponent;
 import com.ibm.safr.we.model.base.SAFRObject;
@@ -133,8 +135,7 @@ public class SAFRFactory extends SAFRObject {
 
 		Environment env = null;
 		EnvironmentTransfer envTransfer = null;
-		envTransfer = DAOFactoryHolder.getDAOFactory().getEnvironmentDAO()
-				.getEnvironment(id);
+		envTransfer = DAOFactoryHolder.getDAOFactory().getEnvironmentDAO().getEnvironment(id);
 		if (envTransfer == null) {
 			throw new SAFRNotFoundException("Environment '" + id
 					+ "' not found.");
@@ -382,45 +383,50 @@ public class SAFRFactory extends SAFRObject {
 	 */
 	public Map<String, CodeSet> getAllCodeSets() throws SAFRException {
 		if (codeSets == null) {
-			List<CodeTransfer> allCodes;
-			Map<String, CodeSet> codeSetMap = new HashMap<String, CodeSet>();
-			try {
-				allCodes = DAOFactoryHolder.getDAOFactory().getCodeSetDAO()
-						.getAllCodeSets();
-
-				if (allCodes == null || allCodes.isEmpty()) {
-					throw new SAFRNotFoundException(
-							"No codes are in code table.");
-				}
-
-				List<CodeTransfer> tmpList = new ArrayList<CodeTransfer>();
-				// Store the first category to temporary string
-				String tmpCategory = ((CodeTransfer) allCodes.get(0))
-						.getCodeCategory();
-
-				for (CodeTransfer ct : allCodes) {
-					if (!ct.getCodeCategory().equals(tmpCategory)) {
-						// category changed, add to cache.
-						CodeSet tmpCodeSet = new CodeSet(tmpCategory, tmpList);
-						codeSetMap.put(tmpCategory, tmpCodeSet);
-						tmpCategory = ct.getCodeCategory();
-						tmpList.clear();
+			if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+				this.codeSets = new YAMLCodeSetDAO(DAOFactoryHolder.getDAOFactory().getConnection(),
+						DAOFactoryHolder.getDAOFactory().getConnectionParameters(),
+						DAOFactoryHolder.getDAOFactory().getSAFRLogin()).getCodeSetsMap();
+			} else {
+				List<CodeTransfer> allCodes;
+				Map<String, CodeSet> codeSetMap = new HashMap<String, CodeSet>();
+				try {
+					allCodes = DAOFactoryHolder.getDAOFactory().getCodeSetDAO().getAllCodeSets();
+	
+					if (allCodes == null || allCodes.isEmpty()) {
+						throw new SAFRNotFoundException(
+								"No codes are in code table.");
 					}
-					tmpList.add(ct);
+	
+					List<CodeTransfer> tmpList = new ArrayList<CodeTransfer>();
+					// Store the first category to temporary string
+					String tmpCategory = ((CodeTransfer) allCodes.get(0))
+							.getCodeCategory();
+	
+					for (CodeTransfer ct : allCodes) {
+						if (!ct.getCodeCategory().equals(tmpCategory)) {
+							// category changed, add to cache.
+							CodeSet tmpCodeSet = new CodeSet(tmpCategory, tmpList);
+							codeSetMap.put(tmpCategory, tmpCodeSet);
+							tmpCategory = ct.getCodeCategory();
+							tmpList.clear();
+						}
+						tmpList.add(ct);
+					}
+					// if the tmpList is not empty (would be for last category) then
+					// add
+					// to the return list
+					if (!tmpList.isEmpty()) {
+						codeSetMap.put(tmpCategory, new CodeSet(tmpCategory,
+								tmpList));
+					}
+				} catch (DAOException de) {
+					throw de;
+				} catch (Exception e) {
+					SAFRLogger.logAllSeparator(logger, Level.INFO, "Exception " + e.getMessage());
 				}
-				// if the tmpList is not empty (would be for last category) then
-				// add
-				// to the return list
-				if (!tmpList.isEmpty()) {
-					codeSetMap.put(tmpCategory, new CodeSet(tmpCategory,
-							tmpList));
-				}
-			} catch (DAOException de) {
-				throw de;
-			} catch (Exception e) {
-				SAFRLogger.logAllSeparator(logger, Level.INFO, "Exception " + e.getMessage());
+				this.codeSets = codeSetMap;
 			}
-			this.codeSets = codeSetMap;
 		}
 		return this.codeSets;
 	}
@@ -685,8 +691,7 @@ public class SAFRFactory extends SAFRObject {
 			throws SAFRException {
 		LogicalFile logicalFile = null;
 		LogicalFileTransfer logicalFileTransfer = null;
-		logicalFileTransfer = DAOFactoryHolder.getDAOFactory()
-				.getLogicalFileDAO().getLogicalFile(id, environId);
+		logicalFileTransfer = DAOFactoryHolder.getDAOFactory().getLogicalFileDAO().getLogicalFile(id, environId);
 
 		if (logicalFileTransfer == null) {
 			throw new SAFRNotFoundException("Logical File '" + id

@@ -30,6 +30,9 @@ public class Code extends SAFRObject {
 	private String description;
 	private Integer generalId;
 
+	public Code() {
+		
+	}
 	/**
 	 * Create an Code object.
 	 * 
