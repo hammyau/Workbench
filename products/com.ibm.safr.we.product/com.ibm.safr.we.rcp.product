@@ -17,7 +17,7 @@ under the License.
 -->
 <?pde version="3.5"?>
 
-<product name="GenevaERS" uid="wb" id="GenevaERS.product" application="GenevaERS.application" version="4.21" useFeatures="false" includeLaunchers="true">
+<product name="GenevaERS" uid="wb" id="GenevaERS.product" application="GenevaERS.application" version="5.0" useFeatures="false" includeLaunchers="true">
 
 
    <configIni use="default">

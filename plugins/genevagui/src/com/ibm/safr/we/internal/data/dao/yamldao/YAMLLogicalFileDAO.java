@@ -243,8 +243,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 		return lfBean;
 	}
 
-	public List<LogicalFileQueryBean> queryAllLogicalFiles(
-			Integer environmentId, SortType sortType) throws DAOException {
+	public List<LogicalFileQueryBean> queryAllLogicalFiles(Integer environmentId, SortType sortType) throws DAOException {
 		List<LogicalFileQueryBean> result = new ArrayList<LogicalFileQueryBean>();
 		maxid = 0;
 		Path lfsPath = getLFsPath();

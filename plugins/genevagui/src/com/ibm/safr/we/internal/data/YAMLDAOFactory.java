@@ -40,6 +40,8 @@ import com.ibm.safr.we.internal.data.dao.yamldao.YAMLCodeSetDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLControlRecordDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLEnvironmentDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLogicalFileDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLogicalRecordDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLRFieldDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLPhysicalFileDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLUserExitRoutineDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewFolderDAO;
@@ -158,14 +160,12 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public LogicalRecordDAO getLogicalRecordDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLLogicalRecordDAO(getConnection(), _params, getSAFRLogin());
 	}
 
 	@Override
 	public LRFieldDAO getLRFieldDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLLRFieldDAO(getConnection(), _params, getSAFRLogin());
 	}
 
 	@Override

@@ -784,8 +784,7 @@ public class SAFRFactory extends SAFRObject {
 	public LogicalRecord getLogicalRecord(Integer id, Integer environId) throws SAFRException {
 		LogicalRecord logicalRecord = null;
 		LogicalRecordTransfer logicalRecordTransfer = null;
-		logicalRecordTransfer = DAOFactoryHolder.getDAOFactory()
-				.getLogicalRecordDAO().getLogicalRecord(id, environId);
+		logicalRecordTransfer = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecord(id, environId);
 		if (logicalRecordTransfer == null) {
 			throw new SAFRNotFoundException("Logical Record '" + id
 					+ "' not found.");
@@ -820,9 +819,7 @@ public class SAFRFactory extends SAFRObject {
 	public List<LRField> getLRFields(LogicalRecord parentLR)
 			throws SAFRException {
 		List<LRField> lrfs = new ArrayList<LRField>();
-		List<LRFieldTransfer> lrfts = DAOFactoryHolder.getDAOFactory()
-				.getLRFieldDAO().getLRFields(parentLR.getEnvironmentId(),
-						parentLR.getId());
+		List<LRFieldTransfer> lrfts = DAOFactoryHolder.getDAOFactory().getLRFieldDAO().getLRFields(parentLR.getEnvironmentId(),	parentLR.getId());
 		for (LRFieldTransfer lrft : lrfts) {
 			LRField lrf = new LRField(parentLR, lrft);
 			lrfs.add(lrf);

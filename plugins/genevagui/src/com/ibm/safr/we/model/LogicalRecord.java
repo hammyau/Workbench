@@ -110,8 +110,7 @@ public class LogicalRecord extends SAFRActivatedComponent {
 		this.lrFields.addAll(new SAFRList<LRField>());
 		if (!trans.isForImport()) {
 			// Call the factory to get the list of LR fields
-			logicalFileAssociations = SAFRAssociationFactory
-			    .getLogicalRecordToLogicalFileAssociations(this);
+			logicalFileAssociations = SAFRAssociationFactory.getLogicalRecordToLogicalFileAssociations(this);
 			this.lrFields.addAll(SAFRApplication.getSAFRFactory().getLRFields(this));
 
 			// Append the load warnings of the LR Fields to the loadWarnings

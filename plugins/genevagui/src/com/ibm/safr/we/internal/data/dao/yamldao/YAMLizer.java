@@ -16,6 +16,7 @@ import com.ibm.safr.we.data.transfer.ControlRecordTransfer;
 import com.ibm.safr.we.data.transfer.PhysicalFileTransfer;
 import com.ibm.safr.we.data.transfer.UserExitRoutineTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLogicalFileTransfer;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLogicalRecordTransfer;
 
 public class YAMLizer {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -35,6 +36,8 @@ public class YAMLizer {
         		return yamlMapper.readValue(input.toFile(), PhysicalFileTransfer.class);
         	case LogicalFile:
         		return yamlMapper.readValue(input.toFile(), YAMLLogicalFileTransfer.class);
+        	case LogicalRecord:
+        		return yamlMapper.readValue(input.toFile(), YAMLLogicalRecordTransfer.class);
         	}
         } catch (IOException e) {
             logger.atSevere().log("read coverage failed\n%s", e.getMessage());
