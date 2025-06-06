@@ -1121,9 +1121,7 @@ public class LogicalRecord extends SAFRActivatedComponent {
 					// Save the LR content
 					LogicalRecordTransfer trans = new LogicalRecordTransfer();
 					setTransferData(trans);
-					trans = DAOFactoryHolder.getDAOFactory()
-							.getLogicalRecordDAO().persistLogicalRecord(trans);
-
+					trans = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().persistLogicalRecord(trans);
 					trans.setForImport(isForImport()); // retain import flag
 					setObjectData(trans);
 					savedObjs.add(this);
@@ -1301,11 +1299,8 @@ public class LogicalRecord extends SAFRActivatedComponent {
 		} else {
 			if (!hasIndexFields() && lrIndex != null) {
 				// Index has been removed so delete old content
-				DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO()
-						.removeLRIndexFields(lrIndex.lrIndexId,
-								getEnvironmentId());
-				DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO()
-						.removeLRIndex(lrIndex.lrIndexId, lrIndex.getLrId(), getEnvironmentId());
+				DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().removeLRIndexFields(lrIndex.lrIndexId, getEnvironmentId());
+				DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().removeLRIndex(lrIndex.lrIndexId, lrIndex.getLrId(), getEnvironmentId());
 				this.lrIndex = null;
 			}
 
@@ -1326,12 +1321,9 @@ public class LogicalRecord extends SAFRActivatedComponent {
 				lrIndexTransfer.setEnvironmentId(lrIndex.getEnvId());
 				lrIndexTransfer.setId(lrIndex.lrIndexId);
 				lrIndexTransfer.setLrId(lrIndex.getLrId());
-				lrIndexTransfer.setEffectiveStartDateLRFieldId(lrIndex
-						.getEffStartDateFieldId());
-				lrIndexTransfer.setEffectiveEndDateLRFieldId(lrIndex
-						.getEffEndDateFieldId());
-				lrIndexTransfer = DAOFactoryHolder.getDAOFactory()
-						.getLogicalRecordDAO().persistLRIndex(lrIndexTransfer);
+				lrIndexTransfer.setEffectiveStartDateLRFieldId(lrIndex.getEffStartDateFieldId());
+				lrIndexTransfer.setEffectiveEndDateLRFieldId(lrIndex.getEffEndDateFieldId());
+				lrIndexTransfer = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().persistLRIndex(lrIndexTransfer);
 				this.lrIndex = new LRIndex(lrIndexTransfer.getId());
 
 				// persist any LRIndexField content
@@ -1343,14 +1335,12 @@ public class LogicalRecord extends SAFRActivatedComponent {
 						lrifTrans.setEnvironmentId(lrif.getEnvId());
 						lrifTrans.setAssociationId(0); // insert only, never
 						// update.
-						lrifTrans
-								.setAssociatingComponentId(lrif.getLrIndexId());
+						lrifTrans.setAssociatingComponentId(lrif.getLrIndexId());
 						lrifTrans.setFldSeqNbr(lrif.getFieldSeqNo());
 						lrifTrans.setAssociatedComponentId(lrif.getFieldId());
 						transfers.add(lrifTrans);
 					}
-					DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO()
-							.persistLRIndexFields(transfers);
+					DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().persistLRIndexFields(transfers);
 				}
 			}
 		}

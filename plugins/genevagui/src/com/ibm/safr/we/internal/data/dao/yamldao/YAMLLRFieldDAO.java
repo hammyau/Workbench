@@ -1,5 +1,7 @@
 package com.ibm.safr.we.internal.data.dao.yamldao;
 
+import java.nio.file.Path;
+
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
  * 
@@ -43,6 +45,8 @@ import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.LRFieldDAO;
 import com.ibm.safr.we.data.transfer.LRFieldTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.YAMLDAOFactory;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLogicalRecordTransfer;
 import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.model.query.LogicalRecordFieldQueryBean;
 
@@ -139,6 +143,8 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
 	private Integer effStartdate = 0;
 	private Integer effEndDate = 0;
 	private Map<Integer, Integer> pKey = new HashMap<Integer, Integer>();
+	
+	private static int fieldID = 1;
 
 	// DB constants
 
@@ -229,100 +235,11 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
 	}
 
 	public List<LRFieldTransfer> getLRFields(Integer environmentId,	Integer logicalRecordId) throws DAOException {
-
-		List<LRFieldTransfer> result = new ArrayList<LRFieldTransfer>();
-//
-//		try {
-//			String schema = params.getSchema();
-//
-//			String selectString = "Select A.ENVIRONID, A.LRFIELDID, A.LOGRECID, "
-//			        + "A.NAME, A.DBMSCOLNAME, A.FIXEDSTARTPOS, "
-//					+ "A.ORDINALPOS, A.ORDINALOFFSET, A.REDEFINE, A.COMMENTS, "
-//                    + "A.CREATEDTIMESTAMP, A.CREATEDUSERID, A.LASTMODTIMESTAMP, A.LASTMODUSERID, "                   
-//					+ "B.FLDFMTCD, B.SIGNEDIND, B.MAXLEN, B.DECIMALCNT, B.ROUNDING, "
-//					+ "B.FLDCONTENTCD, B.HDRJUSTIFYCD, B.HDRLINE1, B.HDRLINE2, B.HDRLINE3, "
-//					+ "B.SUBTLABEL, B.SORTKEYLABEL, B.INPUTMASK "
-//					+ "From " 
-//					+ schema+ ".LRFIELD A, "
-//					+ schema+ ".LRFIELDATTR B "
-//					+ "Where A.ENVIRONID = ? "
-//					+ " AND A.LOGRECID = ? "
-//					+ " AND A.ENVIRONID = B.ENVIRONID"
-//					+ " AND A.LRFIELDID = B.LRFIELDID "
-//					+ "Order By A.ORDINALPOS";
-//
-//			PreparedStatement pst1 = null;
-//			ResultSet rs1 = null;
-//			while (true) {
-//				try {
-//					pst1 = con.prepareStatement(selectString);
-//					int i = 1;
-//					pst1.setInt(i++, environmentId);
-//					pst1.setInt(i++, logicalRecordId);
-//					rs1 = pst1.executeQuery();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			String selectString1 = "Select B.EFFDATESTARTFLDID, B.EFFDATEENDFLDID, C.FLDSEQNBR,"
-//					+ " C.LRFIELDID FROM "
-//					+ schema + ".LOGREC A inner join "
-//					+ schema + ".LRINDEX B on A.LOGRECID = B.LOGRECID "
-//					+ "AND A.ENVIRONID = B.ENVIRONID left join "
-//					+ schema + ".LRINDEXFLD C on B.LRINDEXID = C.LRINDEXID "
-//					+ "AND B.ENVIRONID = C.ENVIRONID "
-//					+ "Where A.LOGRECID = ? "
-//					+ "AND A.ENVIRONID = ? ";
-//			PreparedStatement pst2 = null;
-//			ResultSet rs2 = null;
-//			while (true) {
-//				try {
-//					pst2 = con.prepareStatement(selectString1);
-//					int i2 = 1;
-//					pst2.setInt(i2++, logicalRecordId);
-//					pst2.setInt(i2++, environmentId);
-//					rs2 = pst2.executeQuery();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			while (rs2.next()) {
-//				if (rs2.getInt(COL_EFFDATESTARTFLDID) > 0) {
-//					effStartdate = rs2.getInt(COL_EFFDATESTARTFLDID);
-//				}
-//				if (rs2.getInt(COL_EFFDATEENDFLDID) > 0) {
-//					effEndDate = rs2.getInt(COL_EFFDATEENDFLDID);
-//				}
-//				if (rs2.getInt(COL_ID) > 0) {
-//					pKey.put(rs2.getInt(COL_ID), rs2.getInt(COL_FLDSEQNBR));
-//				}
-//			}
-//
-//			while (rs1.next()) {
-//				result.add(generateTransfer(rs1, effStartdate, effEndDate, pKey));
-//			}
-//			pst1.close();
-//			pst2.close();
-//			rs1.close();
-//			rs2.close();
-			return result;
-//
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException(
-//			    "Database error occurred while retrieving all LR Fields for Logical Record with id ["+ logicalRecordId + "]", e);
-//		}
+		YAMLLogicalRecordDAO lrdao = (YAMLLogicalRecordDAO)DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO();
+		YAMLLogicalRecordTransfer lrt = lrdao.getCurrentLRTransfer();
+		List<LRFieldTransfer> result = new ArrayList<>();
+		result.addAll(lrt.getFields().values());
+		return result;
 	}
 
 	public LRFieldTransfer getLRField(Integer environmentId, Integer lrFieldId,	Boolean retrieveKeyInfo) throws DAOException {
@@ -702,81 +619,99 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
         return buf.toString();
     }   
     
-	private List<LRFieldTransfer> createLRFields(
-			List<LRFieldTransfer> lrFieldCreateList) throws DAOException {
-		try {
-    
-//			String runFunction = "select :schemaV.INSLRFIELD(?, ?)";
-			String runFunction = "select " + params.getSchema() + ".INSLRFIELDWITHID(?)";
-			if (lrFieldCreateList.isEmpty() || !lrFieldCreateList.get(0).isForImportOrMigration()) {
-				runFunction = "select " + params.getSchema() + ".INSLRFIELD(?)";
-			}		
-
-			while (true) {
-				try {
-		            PreparedStatement cs = con.prepareStatement(runFunction, Statement.RETURN_GENERATED_KEYS);
-					String xml = getCreateXml(lrFieldCreateList);
-					cs.setString(1, xml);
-		            ResultSet rs = cs.executeQuery();
-		            rs.close();
-		            cs.close();
-                    for (LRFieldTransfer fld : lrFieldCreateList) {
-                        fld.setPersistent(true);
-                    }                                                                                					
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-					"Database error occurred while creating LR Fields.", e);
-		}
-		
+	private List<LRFieldTransfer> createLRFields(List<LRFieldTransfer> lrFieldCreateList) throws DAOException {
+		//lrFieldTransfer should mean we can open the lr
+		//Then we can make and add the field
+		YAMLLogicalRecordDAO lrdao = (YAMLLogicalRecordDAO)DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO();
+		YAMLLogicalRecordTransfer lrt = lrdao.getCurrentLRTransfer();
+		//But need to add it to the YAMLLogicalFileTransfer object
+        for (LRFieldTransfer lrft : lrFieldCreateList) {
+        	lrt.addField(lrft);
+        }
+		Path lrsPath = getLRsPath();
+		Path lrPath = lrsPath.resolve(lrt.getName() + ".yaml");
+		YAMLizer.writeYaml(lrPath, lrt);
+//		try {
+//    
+////			String runFunction = "select :schemaV.INSLRFIELD(?, ?)";
+//			String runFunction = "select " + params.getSchema() + ".INSLRFIELDWITHID(?)";
+//			if (lrFieldCreateList.isEmpty() || !lrFieldCreateList.get(0).isForImportOrMigration()) {
+//				runFunction = "select " + params.getSchema() + ".INSLRFIELD(?)";
+//			}		
+//
+//			while (true) {
+//				try {
+//		            PreparedStatement cs = con.prepareStatement(runFunction, Statement.RETURN_GENERATED_KEYS);
+//					String xml = getCreateXml(lrFieldCreateList);
+//					cs.setString(1, xml);
+//		            ResultSet rs = cs.executeQuery();
+//		            rs.close();
+//		            cs.close();
+//                    for (LRFieldTransfer fld : lrFieldCreateList) {
+//                        fld.setPersistent(true);
+//                    }                                                                                					
+//					break;
+//				} catch (SQLException se) {
+//					if (con.isClosed()) {
+//						// lost database connection, so reconnect and retry
+//						con = DAOFactoryHolder.getDAOFactory().reconnect();
+//					} else {
+//						throw se;
+//					}
+//				}
+//			}
+//		} catch (SQLException e) {
+//			throw DataUtilities.createDAOException(
+//					"Database error occurred while creating LR Fields.", e);
+//		}
+//		
 		return lrFieldCreateList;
 	}
 
-    private List<LRFieldTransfer> updateLRField(
-            List<LRFieldTransfer> lrFieldUpdate) throws DAOException {
-        try {       
-			String statement = generator.getSelectFromFunction(params.getSchema(), "updatelrfieldwithid", 1);     
-			if (lrFieldUpdate.isEmpty() || !lrFieldUpdate.get(0).isForImportOrMigration()) {
-	            statement = generator.getSelectFromFunction(params.getSchema(), "updatelrfield", 1);
-			}
-
-            PreparedStatement stmnt = null;
-            
-            while (true) {
-                try {
-                    stmnt = con.prepareStatement(statement);
-                    String xml = getUpdateXml(lrFieldUpdate);
-                    stmnt.setString(1, xml);
-                    stmnt.executeQuery();
-                    for (LRFieldTransfer fld : lrFieldUpdate) {
-                        fld.setPersistent(true);
-                    }                                                                                
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-            stmnt.close();
-            
-        } catch (SQLException e) {
-            throw DataUtilities.createDAOException(
-                    "Database error occurred while updating LR Fields.", e);
+    private List<LRFieldTransfer> updateLRField(List<LRFieldTransfer> lrFieldUpdate) throws DAOException {
+		YAMLLogicalRecordDAO lrdao = (YAMLLogicalRecordDAO)DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO();
+		YAMLLogicalRecordTransfer lrt = lrdao.getCurrentLRTransfer();
+		//But need to add it to the YAMLLogicalFileTransfer object
+        for (LRFieldTransfer lrft : lrFieldUpdate) {
+        	lrt.addField(lrft);
         }
-        
+		Path lrsPath = getLRsPath();
+		Path lrPath = lrsPath.resolve(lrt.getName() + ".yaml");
+		YAMLizer.writeYaml(lrPath, lrt);
+//        try {       
+//			String statement = generator.getSelectFromFunction(params.getSchema(), "updatelrfieldwithid", 1);     
+//			if (lrFieldUpdate.isEmpty() || !lrFieldUpdate.get(0).isForImportOrMigration()) {
+//	            statement = generator.getSelectFromFunction(params.getSchema(), "updatelrfield", 1);
+//			}
+//
+//            PreparedStatement stmnt = null;
+//            
+//            while (true) {
+//                try {
+//                    stmnt = con.prepareStatement(statement);
+//                    String xml = getUpdateXml(lrFieldUpdate);
+//                    stmnt.setString(1, xml);
+//                    stmnt.executeQuery();
+//                    for (LRFieldTransfer fld : lrFieldUpdate) {
+//                        fld.setPersistent(true);
+//                    }                                                                                
+//                    break;
+//                } catch (SQLException se) {
+//                    if (con.isClosed()) {
+//                        // lost database connection, so reconnect and retry
+//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
+//                    } else {
+//                        throw se;
+//                    }
+//                }
+//            }
+//            stmnt.close();
+//            
+//        } catch (SQLException e) {
+//            throw DataUtilities.createDAOException(
+//                    "Database error occurred while updating LR Fields.", e);
+//        }
+//        
         return lrFieldUpdate;        
     }
     
@@ -1099,34 +1034,35 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
 	}
 
     public Integer getNextKey() {
-        try {
-            String statement = "SELECT nextval('" + params.getSchema() + 
-                    ".lrfield_id')";
-            PreparedStatement pst = null;
-            ResultSet rs = null;
-            while (true) {
-                try {
-                    pst = con.prepareStatement(statement);
-                    rs = pst.executeQuery();
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-            rs.next();
-            Integer result = rs.getInt(1);          
-            rs.close();            
-            pst.close();
-            return result;
-        } catch (SQLException e) {
-            String msg = "Database error occurred while retrieving LR Field next id";
-            throw DataUtilities.createDAOException(msg, e);
-        }
+//        try {
+//            String statement = "SELECT nextval('" + params.getSchema() + 
+//                    ".lrfield_id')";
+//            PreparedStatement pst = null;
+//            ResultSet rs = null;
+//            while (true) {
+//                try {
+//                    pst = con.prepareStatement(statement);
+//                    rs = pst.executeQuery();
+//                    break;
+//                } catch (SQLException se) {
+//                    if (con.isClosed()) {
+//                        // lost database connection, so reconnect and retry
+//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
+//                    } else {
+//                        throw se;
+//                    }
+//                }
+//            }
+//            rs.next();
+//            Integer result = rs.getInt(1);          
+//            rs.close();            
+//            pst.close();
+//            return result;
+//        } catch (SQLException e) {
+//            String msg = "Database error occurred while retrieving LR Field next id";
+//            throw DataUtilities.createDAOException(msg, e);
+//        }
+    	return fieldID++;
     }
 
 	@Override
@@ -1254,5 +1190,9 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
 			String msg = "Database error occurred while retrieving LR " + lrid + " fields from Environment [" + environID + "].";
 			throw DataUtilities.createDAOException(msg, e);
 		}
+	}
+
+	private Path getLRsPath() {
+		return YAMLDAOFactory.getGersHome().resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("lrs");
 	}
 }

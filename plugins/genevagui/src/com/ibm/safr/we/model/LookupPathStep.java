@@ -171,9 +171,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 			this.sourceLR = null;
 		}
 		this.targetXLRFileId = trans.getTargetXLRFileId();
-		if (targetLRLFAssociation != null
-				&& targetLRLFAssociation.getAssociationId() != trans
-						.getTargetXLRFileId()) {
+		if (targetLRLFAssociation != null && targetLRLFAssociation.getAssociationId() != trans.getTargetXLRFileId()) {
 			this.targetLRLFAssociation = null;
 		}
 	}
@@ -200,8 +198,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 	public LogicalRecord getSourceLR() throws SAFRException {
 		if (sourceLR == null) {
 			if (sourceLRId != null && sourceLRId > 0) {
-				this.sourceLR = SAFRApplication.getSAFRFactory()
-						.getLogicalRecord(sourceLRId, getEnvironmentId());
+				this.sourceLR = SAFRApplication.getSAFRFactory().getLogicalRecord(sourceLRId, getEnvironmentId());
 			}
 		}
 		return sourceLR;
@@ -286,9 +283,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 			throws SAFRException, DAOException {
 		if (targetLRLFAssociation == null) {
 			if (targetXLRFileId != null && targetXLRFileId > 0) {
-				this.targetLRLFAssociation = SAFRAssociationFactory
-						.getLogicalRecordToLogicalFileAssociation(
-								targetXLRFileId, getTargetLR());
+				this.targetLRLFAssociation = SAFRAssociationFactory.getLogicalRecordToLogicalFileAssociation(targetXLRFileId, getTargetLR());
 			}
 		}
 		return targetLRLFAssociation;
@@ -578,8 +573,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 		// Save Lookup Path Step
 		LookupPathStepTransfer trans = new LookupPathStepTransfer();
 		setTransferData(trans);
-		trans = DAOFactoryHolder.getDAOFactory().getLookupPathStepDAO()
-				.persistLookupPathStep(trans);
+		trans = DAOFactoryHolder.getDAOFactory().getLookupPathStepDAO().persistLookupPathStep(trans);
 		setObjectData(trans);
 	}
 
@@ -592,19 +586,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 	}
 
     private String getLFDependencyString() throws DAOException {
-        String dependencies = "";
-        
-        // check for more than one PF association
-        // means we cannot be the target of any lookup path steps
-        DependentComponentTransfer depComp = DAOFactoryHolder.getDAOFactory().
-            getLookupPathStepDAO().getAssociatedLFDependency(getEnvironmentId(), targetXLRFileId);
-        
-        if (depComp != null) {
-            dependencies = "Target Logical File with multiple Physical Files: " + SAFRUtilities.LINEBREAK;
-            dependencies += "    " + depComp.getName()
-                + " [" + depComp.getId() + "]" + SAFRUtilities.LINEBREAK;
-        }            
-        return dependencies;
+        return "";
     }
 	
 	public void validate() throws SAFRException, DAOException {

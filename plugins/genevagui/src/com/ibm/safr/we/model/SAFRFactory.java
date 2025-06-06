@@ -939,9 +939,7 @@ public class SAFRFactory extends SAFRObject {
 			throws SAFRException {
 		LogicalRecord logicalRecord = null;
 		LogicalRecordTransfer logicalRecordTransfer = null;
-		logicalRecordTransfer = DAOFactoryHolder.getDAOFactory()
-				.getLogicalRecordDAO().getLogicalRecordFromLRLFAssociation(
-						LRLFassociationId, environmentId);
+		logicalRecordTransfer = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecordFromLRLFAssociation(LRLFassociationId, environmentId);
 
 		if (logicalRecordTransfer == null) {
 			throw new SAFRNotFoundException("LR-LF Association with ID  '"
@@ -1035,20 +1033,15 @@ public class SAFRFactory extends SAFRObject {
 	 *             database.
 	 * @throws SAFRException
 	 */
-	public LookupPath getLookupPath(Integer id, Integer environId)
-			throws SAFRException {
+	public LookupPath getLookupPath(Integer id, Integer environId) throws SAFRException {
 		LookupPath lookupPath = null;
 		LookupPathTransfer lookupPathTransfer = null;
-		lookupPathTransfer = DAOFactoryHolder.getDAOFactory().getLookupDAO()
-				.getLookupPath(id, environId);
-
+		lookupPathTransfer = DAOFactoryHolder.getDAOFactory().getLookupDAO().getLookupPath(id, environId);
 		if (lookupPathTransfer == null) {
-			throw new SAFRNotFoundException("Lookup Path '" + id
-					+ "' not found in Environment '" + environId + "'.", id);
+			throw new SAFRNotFoundException("Lookup Path '" + id + "' not found in Environment '" + environId + "'.", id);
 		} else {
 			lookupPath = new LookupPath(lookupPathTransfer);
 		}
-
 		return lookupPath;
 	}
 
@@ -1064,17 +1057,13 @@ public class SAFRFactory extends SAFRObject {
 	public List<LookupPathStep> getLookupPathSteps(LookupPath parentLookup)
 			throws SAFRException {
 		List<LookupPathStep> lkupPathSteps = new ArrayList<LookupPathStep>();
-		List<LookupPathStepTransfer> lkupStepsTrans = DAOFactoryHolder
-				.getDAOFactory().getLookupPathStepDAO().getAllLookUpPathSteps(
-						parentLookup.getEnvironmentId(), parentLookup.getId());
+		List<LookupPathStepTransfer> lkupStepsTrans = DAOFactoryHolder.getDAOFactory().getLookupPathStepDAO().getAllLookUpPathSteps(parentLookup.getEnvironmentId(), parentLookup.getId());
 		for (LookupPathStepTransfer lkupStepsTran : lkupStepsTrans) {
-			LookupPathStep lkupPathStep = new LookupPathStep(lkupStepsTran,
-					parentLookup);
+			LookupPathStep lkupPathStep = new LookupPathStep(lkupStepsTran,	parentLookup);
 			if (lkupPathSteps.size() > 0) {
 				// Source LF of steps>1 should be Target LF of previous
 				// step. This is not stored in DB so should be loaded here.
-				lkupPathStep.setSourceLRLFAssociation(lkupPathSteps.get(
-						lkupPathSteps.size() - 1).getTargetLRLFAssociation());
+				lkupPathStep.setSourceLRLFAssociation(lkupPathSteps.get(lkupPathSteps.size() - 1).getTargetLRLFAssociation());
 			}
 			lkupPathSteps.add(lkupPathStep);
 		}

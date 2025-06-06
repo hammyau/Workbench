@@ -25,9 +25,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +49,6 @@ import com.ibm.safr.we.internal.data.PGSQLGenerator;
 import com.ibm.safr.we.internal.data.YAMLDAOFactory;
 import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.model.query.ControlRecordQueryBean;
-import com.ibm.safr.we.model.query.EnvironmentQueryBean;
 
 /**
  * This class is used to implement the unimplemented methods of
@@ -105,8 +102,7 @@ public class YAMLControlRecordDAO implements ControlRecordDAO {
 	 * This function is used to generate a transfer object for the Control
 	 * Record.
 	 */
-	private ControlRecordTransfer generateTransfer(ResultSet rs)
-			throws SQLException {
+	private ControlRecordTransfer generateTransfer(ResultSet rs) throws SQLException {
 		ControlRecordTransfer crec = new ControlRecordTransfer();
 		crec.setEnvironmentId(rs.getInt(COL_ENVID));
 		crec.setId(rs.getInt(COL_ID));

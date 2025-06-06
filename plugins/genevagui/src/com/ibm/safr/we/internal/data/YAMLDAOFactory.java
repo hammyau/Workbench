@@ -39,11 +39,15 @@ import com.ibm.safr.we.data.dao.ViewSourceDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLCodeSetDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLControlRecordDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLEnvironmentDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLExportDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLogicalFileDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLogicalRecordDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLookupDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLookupPathStepDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLRFieldDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLPhysicalFileDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLUserExitRoutineDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewFolderDAO;
 
 public class YAMLDAOFactory implements DAOFactory {
@@ -52,6 +56,7 @@ public class YAMLDAOFactory implements DAOFactory {
 	UserSessionParameters _safrLogin;
 	private static Path gersHome;
 	private YAMLDAOUOW _uow;
+	private YAMLLogicalRecordDAO ourLRDAO;
 
 	public YAMLDAOFactory(ConnectionParameters p) {
 		makeGenevaERSDirectory();
@@ -88,8 +93,7 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public ViewDAO getViewDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLViewDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
@@ -160,7 +164,10 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public LogicalRecordDAO getLogicalRecordDAO() throws DAOException {
-		return new YAMLLogicalRecordDAO(getConnection(), _params, getSAFRLogin());
+		if(ourLRDAO == null) {
+			ourLRDAO = new YAMLLogicalRecordDAO(getConnection(), _params, getSAFRLogin());
+		}
+		return ourLRDAO; 
 	}
 
 	@Override
@@ -176,20 +183,18 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public LookupDAO getLookupDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLLookupDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
 	public LookupPathStepDAO getLookupPathStepDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLLookupPathStepDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
 	public ExportDAO getExportDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		// add all the transfer objects together and export
+		return new YAMLExportDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override

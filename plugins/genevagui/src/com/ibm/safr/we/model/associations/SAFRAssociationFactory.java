@@ -316,13 +316,8 @@ public class SAFRAssociationFactory {
 	static public ComponentAssociation getLogicalRecordToLogicalFileAssociation(
 			Integer LRLFAssociationId, Integer environmentId)
 			throws DAOException, SAFRException {
-		ComponentAssociationTransfer transfer = DAOFactoryHolder
-				.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(
-						LRLFAssociationId, environmentId);
-
-		ComponentAssociation componentAssociation = new ComponentAssociation(
-				transfer);
-
+		ComponentAssociationTransfer transfer = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(LRLFAssociationId, environmentId);
+		ComponentAssociation componentAssociation = new ComponentAssociation(transfer);
 		return componentAssociation;
 	}
 

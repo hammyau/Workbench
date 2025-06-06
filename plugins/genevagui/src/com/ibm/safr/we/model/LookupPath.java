@@ -163,14 +163,11 @@ public class LookupPath extends SAFRActivatedComponent {
 	/**
 	 * @return the lrFileAssociation
 	 */
-	public ComponentAssociation getTargetLrFileAssociation() throws DAOException,
-			SAFRException {
+	public ComponentAssociation getTargetLrFileAssociation() throws DAOException, SAFRException {
 		if (targetLRLFAssociation == null) {
 			if (targetXLRFileId != null && targetXLRFileId > 0) {
 				// lazy initialize and cache the object
-				this.targetLRLFAssociation = SAFRAssociationFactory
-						.getLogicalRecordToLogicalFileAssociation(
-								targetXLRFileId, getEnvironmentId());
+				this.targetLRLFAssociation = SAFRAssociationFactory.getLogicalRecordToLogicalFileAssociation(targetXLRFileId, getEnvironmentId());
 			}
 		}
 		return targetLRLFAssociation;
@@ -196,9 +193,7 @@ public class LookupPath extends SAFRActivatedComponent {
 			this.sourceLR = null;
 		}
 		this.targetXLRFileId = trans.getTargetXLRFileId();
-		if (targetLRLFAssociation != null
-				&& targetLRLFAssociation.getAssociationId() != trans
-						.getTargetXLRFileId()) {
+		if (targetLRLFAssociation != null && targetLRLFAssociation.getAssociationId() != trans.getTargetXLRFileId()) {
 			this.targetLRLFAssociation = null;
 		}
 		this.validInd = trans.isValidInd();
@@ -340,8 +335,7 @@ public class LookupPath extends SAFRActivatedComponent {
 	void changeStepTarget(LogicalRecord targetLR, Integer sequenceNumber)
 			throws SAFRException, DAOException {
 		if (sequenceNumber < this.lookupPathSteps.getActiveItems().size()) {
-			LookupPathStep nextStep = (LookupPathStep) lookupPathSteps
-					.getActiveItems().get(sequenceNumber.intValue());
+			LookupPathStep nextStep = (LookupPathStep) lookupPathSteps.getActiveItems().get(sequenceNumber.intValue());
 			nextStep.setSourceLR(targetLR);
 		}
 	}
@@ -356,15 +350,11 @@ public class LookupPath extends SAFRActivatedComponent {
 	 * @throws SAFRException
 	 * @throws DAOException
 	 */
-	void changeStepTargetLRLFAssocistion(ComponentAssociation LRLFAssoc,
-			Integer sequenceNumber) throws SAFRException, DAOException {
+	void changeStepTargetLRLFAssocistion(ComponentAssociation LRLFAssoc, Integer sequenceNumber) throws SAFRException, DAOException {
 		if (sequenceNumber < this.lookupPathSteps.getActiveItems().size()) {
-			LookupPathStep nextStep = (LookupPathStep) lookupPathSteps
-					.getActiveItems().get(sequenceNumber.intValue());
+			LookupPathStep nextStep = (LookupPathStep) lookupPathSteps.getActiveItems().get(sequenceNumber.intValue());
 			nextStep.setSourceLRLFAssociation(LRLFAssoc);
-		} else if (sequenceNumber.intValue() == this.lookupPathSteps
-		// changed step is the last one.
-				.getActiveItems().size()) {
+		} else if (sequenceNumber.intValue() == this.lookupPathSteps.getActiveItems().size()) {
 			setTargetLRLFAssociation(LRLFAssoc);
 		}
 	}
@@ -514,8 +504,7 @@ public class LookupPath extends SAFRActivatedComponent {
 
 					// Begin Transaction
 					DAOFactoryHolder.getDAOFactory().getDAOUOW().begin();
-					trans = DAOFactoryHolder.getDAOFactory().getLookupDAO()
-							.persistLookupPath(trans);
+					trans = DAOFactoryHolder.getDAOFactory().getLookupDAO().persistLookupPath(trans);
 					setObjectData(trans);
 					savedObjs.add(this);
 
@@ -534,10 +523,7 @@ public class LookupPath extends SAFRActivatedComponent {
                     
 					for (LookupPathStep step : lookupPathSteps) {
 						if (step.getPersistence() == SAFRPersistence.DELETED) {
-							DAOFactoryHolder.getDAOFactory()
-									.getLookupPathStepDAO()
-									.removeLookupPathStep(step.getId(),
-											step.getEnvironmentId());
+							DAOFactoryHolder.getDAOFactory().getLookupPathStepDAO().removeLookupPathStep(step.getId(), step.getEnvironmentId());
 						} else {
 							step.store();	
 							savedObjs.add(step);

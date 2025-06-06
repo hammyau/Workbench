@@ -2373,16 +2373,13 @@ public class LookupPathEditor extends SAFREditorPart implements IPartListener2 {
 			}
 			UIUtilities.checkNullText(textName, lookupPath.getName());
 			UIUtilities.checkNullText(textComments, lookupPath.getComment());
-			labelCreatedValue.setText(lookupPath.getCreateBy() + " on "
-					+ lookupPath.getCreateTimeString());
-			labelModifiedValue.setText(lookupPath.getModifyBy() + " on "
-					+ lookupPath.getModifyTimeString());
+			labelCreatedValue.setText(lookupPath.getCreateBy() + " on "	+ lookupPath.getCreateTimeString());
+			labelModifiedValue.setText(lookupPath.getModifyBy() + " on " + lookupPath.getModifyTimeString());
 			if (lookupPath.getActivatedBy() == null || 
 			    lookupPath.getActivatedTimeString() == null) {
 			    labelActivatedValue.setText(defaultModStr);
 			}  else {
-			    labelActivatedValue.setText(lookupPath.getActivatedBy() + " on "
-			     + lookupPath.getActivatedTimeString());
+			    labelActivatedValue.setText(lookupPath.getActivatedBy() + " on " + lookupPath.getActivatedTimeString());
 			}
 			tableViewerStepsList.refresh();
 
@@ -2504,14 +2501,12 @@ public class LookupPathEditor extends SAFREditorPart implements IPartListener2 {
 			}
 	}
 	
-	private void populateLogicalFile(TableCombo comboBox,
-			LogicalRecord logicalRecord) {
+	private void populateLogicalFile(TableCombo comboBox, LogicalRecord logicalRecord) {
 		Integer counter = 0;
 
 		comboBox.getTable().removeAll();
 
-		SAFRList<ComponentAssociation> logicalFileAssociations = logicalRecord
-				.getLogicalFileAssociations();
+		SAFRList<ComponentAssociation> logicalFileAssociations = logicalRecord.getLogicalFileAssociations();
 		comboTargetLFViewer.setInput(logicalFileAssociations);
 		comboTargetLFViewer.refresh();
 		for (ComponentAssociation association : logicalFileAssociations) {

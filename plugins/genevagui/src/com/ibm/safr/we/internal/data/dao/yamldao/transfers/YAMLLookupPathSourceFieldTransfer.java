@@ -1,4 +1,4 @@
-package com.ibm.safr.we.model.query;
+package com.ibm.safr.we.internal.data.dao.yamldao.transfers;
 
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
@@ -18,28 +18,11 @@ package com.ibm.safr.we.model.query;
  */
 
 
-import java.util.Date;
+import com.ibm.safr.we.data.transfer.LookupPathSourceFieldTransfer;
 
-import com.ibm.safr.we.constants.EditRights;
+public class YAMLLookupPathSourceFieldTransfer extends LookupPathSourceFieldTransfer {
 
-/**
- * Query information for a Logical File. Includes just the info displayed in a
- * list of Logical File and the key info needed to instantiate a Logical File.
- * 
- */
-
-public class LogicalFileQueryBean extends EnvironmentalQueryBean {
-
-	public LogicalFileQueryBean() {
+	public YAMLLookupPathSourceFieldTransfer() {
 		
 	}
-	/**
-	 *Parameterized constructor to initialize values
-	 */
-	public LogicalFileQueryBean(Integer environmentId, Integer id, String name,
-			EditRights rights, Date createTime, String createBy, Date modifyTime, String modifyBy) {
-		super(environmentId, id, name, rights, createTime,
-				createBy, modifyTime, modifyBy);
-	}
-
 }

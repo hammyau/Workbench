@@ -255,8 +255,7 @@ public class PGLogicalRecordDAO implements LogicalRecordDAO {
                         + "A.CREATEDUSERID,A.LASTMODTIMESTAMP,A.LASTMODUSERID,A.LASTACTTIMESTAMP,A.LASTACTUSERID "                     
 						+ "ORDER BY " + orderString;
 			}
-			result = generateQueryBeansList(selectString, environmentId, 
-			    SAFRApplication.getUserSession().isSystemAdministrator());
+			result = generateQueryBeansList(selectString, environmentId, SAFRApplication.getUserSession().isSystemAdministrator());
 			return result;
 
 		} catch (SQLException e) {

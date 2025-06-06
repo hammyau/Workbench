@@ -117,7 +117,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	}
 
 	public LogicalFileTransfer getDuplicateLogicalFile(String logicalFileName, Integer logicalFileId, Integer environmentId) throws DAOException {
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		Path lfPath = lfsPath.resolve(logicalFileName + ".yaml");
 		LogicalFileTransfer result = (LogicalFileTransfer) YAMLizer.readYaml(lfPath, ComponentType.LogicalFile);
 		if(result != null) {
@@ -132,8 +132,11 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	}
 
 	public LogicalFileTransfer getLogicalFile(Integer id, Integer environmentId) throws DAOException {
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		lfsPath.toFile().mkdirs();
+		if(lfBeans.size() == 0) {
+			queryAllLogicalFiles(environmentId, null);
+		}
 		Path lfPath = lfsPath.resolve(lfBeans.get(id).getName()+".yaml");
 		ourTxf = (YAMLLogicalFileTransfer) YAMLizer.readYaml(lfPath, ComponentType.LogicalFile);
 		return ourTxf;
@@ -189,7 +192,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	}
 
 	private LogicalFileTransfer updateLogicalFile(LogicalFileTransfer logicalFileTransfer) throws DAOException,	SAFRNotFoundException {
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		Path lfPath = lfsPath.resolve(logicalFileTransfer.getName() + ".yaml");
 		if(lfPath.toFile().exists()) {
 			if(ourTxf == null || ourTxf.getId() != logicalFileTransfer.getId()) {
@@ -210,7 +213,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	}
 
 	private LogicalFileTransfer createLogicalFile(LogicalFileTransfer logicalFile) throws DAOException {
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		lfsPath.toFile().mkdirs();
 		lfPath = lfsPath.resolve(logicalFile.getName() + ".yaml");
 		ourTxf  = new YAMLLogicalFileTransfer();
@@ -246,7 +249,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	public List<LogicalFileQueryBean> queryAllLogicalFiles(Integer environmentId, SortType sortType) throws DAOException {
 		List<LogicalFileQueryBean> result = new ArrayList<LogicalFileQueryBean>();
 		maxid = 0;
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		lfsPath.toFile().mkdirs();
 		File[] lfs = lfsPath.toFile().listFiles();
 		
@@ -258,9 +261,8 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 		return result;
 	}
 
-	public void removeLogicalFile(Integer id, Integer environmentId)
-			throws DAOException {
-		Path lfsPath = getLFsPath();
+	public void removeLogicalFile(Integer id, Integer environmentId) throws DAOException {
+		Path lfsPath = YAMLizer.getLFsPath();
 		lfsPath.toFile().mkdirs();
 		lfPath = lfsPath.resolve(lfBeans.get(id).getName() + ".yaml");
 		lfPath.toFile().delete();
@@ -290,17 +292,15 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 		return result;
 	}
 
-	public List<ComponentAssociationTransfer> getAssociatedLogicalRecords(
-			Integer id, Integer environmentId) throws DAOException {
-		List<ComponentAssociationTransfer> result = new ArrayList<ComponentAssociationTransfer>();
-		return result;
+	public List<ComponentAssociationTransfer> getAssociatedLogicalRecords(Integer id, Integer environmentId) throws DAOException {
+		return new ArrayList<ComponentAssociationTransfer>();
 	}
 
 	public List<PhysicalFileQueryBean> queryPossiblePFAssociations(Integer environmentId, List<Integer> exceptionList) throws DAOException {
 
 		List<PhysicalFileQueryBean> result = new ArrayList<PhysicalFileQueryBean>();
 		//get PFs but ignore those in the exceptionList
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		pfsPath.toFile().mkdirs();
 		File[] pfs = pfsPath.toFile().listFiles();
 		
@@ -352,7 +352,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	}
 
 	private List<FileAssociationTransfer> createAssociatedPFs(List<FileAssociationTransfer> associatedPFCreates, Integer logicalFileId) throws DAOException {
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		Path lfPath = lfsPath.resolve(ourTxf.getName() + ".yaml");
 		
 		for (FileAssociationTransfer associatedPFtoCreate : associatedPFCreates) {
@@ -363,7 +363,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	}
 
 	private List<FileAssociationTransfer> updateAssociatedPFs(List<FileAssociationTransfer> associatedPFUpdates) throws DAOException {
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		Path lfPath = lfsPath.resolve(ourTxf.getName() + ".yaml");
 		
 		for (FileAssociationTransfer associatedPFtoCreate : associatedPFUpdates) {
@@ -375,7 +375,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 
 	public void deleteAssociatedPFs(Integer environmentId, List<Integer> deletionIds) throws DAOException {
 		//Note the deletionIds are the association ids. Not the actual PF ids.
-		Path lfsPath = getLFsPath();
+		Path lfsPath = YAMLizer.getLFsPath();
 		Path lfPath = lfsPath.resolve(ourTxf.getName() + ".yaml");
 		for (Integer did : deletionIds) {
 			ourTxf.removePF(did);
@@ -716,10 +716,4 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 		}
 	}
 
-	private Path getLFsPath() {
-		return YAMLDAOFactory.getGersHome().resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("lfs");
-	}
-	private Path getPFsPath() {
-		return YAMLDAOFactory.getGersHome().resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("pfs");
-	}
 }

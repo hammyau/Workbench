@@ -191,8 +191,7 @@ public class DB2DAOFactory implements DAOFactory {
 
 	public LogicalRecordDAO getLogicalRecordDAO() throws DAOException {
 		// return the logical record DAO to handle a SAFR Logical record.
-		return new DB2LogicalRecordDAO(_conFact.getConnection(), _conFact
-				.getParams(), _safrLogin);
+		return new DB2LogicalRecordDAO(_conFact.getConnection(), _conFact.getParams(), _safrLogin);
 	}
 
 	public LogicalFileDAO getLogicalFileDAO() throws DAOException {

@@ -105,7 +105,7 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 	}
 
 	public UserExitRoutineTransfer getUserExitRoutine(Integer id, Integer environmentId) throws DAOException {
-		Path exitsPath = getExitsPath();
+		Path exitsPath = YAMLizer.getExitsPath();
 		exitsPath.toFile().mkdirs();
 		Path crPath = exitsPath.resolve(exitBeans.get(id).getName()+".yaml");
 		UserExitRoutineTransfer result = (UserExitRoutineTransfer) YAMLizer.readYaml(crPath, ComponentType.UserExitRoutine);
@@ -136,7 +136,7 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 	public List<UserExitRoutineQueryBean> queryAllUserExitRoutines(Integer environmentId, SortType sortType) throws DAOException {
 		List<UserExitRoutineQueryBean> result = new ArrayList<UserExitRoutineQueryBean>();
 		maxid = 0;
-		Path exitsPath = getExitsPath();
+		Path exitsPath = YAMLizer.getExitsPath();
 		exitsPath.toFile().mkdirs();
 		File[] exits = exitsPath.toFile().listFiles();
 		
@@ -205,7 +205,7 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 	 */
 	private UserExitRoutineTransfer createUserExitRoutine(UserExitRoutineTransfer ext)
 			throws DAOException {
-		Path exitsPath = getExitsPath();
+		Path exitsPath = YAMLizer.getExitsPath();
 		exitsPath.toFile().mkdirs();
 		Path exPath = exitsPath.resolve(ext.getName() + ".yaml");
 		ext.setCreateBy(SAFRApplication.getUserSession().getUser().getUserid());
@@ -232,7 +232,7 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 	 */
 
 	private UserExitRoutineTransfer updateUserExitRoutine(UserExitRoutineTransfer userExitRoutineTransfer)	throws DAOException, SAFRNotFoundException {
-		Path exitsPath = getExitsPath();
+		Path exitsPath = YAMLizer.getExitsPath();
 		Path exPath = exitsPath.resolve(userExitRoutineTransfer.getName() + ".yaml");
 		if(exPath.toFile().exists()) {
 			userExitRoutineTransfer.setModifyBy(SAFRApplication.getUserSession().getUser().getUserid());
@@ -255,7 +255,7 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 	public UserExitRoutineTransfer getDuplicateUserExitRoutine(
 			String userExitRoutineName, Integer userExitRoutineId,
 			Integer environmentId) throws DAOException {
-		Path exitsPath = getExitsPath();
+		Path exitsPath = YAMLizer.getExitsPath();
 		exitsPath.toFile().mkdirs();
 		Path exPath = exitsPath.resolve(userExitRoutineName + ".yaml");
 		UserExitRoutineTransfer result = (UserExitRoutineTransfer) YAMLizer.readYaml(exPath, ComponentType.UserExitRoutine);
@@ -281,7 +281,7 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 	}
 
 	public void removeUserExitRoutine(Integer id, Integer environmentId) throws DAOException {
-		Path exitsPath = getExitsPath();
+		Path exitsPath = YAMLizer.getExitsPath();
 		exitsPath.toFile().mkdirs();
 		Path exPath = exitsPath.resolve(exitBeans.get(id).getName()+".yaml");
 		exPath.toFile().delete();
@@ -308,8 +308,5 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 		return result;
 	}
 	
-	private Path getExitsPath() {
-		return YAMLDAOFactory.getGersHome().resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("exits");
-	}
 
 }

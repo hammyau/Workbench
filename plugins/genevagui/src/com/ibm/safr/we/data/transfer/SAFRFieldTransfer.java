@@ -1,5 +1,7 @@
 package com.ibm.safr.we.data.transfer;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
  * 
@@ -29,8 +31,11 @@ public abstract class SAFRFieldTransfer extends
 	private Integer scalingFactor;
 	private String dateTimeFormat;
 	private String headerAlignment;
+	@JsonIgnore
 	private String columnHeading1;
+	@JsonIgnore
 	private String columnHeading2;
+	@JsonIgnore
 	private String columnHeading3;
 	private String numericMask;
 	private String sortKeyLabel;

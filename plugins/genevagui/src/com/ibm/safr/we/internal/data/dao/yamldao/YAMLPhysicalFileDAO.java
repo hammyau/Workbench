@@ -133,7 +133,7 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 	public List<PhysicalFileQueryBean> queryAllPhysicalFiles(Integer environmentId, SortType sortType) throws DAOException {
 		List<PhysicalFileQueryBean> result = new ArrayList<PhysicalFileQueryBean>();
 		maxid = 0;
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		pfsPath.toFile().mkdirs();
 		File[] pfs = pfsPath.toFile().listFiles();
 		
@@ -172,8 +172,11 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 
 	public PhysicalFileTransfer getPhysicalFile(Integer id,	Integer environmentId) throws DAOException {
 		PhysicalFileTransfer result = null;
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		pfsPath.toFile().mkdirs();
+		if(pfBeans.size() == 0) {
+			queryAllPhysicalFiles(environmentId, null);
+		}
 		Path crPath = pfsPath.resolve(pfBeans.get(id).getName()+".yaml");
 		result = (PhysicalFileTransfer) YAMLizer.readYaml(crPath, ComponentType.PhysicalFile);
 		return result;
@@ -181,7 +184,7 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 
 	public PhysicalFileTransfer getPhysicalFile(String name, Integer environmentId) throws DAOException {
 		PhysicalFileTransfer result = null;
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		pfsPath.toFile().mkdirs();
 		Path crPath = pfsPath.resolve(name+".yaml");
 		result = (PhysicalFileTransfer) YAMLizer.readYaml(crPath, ComponentType.PhysicalFile);
@@ -254,7 +257,7 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 	 * @throws DAOException
 	 */
 	private PhysicalFileTransfer createPhysicalFile(PhysicalFileTransfer physicalFile) throws DAOException {
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		pfsPath.toFile().mkdirs();
 		Path pfPath = pfsPath.resolve(physicalFile.getName() + ".yaml");
 		physicalFile.setCreateBy(SAFRApplication.getUserSession().getUser().getUserid());
@@ -279,7 +282,7 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 	 * @throws SAFRNotFoundException
 	 */
 	private PhysicalFileTransfer updatePhysicalFile(PhysicalFileTransfer physicalFile) throws DAOException,	SAFRNotFoundException {
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		Path pfPath = pfsPath.resolve(physicalFile.getName() + ".yaml");
 		if(pfPath.toFile().exists()) {
 			physicalFile.setModifyBy(SAFRApplication.getUserSession().getUser().getUserid());
@@ -293,7 +296,7 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 	}
 
 	public PhysicalFileTransfer getDuplicatePhysicalFile(String physicalFileName, Integer physicalFileId, Integer environmentId) throws DAOException {
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		Path pfPath = pfsPath.resolve(physicalFileName + ".yaml");
 		PhysicalFileTransfer result = (PhysicalFileTransfer) YAMLizer.readYaml(pfPath, ComponentType.PhysicalFile);
 		if(result != null) {
@@ -308,7 +311,7 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 	}
 
 	public void removePhysicalFile(Integer id, Integer environmentId) throws DAOException {
-		Path pfsPath = getPFsPath();
+		Path pfsPath = YAMLizer.getPFsPath();
 		Path pfPath = pfsPath.resolve(pfBeans.get(id).getName()+".yaml");
 		pfPath.toFile().delete();
 	}
@@ -589,7 +592,4 @@ public class YAMLPhysicalFileDAO implements PhysicalFileDAO {
 		return dependencies;
 	}
 
-	private Path getPFsPath() {
-		return YAMLDAOFactory.getGersHome().resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("pfs");
-	}
 }
