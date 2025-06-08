@@ -27,6 +27,9 @@ import com.ibm.safr.we.data.transfer.LookupPathStepTransfer;
 public class YAMLLookupPathStepTransfer extends LookupPathStepTransfer {
 
 	private List<LookupPathSourceFieldTransfer> sources = new ArrayList<>();
+	private int targetLR;
+	private int targetLF;
+	
 
 	public YAMLLookupPathStepTransfer() {
 		
@@ -46,6 +49,22 @@ public class YAMLLookupPathStepTransfer extends LookupPathStepTransfer {
 	
 	public void clearSources() {
 		sources.clear();
+	}
+
+	public int getTargetLR() {
+		return targetLR;
+	}
+
+	public void setTargetLR(int targetLR) {
+		this.targetLR = targetLR;
+	}
+
+	public int getTargetLF() {
+		return targetLF;
+	}
+
+	public void setTargetLF(int targetLF) {
+		this.targetLF = targetLF;
 	}
 
 }

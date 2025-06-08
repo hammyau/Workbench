@@ -117,27 +117,27 @@ public class YAMLLookupDAO implements LookupDAO {
 	}
 
 	private Object addToResults(List<LookupQueryBean> result, File lk, Integer environmentId) {
-		YAMLLookupTransfer lkt = (YAMLLookupTransfer) YAMLizer.readYaml(lk.toPath(), ComponentType.LookupPath);
-		if(lkt.getId() > maxid) {
-			maxid = lkt.getId();
+		ourLkTxf = (YAMLLookupTransfer) YAMLizer.readYaml(lk.toPath(), ComponentType.LookupPath);
+		if(ourLkTxf.getId() > maxid) {
+			maxid = ourLkTxf.getId();
 		}
 		LookupQueryBean lkBean = new LookupQueryBean(
-				environmentId, lkt.getId(), 
-				lkt.getName(),
-				"sourceLR",
+				environmentId, ourLkTxf.getId(), 
+				ourLkTxf.getName(),
+				DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecord(ourLkTxf.getSourceLRId(), environmentId).getName(),
 				1,
-				lkt.getSourceLRId(),
-				"targlr",
-				"targlf",
+				ourLkTxf.getSteps().size(),
+				DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecord(ourLkTxf.getTargetLR(), environmentId).getName(),
+				DAOFactoryHolder.getDAOFactory().getLogicalFileDAO().getLogicalFile(ourLkTxf.getTargetLF(), environmentId).getName(), //Should could use names here
 				EditRights.ReadModifyDelete,
-				lkt.getCreateTime(), 
-				lkt.getCreateBy(), 
-				lkt.getModifyTime(), 
-				lkt.getModifyBy(),
-				lkt.getCreateTime(),
-				lkt.getCreateBy()); 
+				ourLkTxf.getCreateTime(), 
+				ourLkTxf.getCreateBy(), 
+				ourLkTxf.getModifyTime(), 
+				ourLkTxf.getModifyBy(),
+				ourLkTxf.getCreateTime(),
+				ourLkTxf.getCreateBy()); 
 			result.add(lkBean);
-			lkBeans.put(lkt.getId(), lkBean);
+			lkBeans.put(ourLkTxf.getId(), lkBean);
 		return lkBean;
 	}
 
@@ -225,109 +225,23 @@ public class YAMLLookupDAO implements LookupDAO {
 	 * @throws SAFRNotFoundException
 	 */
 
-	private LookupPathTransfer updateLookupPath(LookupPathTransfer lkuptrans)
-			throws DAOException, SAFRNotFoundException {
-		
-		boolean isImportOrMigrate = lkuptrans.isForImport()
-				|| lkuptrans.isForMigration() ? true : false;
-		boolean useCurrentTS = !isImportOrMigrate;
-
-		try {
-			String[] columnNames = { COL_NAME, COL_SOURCE, COL_DESTLRLFASSOCID,
-					COL_VALID, COL_COMMENTS };
-			List<String> temp = Arrays.asList(columnNames);
-			List<String> names = new ArrayList<String>();
-			names.addAll(temp);
-
-            if (isImportOrMigrate) {
-                names.add(COL_CREATETIME);
-                names.add(COL_CREATEBY);
-                names.add(COL_MODIFYTIME);
-                names.add(COL_MODIFYBY);
-                names.add(COL_ACTIVATETIME);
-                names.add(COL_ACTIVATEBY);
-            } else { 
-                if (lkuptrans.isUpdated()) {
-                    names.add(COL_MODIFYTIME);
-                    names.add(COL_MODIFYBY);
-                }
-                if (lkuptrans.isActivated()) {
-                    names.add(COL_ACTIVATETIME);
-                    names.add(COL_ACTIVATEBY);
-                }
-            }
-
-			List<String> idNames = new ArrayList<String>();
-			idNames.add(COL_ID);
-			idNames.add(COL_ENVID);
-			String statement = generator.getUpdateStatement(params.getSchema(),
-					TABLE_NAME, names, idNames, useCurrentTS);
-			PreparedStatement pst = null;
-
-			while (true) {
-				try {
-					pst = con.prepareStatement(statement);
-					int i = 1;
-					pst.setString(i++, lkuptrans.getName());
-					pst.setInt(i++, lkuptrans.getSourceLRId());
-					pst.setInt(i++, lkuptrans.getTargetXLRFileId());
-					pst.setInt(i++, DataUtilities.booleanToInt(lkuptrans.isValidInd()));
-					pst.setString(i++, lkuptrans.getComments());
-                    if (isImportOrMigrate) {
-                        pst.setTimestamp(i++, DataUtilities.getTimeStamp(lkuptrans.getCreateTime()));
-                        pst.setString(i++, lkuptrans.getCreateBy());
-                        pst.setTimestamp(i++, DataUtilities.getTimeStamp(lkuptrans.getModifyTime()));
-                        pst.setString(i++, lkuptrans.getModifyBy());
-                        pst.setTimestamp(i++, DataUtilities.getTimeStamp(lkuptrans.getActivatedTime()));
-                        pst.setString(i++, lkuptrans.getActivatedBy());
-                    } else {
-                        if (lkuptrans.isUpdated()){
-                            pst.setString(i++, safrLogin.getUserId());
-                        }
-                        if (lkuptrans.isActivated()) {
-                            pst.setString(i++, safrLogin.getUserId());                            
-                        }
-                    }
-					pst.setInt(i++, lkuptrans.getId());
-					pst.setInt(i++, lkuptrans.getEnvironmentId());
-                    if ( useCurrentTS && 
-                        (lkuptrans.isUpdated() || lkuptrans.isActivated())) {
-                        ResultSet rs = pst.executeQuery();
-                        rs.next();
-                        int j=1;
-                        if (lkuptrans.isUpdated()) {
-                            lkuptrans.setModifyBy(safrLogin.getUserId());
-                            lkuptrans.setModifyTime(rs.getDate(j++));
-                            lkuptrans.setUpdated(false);
-                        }
-                        if (lkuptrans.isActivated()) {
-                            lkuptrans.setActivatedBy(safrLogin.getUserId());
-                            lkuptrans.setActivatedTime(rs.getDate(j++));
-                            lkuptrans.setActivated(false);
-                        }                        
-                        rs.close();                 
-                        pst.close();
-                    } else {
-                        int count  = pst.executeUpdate();   
-                        if (count == 0) {
-                            throw new SAFRNotFoundException("No Rows updated.");
-                        }                       
-                        pst.close();
-                    }
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while updating the Lookup Path.",e);
-		}
-		return lkuptrans;
+	private LookupPathTransfer updateLookupPath(LookupPathTransfer lkuptrans) throws DAOException, SAFRNotFoundException {
+		ourLkTxf  = new YAMLLookupTransfer();
+		ourLkTxf.setEnvironmentId(SAFRApplication.getUserSession().getEnvironment().getId());
+		ourLkTxf.setName(lkuptrans.getName());
+		ourLkTxf.setId(lkuptrans.getId());
+		ourLkTxf.setValidInd(lkuptrans.isValidInd());
+		ourLkTxf.setSourceLRId(lkuptrans.getSourceLRId());
+		ComponentAssociationTransfer lrlfa =  DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(lkuptrans.getTargetXLRFileId(), 0);
+		ourLkTxf.setTargetLF(lrlfa.getAssociatedComponentId());
+		ourLkTxf.setTargetLR(lrlfa.getAssociatingComponentId());
+		ourLkTxf.setTargetXLRFileId(lrlfa.getAssociationId());
+		ourLkTxf.setCreateBy(lkuptrans.getCreateBy());
+		ourLkTxf.setCreateTime(lkuptrans.getCreateTime());
+		ourLkTxf.setModifyBy(SAFRApplication.getUserSession().getUser().getUserid());
+		ourLkTxf.setModifyTime(new Date());
+		saveLookup();
+		return ourLkTxf;
 	}
 
 	public void removeLookupPath(Integer id, Integer environmentId) throws DAOException {

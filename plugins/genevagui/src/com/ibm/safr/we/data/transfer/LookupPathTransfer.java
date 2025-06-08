@@ -1,5 +1,7 @@
 package com.ibm.safr.we.data.transfer;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
  * 
@@ -21,6 +23,7 @@ package com.ibm.safr.we.data.transfer;
 public class LookupPathTransfer extends SAFRActiveComponentTransfer {
 
 	private Integer sourceLRId;
+	@JsonIgnore
 	private Integer targetXLRFileId;
 	private Boolean validInd;
 

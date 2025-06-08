@@ -163,6 +163,7 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 			lrsPath.toFile().mkdirs();
 			ourLRTxf = lrTxfrsByID.get(id);
 			if(ourLRTxf == null) {
+				queryAllLogicalRecords(environmentId, null);
 				Path lrPath = lrsPath.resolve(lrBeans.get(id).getName()+".yaml");
 				ourLRTxf = (YAMLLogicalRecordTransfer) YAMLizer.readYaml(lrPath, ComponentType.LogicalRecord);
 				lrTxfrsByID.put(id, ourLRTxf);
@@ -684,9 +685,8 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 	}
 
 	public LogicalRecordTransfer getLogicalRecordFromLRLFAssociation(Integer LRLFAssociationId, Integer environmentId) throws DAOException {
-		LogicalRecordTransfer logicalRecordTransfer = null;
-		//This one we need
-		return logicalRecordTransfer;
+		ComponentAssociationTransfer lrlf = ourLRLFAssociateionsById.get(LRLFAssociationId);
+		return lrTxfrsByID.get(lrlf.getAssociatingComponentId());
 	}
 
 	public ComponentAssociationTransfer getTargetLogicalFileAssociation(Integer LRLFAssociationId, Integer environmentId) throws DAOException {

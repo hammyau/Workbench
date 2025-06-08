@@ -78,22 +78,17 @@ public class LookupPath extends SAFRActivatedComponent {
 			// found.
 			Map<ComponentType, List<DependentComponentTransfer>> inactiveLRs = new HashMap<ComponentType, List<DependentComponentTransfer>>();
 
-			List<DependentComponentTransfer> deps = DAOFactoryHolder
-					.getDAOFactory().getLookupDAO()
-					.getLookupPathInactiveLogicalRecordsDependencies(
-							trans.getEnvironmentId(), trans.getId());
+			List<DependentComponentTransfer> deps = DAOFactoryHolder.getDAOFactory().getLookupDAO().getLookupPathInactiveLogicalRecordsDependencies(trans.getEnvironmentId(), trans.getId());
 			inactiveLRs.put(ComponentType.LogicalRecord, deps);
 
 			if (deps != null && !deps.isEmpty()) {
 				throw new SAFRDependencyException(inactiveLRs);
 			}
-			this.lookupPathSteps.addAll(SAFRApplication.getSAFRFactory()
-					.getLookupPathSteps(this));
+			this.lookupPathSteps.addAll(SAFRApplication.getSAFRFactory().getLookupPathSteps(this));
 
 			loadWarnings = new ArrayList<String>();
 			for (LookupPathStep step : this.lookupPathSteps.getActiveItems()) {
-				for (LookupPathSourceField field : step.getSourceFields()
-						.getActiveItems()) {
+				for (LookupPathSourceField field : step.getSourceFields().getActiveItems()) {
 					if (!field.getLoadWarnings().isEmpty()) {
 						this.loadWarnings.addAll(field.getLoadWarnings());
 					}

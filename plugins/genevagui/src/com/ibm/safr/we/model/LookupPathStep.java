@@ -279,8 +279,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 	 * @throws SAFRException
 	 * @throws DAOException
 	 */
-	public ComponentAssociation getTargetLRLFAssociation()
-			throws SAFRException, DAOException {
+	public ComponentAssociation getTargetLRLFAssociation()	throws SAFRException, DAOException {
 		if (targetLRLFAssociation == null) {
 			if (targetXLRFileId != null && targetXLRFileId > 0) {
 				this.targetLRLFAssociation = SAFRAssociationFactory.getLogicalRecordToLogicalFileAssociation(targetXLRFileId, getTargetLR());
@@ -297,10 +296,8 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 	 * @throws SAFRException
 	 * @throws DAOException
 	 */
-	public void setTargetLRLFAssociation(ComponentAssociation LRLFAssoc)
-			throws SAFRException, DAOException {
-		parentLookupPath.changeStepTargetLRLFAssocistion(LRLFAssoc, this
-				.getSequenceNumber());
+	public void setTargetLRLFAssociation(ComponentAssociation LRLFAssoc) throws SAFRException, DAOException {
+		parentLookupPath.changeStepTargetLRLFAssocistion(LRLFAssoc, this.getSequenceNumber());
 		this.targetLRLFAssociation = LRLFAssoc;
 		if (LRLFAssoc == null) {
 			this.targetXLRFileId = 0;
@@ -322,9 +319,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 	public LogicalRecord getTargetLR() throws SAFRException {
 		if (targetLR == null) {
 			if (targetXLRFileId != null && targetXLRFileId > 0) {
-				targetLR = SAFRApplication.getSAFRFactory()
-						.getLogicalRecordFromLRLFAssociation(targetXLRFileId,
-								this.getEnvironment().getId());
+				targetLR = SAFRApplication.getSAFRFactory().getLogicalRecordFromLRLFAssociation(targetXLRFileId, this.getEnvironment().getId());
 			}
 		}
 		return targetLR;
@@ -345,8 +340,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 			DAOException {
 		// If the target LR is in the last step then no need to change the
 		// source LR of next step.
-		int numberOfSteps = parentLookupPath.getLookupPathSteps()
-				.getActiveItems().size();
+		int numberOfSteps = parentLookupPath.getLookupPathSteps().getActiveItems().size();
 		int seqNo = this.getSequenceNumber().intValue();
 		if (numberOfSteps == seqNo) {
 			this.targetLR = targetLR;
@@ -356,8 +350,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 			// dependency check which will throw SAFRValidationException if a
 			// dependency is found.
 
-			parentLookupPath.changeStepTarget(targetLR, this
-					.getSequenceNumber());
+			parentLookupPath.changeStepTarget(targetLR, this.getSequenceNumber());
 			this.targetLR = targetLR;
 			setTargetLRLFAssociation(null);
 		}
@@ -401,8 +394,7 @@ public class LookupPathStep extends SAFREnvironmentalComponent {
 	public LookupPathSourceField addSourceField(
 			LookupPathSourceFieldType sourceFieldType) throws SAFRException,
 			DAOException {
-		LookupPathSourceField newSourceField = new LookupPathSourceField(this,
-				sourceFieldType);
+		LookupPathSourceField newSourceField = new LookupPathSourceField(this, sourceFieldType);
 		newSourceField.setKeySeqNbr(sourceFields.getActiveItems().size() + 1);
 		sourceFields.add(newSourceField);
         getParentLookupPath().markUpdated();

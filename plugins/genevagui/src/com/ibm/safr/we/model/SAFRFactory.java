@@ -942,8 +942,7 @@ public class SAFRFactory extends SAFRObject {
 		logicalRecordTransfer = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecordFromLRLFAssociation(LRLFassociationId, environmentId);
 
 		if (logicalRecordTransfer == null) {
-			throw new SAFRNotFoundException("LR-LF Association with ID  '"
-					+ LRLFassociationId + "' not found.");
+			throw new SAFRNotFoundException("LR-LF Association with ID  '" + LRLFassociationId + "' not found.");
 		} else {
 			logicalRecord = new LogicalRecord(logicalRecordTransfer);
 		}

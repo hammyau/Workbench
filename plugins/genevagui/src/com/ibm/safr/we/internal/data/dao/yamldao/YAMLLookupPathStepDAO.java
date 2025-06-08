@@ -37,6 +37,7 @@ import com.ibm.safr.we.data.DAOFactoryHolder;
 import com.ibm.safr.we.data.DataUtilities;
 import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.LookupPathStepDAO;
+import com.ibm.safr.we.data.transfer.ComponentAssociationTransfer;
 import com.ibm.safr.we.data.transfer.DependentComponentTransfer;
 import com.ibm.safr.we.data.transfer.LRFieldTransfer;
 import com.ibm.safr.we.data.transfer.LookupPathSourceFieldTransfer;
@@ -73,7 +74,7 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	private UserSessionParameters safrLogin;
 	private PGSQLGenerator generator = new PGSQLGenerator();
 
-	private static YAMLLookupTransfer ourTxf;
+	private static YAMLLookupTransfer ourLkTxf;
 	private static YAMLLookupPathStepTransfer currentStep;
 
 	public YAMLLookupPathStepDAO(Connection con, ConnectionParameters params, UserSessionParameters safrLogin) {
@@ -84,12 +85,19 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 
 	public List<LookupPathStepTransfer> getAllLookUpPathSteps(Integer environmentId, Integer lookupPathId) throws DAOException {
 		List<LookupPathStepTransfer> result = new ArrayList<LookupPathStepTransfer>();
-		ourTxf = YAMLLookupDAO.getCurrentLKTransfer();;
-		ourTxf.getSteps().stream().forEach(st -> addToStepResult(result, st));   
+		ourLkTxf = YAMLLookupDAO.getCurrentLKTransfer();;
+		ourLkTxf.getSteps().stream().forEach(st -> addToStepResult(result, st));   
 		return result;
 	}
 
     private void addToStepResult(List<LookupPathStepTransfer> result, YAMLLookupPathStepTransfer lk) {
+		List<ComponentAssociationTransfer> lfa = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getAssociatedLogicalFiles(ourLkTxf.getTargetLR(), null);
+		ComponentAssociationTransfer lrlfa =  DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(ourLkTxf.getTargetLR(), ourLkTxf.getTargetLF(), null);
+		if(lrlfa == null) {
+			logger.severe("No association for target LR " + ourLkTxf.getTargetLR());
+		} else {
+			lk.setTargetXLRFileId(lrlfa.getAssociationId());
+		}
 		result.add(lk);
 	}
 
@@ -153,27 +161,10 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
         return depCompTransfer;
     }
 	
-	private LookupPathStepTransfer generateTransfer(ResultSet rs)
-			throws SQLException {
-		LookupPathStepTransfer lkupStepTrans = new LookupPathStepTransfer();
-		lkupStepTrans.setEnvironmentId(rs.getInt(COL_ENVID));
-		lkupStepTrans.setId(rs.getInt(COL_ID));
-		lkupStepTrans.setJoinId(rs.getInt(COL_LOOKUPID));
-		lkupStepTrans.setSequenceNumber(rs.getInt(COL_STEPSEQNBR));
-		lkupStepTrans.setSourceLRId(rs.getInt(COL_SOURCE));
-		lkupStepTrans.setTargetXLRFileId(rs.getInt(COL_LRLFASSOCID));
-		lkupStepTrans.setCreateTime(rs.getDate(COL_CREATETIME));
-		lkupStepTrans.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-		lkupStepTrans.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		lkupStepTrans.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-
-		return lkupStepTrans;
-	}
-
 	public LookupPathStepTransfer getLookUpPathStep(Integer environmentId,	Integer lookupPathStepId) throws DAOException {
 		LookupPathStepTransfer result = null;
-		ourTxf = YAMLLookupDAO.getCurrentLKTransfer();
-		result = ourTxf.getSteps().get(lookupPathStepId);
+		ourLkTxf = YAMLLookupDAO.getCurrentLKTransfer();
+		result = ourLkTxf.getSteps().get(lookupPathStepId);
 		return result;
 	}
 
@@ -247,7 +238,7 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	 */
 	private LookupPathStepTransfer createLookupPathStep(LookupPathStepTransfer lkupPathStepTransfer) throws DAOException {
 		YAMLLookupDAO lkdao = (YAMLLookupDAO)DAOFactoryHolder.getDAOFactory().getLookupDAO();
-		ourTxf = YAMLLookupDAO.getCurrentLKTransfer();
+		ourLkTxf = YAMLLookupDAO.getCurrentLKTransfer();
 		currentStep = new YAMLLookupPathStepTransfer();
 		currentStep.setEnvironmentId(lkupPathStepTransfer.getEnvironmentId());
 		currentStep.setId(lkupPathStepTransfer.getSequenceNumber());
@@ -255,7 +246,7 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 		currentStep.setName(lkupPathStepTransfer.getName());
 		currentStep.setSequenceNumber(lkupPathStepTransfer.getSequenceNumber());
 		currentStep.setSourceLRId(lkupPathStepTransfer.getSourceLRId());
-		ourTxf.addStep(currentStep);
+		ourLkTxf.addStep(currentStep);
 		//But need to add it to the YAMLLogicalFileTransfer object
 //        for (LRFieldTransfer lrft : lrFieldCreateList) {
 //        	lrt.addField(lrft);
@@ -275,87 +266,18 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	 *            the Lookup Path Step which is being updated.
 	 * @return A LookupPathStepTransfer object.
 	 */
-	private LookupPathStepTransfer updateLookupPathStep(
-			LookupPathStepTransfer lkupPathStepTransfer) throws DAOException {
+	private LookupPathStepTransfer updateLookupPathStep(LookupPathStepTransfer lkupPathStepTransfer) throws DAOException {
 		
-	    SAFRApplication.getTimingMap().startTiming("PGLookupPathStepDAO.updateLookupPathStep");
-	    
-		boolean isImportOrMigrate = lkupPathStepTransfer.isForImportOrMigration();
-		boolean useCurrentTS = !isImportOrMigrate;
-
-		try {
-			List<String> names = new ArrayList<String>();
-			names.add(COL_SOURCE);
-			names.add(COL_LRLFASSOCID);
-			if (isImportOrMigrate) {
-				names.add(COL_CREATETIME);
-				names.add(COL_CREATEBY);
-				names.add(COL_MODIFYTIME);
-				names.add(COL_MODIFYBY);
-			} else {
-				names.add(COL_MODIFYTIME);
-				names.add(COL_MODIFYBY);
-			}
-
-			List<String> idNames = new ArrayList<String>();
-			idNames.add(COL_ID);
-			idNames.add(COL_ENVID);
-
-			String statement = generator.getUpdateStatement(params.getSchema(),
-					TABLE_NAME_STEP, names, idNames, useCurrentTS);
-			PreparedStatement pst = null;
-
-			while (true) {
-				try {
-					pst = con.prepareStatement(statement);
-					int i = 1;
-					pst.setInt(i++, lkupPathStepTransfer.getSourceLRId());
-					pst.setInt(i++, lkupPathStepTransfer.getTargetXLRFileId());
-					if (isImportOrMigrate) {
-						// created and lastmod set from source component
-						pst.setTimestamp(i++, DataUtilities.getTimeStamp(lkupPathStepTransfer.getCreateTime()));
-						pst.setString(i++, lkupPathStepTransfer.getCreateBy());
-						pst.setTimestamp(i++, DataUtilities.getTimeStamp(lkupPathStepTransfer.getModifyTime()));
-						pst.setString(i++, lkupPathStepTransfer.getModifyBy());
-					} else {
-						// created details are untouched
-						// lastmodtimestamp is CURRENT_TIMESTAMP
-						// lastmoduserid is logged in user
-						pst.setString(i++, safrLogin.getUserId());
-					}
-
-					pst.setInt(i++, lkupPathStepTransfer.getId());
-					pst.setInt(i++, lkupPathStepTransfer.getEnvironmentId());
-					
-                    if ( useCurrentTS ) {
-                        ResultSet rs = pst.executeQuery();
-                        rs.next();
-                        lkupPathStepTransfer.setModifyBy(safrLogin.getUserId());
-                        lkupPathStepTransfer.setModifyTime(rs.getDate(1));
-                        rs.close();                 
-                        pst.close();
-                    } else {
-                        int count  = pst.executeUpdate();   
-                        if (count == 0) {
-                            throw new SAFRNotFoundException("No Rows updated.");
-                        }                       
-                        pst.close();
-                    }
-                    break;                    
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while updating the Lookup Path Step.",e);
-		}
-		SAFRApplication.getTimingMap().stopTiming("PGLookupPathStepDAO.updateLookupPathStep");
-		
+		YAMLLookupDAO lkdao = (YAMLLookupDAO)DAOFactoryHolder.getDAOFactory().getLookupDAO();
+		ourLkTxf = YAMLLookupDAO.getCurrentLKTransfer();
+		currentStep = new YAMLLookupPathStepTransfer();
+		currentStep.setEnvironmentId(lkupPathStepTransfer.getEnvironmentId());
+		currentStep.setId(lkupPathStepTransfer.getSequenceNumber());
+		currentStep.setJoinId(lkupPathStepTransfer.getJoinId());
+		currentStep.setName(lkupPathStepTransfer.getName());
+		currentStep.setSequenceNumber(lkupPathStepTransfer.getSequenceNumber());
+		currentStep.setSourceLRId(lkupPathStepTransfer.getSourceLRId());
+		ourLkTxf.addStep(currentStep);
 		return lkupPathStepTransfer;
 	}
 
@@ -401,38 +323,9 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	}
 
 	public List<LookupPathSourceFieldTransfer> getLookUpPathStepSourceFields(Integer environmentId, Integer lookupPathStepId) throws DAOException {
-		ourTxf = YAMLLookupDAO.getCurrentLKTransfer();;
-		YAMLLookupPathStepTransfer step = ourTxf.getSteps().get(lookupPathStepId - 1);
+		ourLkTxf = YAMLLookupDAO.getCurrentLKTransfer();;
+		YAMLLookupPathStepTransfer step = ourLkTxf.getSteps().get(lookupPathStepId - 1);
 		return  step.getSources();
-	}
-
-	private LookupPathSourceFieldTransfer generateTransferSourceFields(
-			ResultSet rs) throws SQLException {
-		LookupPathSourceFieldTransfer sourceField = new LookupPathSourceFieldTransfer();
-		sourceField.setEnvironmentId(rs.getInt(COL_ENVID));
-		sourceField.setId(rs.getInt(COL_ID));
-		sourceField.setLookupPathStepId(rs.getInt(COL_ID));
-		sourceField.setKeySeqNbr(rs.getInt(COL_KEYSEQNBR));
-		sourceField.setSourceFieldType(intToEnum(rs.getInt("FLDTYPE")));
-		sourceField.setSourceXLRFLDId(rs.getInt("LRFIELDID"));
-		sourceField.setSourceXLRFileId(rs.getInt("LRLFASSOCID"));
-		sourceField.setSourceJoinId(rs.getInt("LOOKUPID"));
-		sourceField.setDataType(DataUtilities.trimString(rs.getString("VALUEFMTCD")));
-		sourceField.setSigned(DataUtilities.intToBoolean(rs.getInt("SIGNED")));
-		sourceField.setLength(rs.getInt("VALUELEN"));
-		sourceField.setDecimalPlaces(rs.getInt("DECIMALCNT"));
-		sourceField.setDateTimeFormat(DataUtilities.trimString(rs.getString("FLDCONTENTCD")));
-		sourceField.setScalingFactor(rs.getInt("ROUNDING"));
-		sourceField.setHeaderAlignment(DataUtilities.trimString(rs.getString("JUSTIFYCD")));
-		sourceField.setNumericMask(DataUtilities.trimString(rs.getString("MASK")));
-		sourceField.setSymbolicName(DataUtilities.trimString(rs.getString("SYMBOLICNAME")));
-		sourceField.setSourceValue(rs.getString("VALUE"));
-		sourceField.setCreateTime(rs.getDate(COL_CREATETIME));
-		sourceField.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-		sourceField.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		sourceField.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-
-		return sourceField;
 	}
 
     public void persistLookupPathStepsSourceFields(List<Integer> lookupPathStepIds, List<LookupPathSourceFieldTransfer> sourceFieldsTrans) throws DAOException {
@@ -448,8 +341,8 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	private void saveLookup() {
 		Path lksPath = YAMLizer.getLookupsPath();
 		lksPath.toFile().mkdirs();
-		Path lkPath = lksPath.resolve(ourTxf.getName()+ ".yaml");
-		YAMLizer.writeYaml(lkPath, ourTxf);
+		Path lkPath = lksPath.resolve(ourLkTxf.getName()+ ".yaml");
+		YAMLizer.writeYaml(lkPath, ourLkTxf);
 	}
     
     private List<LookupPathSourceFieldTransfer> createLookupPathStepSourceFields(
