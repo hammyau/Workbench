@@ -188,8 +188,7 @@ public class SAFRQuery {
 	 * @return A list of all ViewFolderQueryBean objects.
 	 * @throws DAOException
 	 */
-	static public List<ViewFolderQueryBean> queryAllViewFolders(
-			Integer environmentId, SortType sortType) throws DAOException {
+	static public List<ViewFolderQueryBean> queryAllViewFolders(Integer environmentId, SortType sortType) throws DAOException {
 		return DAOFactoryHolder.getDAOFactory().getViewFolderDAO().queryAllViewFolders(environmentId, sortType);
 	}
 

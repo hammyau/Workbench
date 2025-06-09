@@ -56,28 +56,24 @@ public class MainTreeContentProvider implements ITreeContentProvider {
 		// if the element is view folder check whether it has children.
 		if ((item.equals(new MainTreeItem(TreeItemId.VIEWFOLDER, null, null, null)))) {
 		    
-//			List<ViewFolderQueryBean> viewFolderList = null;
-//			if (item.getChildren() == null || item.getChildren().isEmpty()) {
-//				try {
-//					viewFolderList = SAFRQuery.queryAllViewFolders(UIUtilities
-//					    .getCurrentEnvironmentID(), SortType.SORT_BY_ID);
-//				} catch (DAOException e) {
-//					UIUtilities.handleWEExceptions(e,
-//					    "Database error in getting contents for Navigator View.",
-//					    UIUtilities.titleStringDbException);
-//				}
-//				if (viewFolderList != null) {
-//					List<MainTreeItem> viewFolderChildrenList = new ArrayList<MainTreeItem>();
-//					for (ViewFolderQueryBean viewFolderQueryBean : viewFolderList) {
-//						MainTreeItem temp = new MainTreeItem(viewFolderQueryBean.getId(),
-//						    TreeItemId.VIEWFOLDERCHILD, viewFolderQueryBean.getName(), item, null);
-//						viewFolderChildrenList.add(temp);
-//					}
-//					item.setChildren(viewFolderChildrenList);
-//				} else {
-//					item.setChildren(null);
-//				}
-//			}
+			List<ViewFolderQueryBean> viewFolderList = null;
+			if (item.getChildren() == null || item.getChildren().isEmpty()) {
+				try {
+					viewFolderList = SAFRQuery.queryAllViewFolders(UIUtilities.getCurrentEnvironmentID(), SortType.SORT_BY_ID);
+				} catch (DAOException e) {
+					UIUtilities.handleWEExceptions(e, "Database error in getting contents for Navigator View.", UIUtilities.titleStringDbException);
+				}
+				if (viewFolderList != null) {
+					List<MainTreeItem> viewFolderChildrenList = new ArrayList<MainTreeItem>();
+					for (ViewFolderQueryBean viewFolderQueryBean : viewFolderList) {
+						MainTreeItem temp = new MainTreeItem(viewFolderQueryBean.getId(),  TreeItemId.VIEWFOLDERCHILD, viewFolderQueryBean.getName(), item, null);
+						viewFolderChildrenList.add(temp);
+					}
+					item.setChildren(viewFolderChildrenList);
+				} else {
+					item.setChildren(null);
+				}
+			}
 
 		}
 

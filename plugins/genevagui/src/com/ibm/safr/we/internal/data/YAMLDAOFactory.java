@@ -40,6 +40,7 @@ import com.ibm.safr.we.internal.data.dao.yamldao.YAMLCodeSetDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLControlRecordDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLEnvironmentDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLExportDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLHeaderFooterDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLogicalFileDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLogicalRecordDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLookupDAO;
@@ -47,8 +48,13 @@ import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLookupPathStepDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLLRFieldDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLPhysicalFileDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLUserExitRoutineDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewColumnDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewColumnSourceDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewDAO;
 import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewFolderDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewLogicDependencyDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewSortKeyDAO;
+import com.ibm.safr.we.internal.data.dao.yamldao.YAMLViewSourceDAO;
 
 public class YAMLDAOFactory implements DAOFactory {
 	public static final String GENEVAERS = ".genevaers";
@@ -98,38 +104,32 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public ViewSourceDAO getViewSourceDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLViewSourceDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
 	public ViewColumnDAO getViewColumnDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLViewColumnDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
 	public ViewColumnSourceDAO getViewColumnSourceDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLViewColumnSourceDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
 	public ViewSortKeyDAO getViewSortKeyDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLViewSortKeyDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
 	public ViewLogicDependencyDAO getViewLogicDependencyDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLViewLogicDependencyDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override
 	public HeaderFooterDAO getHeaderFooterDAO() throws DAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return new YAMLHeaderFooterDAO(getConnection(), _params, _safrLogin);
 	}
 
 	@Override

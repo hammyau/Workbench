@@ -22,6 +22,7 @@ import com.ibm.safr.we.internal.data.YAMLDAOFactory;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLogicalFileTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLogicalRecordTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLookupTransfer;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 
 public class YAMLizer {
     private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -47,6 +48,8 @@ public class YAMLizer {
         		return yamlMapper.readValue(input.toFile(), YAMLLogicalRecordTransfer.class);
         	case LookupPath:
         		return yamlMapper.readValue(input.toFile(), YAMLLookupTransfer.class);
+        	case View:
+        		return yamlMapper.readValue(input.toFile(), YAMLViewTransfer.class);
         	}
         } catch (IOException e) {
             logger.atSevere().log("read yaml failed for type %s %s", ctype, e.getMessage());
@@ -103,6 +106,10 @@ public class YAMLizer {
 
 	public static Path getCRsPath() {
 		return YAMLDAOFactory.getGersHome().resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("crs");
+	}
+
+	public static Path getViewsPath() {
+		return YAMLDAOFactory.getGersHome().resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("views");
 	}
 
 }

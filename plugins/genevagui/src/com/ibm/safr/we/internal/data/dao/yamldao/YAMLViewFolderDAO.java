@@ -79,14 +79,22 @@ public class YAMLViewFolderDAO implements ViewFolderDAO {
 		this.safrLogin = safrlogin;
 	}
 
-	public List<ViewFolderQueryBean> queryAllViewFolders(Integer environmentId,
-			SortType sortType)
-			throws DAOException {
+	public List<ViewFolderQueryBean> queryAllViewFolders(Integer environmentId,	SortType sortType) throws DAOException {
 		List<ViewFolderQueryBean> result = new ArrayList<ViewFolderQueryBean>();
+		ViewFolderQueryBean viewFolderBean = new ViewFolderQueryBean(
+		environmentId,
+		0, 
+		"ALL_VIEWS",
+        EditRights.ReadModifyDelete,					
+		null, 
+		null, 
+		null, 
+		null);
 
-		boolean admin = SAFRApplication.getUserSession().isSystemAdministrator();
-		return result;
-		
+		result.add(viewFolderBean);
+//
+//		boolean admin = SAFRApplication.getUserSession().isSystemAdministrator();
+//
 //		String orderString = null;
 //		if (sortType.equals(SortType.SORT_BY_ID)) {
 //			orderString = "VF.VIEWFOLDERID";
@@ -146,7 +154,7 @@ public class YAMLViewFolderDAO implements ViewFolderDAO {
 //			}
 //			pst.close();
 //			rs.close();
-//			return result;
+			return result;
 //
 //		} catch (SQLException e) {
 //			throw DataUtilities.createDAOException(
@@ -159,77 +167,76 @@ public class YAMLViewFolderDAO implements ViewFolderDAO {
 			Integer groupId, boolean isSystemAdmin, SortType sortType)
 			throws DAOException {
 		List<ViewFolderQueryBean> result = new ArrayList<ViewFolderQueryBean>();
-		return result;
-		
-//		String orderString = null;
-//		if (sortType.equals(SortType.SORT_BY_ID)) {
-//			orderString = "VF.VIEWFOLDERID";
-//		} else {
-//			orderString = "UPPER(VF.NAME)";
-//		}
-//
-//		try {
-//			String selectString = "";
-//			if (isSystemAdmin) {
-//				selectString = "SELECT VF.VIEWFOLDERID,VF.NAME, "
-//						+ "VF.CREATEDTIMESTAMP, VF.CREATEDUSERID, VF.LASTMODTIMESTAMP, VF.LASTMODUSERID FROM "
-//						+ params.getSchema() + ".VIEWFOLDER VF "
-//						+ "WHERE VF.ENVIRONID = ? "
-//						+ " ORDER BY " + orderString;
-//			} else {
-//				selectString = "SELECT VF.VIEWFOLDERID,VF.NAME, L.RIGHTS, "
-//						+ "VF.CREATEDTIMESTAMP, VF.CREATEDUSERID, VF.LASTMODTIMESTAMP, VF.LASTMODUSERID FROM "
-//						+ params.getSchema() + ".VIEWFOLDER VF "
-//						+ "LEFT OUTER JOIN "
-//						+ params.getSchema() + ".SECVIEWFOLDER L "
-//						+ "ON VF.ENVIRONID = L.ENVIRONID AND VF.VIEWFOLDERID = L.VIEWFOLDERID "
-//						+ " AND L.GROUPID = ? "
-//						+ "WHERE VF.ENVIRONID = ? " 
-//						+ " ORDER BY "
-//						+ orderString;
-//			}
-//			PreparedStatement pst = null;
-//			ResultSet rs = null;
-//			while (true) {
-//				try {
-//					pst = con.prepareStatement(selectString);
-//					if(isSystemAdmin) {
-//						pst.setInt(1, environmentId);
-//					}
-//					else {
-//						pst.setInt(1, groupId);
-//						pst.setInt(2, environmentId);
-//					}
-//					rs = pst.executeQuery();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			while (rs.next()) {
-//				ViewFolderQueryBean viewFolderBean = new ViewFolderQueryBean(
-//					environmentId, rs.getInt(COL_ID), 
-//					DataUtilities.trimString(rs.getString(COL_NAME)),
-//					isSystemAdmin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
-//                        rs.getInt("RIGHTS"), ComponentType.ViewFolder, environmentId),                    
-//					rs.getDate(COL_CREATETIME), 
-//					DataUtilities.trimString(rs.getString(COL_CREATEBY)), 
-//					rs.getDate(COL_MODIFYTIME), 
-//					DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-//				result.add(viewFolderBean);
-//			}
-//			pst.close();
-//			rs.close();
-//			return result;
-//
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException("Database error occurred while querying View Folders for the specified Group and/or Environment.",e);
-//		}
+
+		String orderString = null;
+		if (sortType.equals(SortType.SORT_BY_ID)) {
+			orderString = "VF.VIEWFOLDERID";
+		} else {
+			orderString = "UPPER(VF.NAME)";
+		}
+
+		try {
+			String selectString = "";
+			if (isSystemAdmin) {
+				selectString = "SELECT VF.VIEWFOLDERID,VF.NAME, "
+						+ "VF.CREATEDTIMESTAMP, VF.CREATEDUSERID, VF.LASTMODTIMESTAMP, VF.LASTMODUSERID FROM "
+						+ params.getSchema() + ".VIEWFOLDER VF "
+						+ "WHERE VF.ENVIRONID = ? "
+						+ " ORDER BY " + orderString;
+			} else {
+				selectString = "SELECT VF.VIEWFOLDERID,VF.NAME, L.RIGHTS, "
+						+ "VF.CREATEDTIMESTAMP, VF.CREATEDUSERID, VF.LASTMODTIMESTAMP, VF.LASTMODUSERID FROM "
+						+ params.getSchema() + ".VIEWFOLDER VF "
+						+ "LEFT OUTER JOIN "
+						+ params.getSchema() + ".SECVIEWFOLDER L "
+						+ "ON VF.ENVIRONID = L.ENVIRONID AND VF.VIEWFOLDERID = L.VIEWFOLDERID "
+						+ " AND L.GROUPID = ? "
+						+ "WHERE VF.ENVIRONID = ? " 
+						+ " ORDER BY "
+						+ orderString;
+			}
+			PreparedStatement pst = null;
+			ResultSet rs = null;
+			while (true) {
+				try {
+					pst = con.prepareStatement(selectString);
+					if(isSystemAdmin) {
+						pst.setInt(1, environmentId);
+					}
+					else {
+						pst.setInt(1, groupId);
+						pst.setInt(2, environmentId);
+					}
+					rs = pst.executeQuery();
+					break;
+				} catch (SQLException se) {
+					if (con.isClosed()) {
+						// lost database connection, so reconnect and retry
+						con = DAOFactoryHolder.getDAOFactory().reconnect();
+					} else {
+						throw se;
+					}
+				}
+			}
+			while (rs.next()) {
+				ViewFolderQueryBean viewFolderBean = new ViewFolderQueryBean(
+					environmentId, rs.getInt(COL_ID), 
+					DataUtilities.trimString(rs.getString(COL_NAME)),
+					isSystemAdmin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
+                        rs.getInt("RIGHTS"), ComponentType.ViewFolder, environmentId),                    
+					rs.getDate(COL_CREATETIME), 
+					DataUtilities.trimString(rs.getString(COL_CREATEBY)), 
+					rs.getDate(COL_MODIFYTIME), 
+					DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
+				result.add(viewFolderBean);
+			}
+			pst.close();
+			rs.close();
+			return result;
+
+		} catch (SQLException e) {
+			throw DataUtilities.createDAOException("Database error occurred while querying View Folders for the specified Group and/or Environment.",e);
+		}
 	}
 
 	public ViewFolderTransfer getViewFolder(Integer id, Integer environmentId)
@@ -1191,40 +1198,40 @@ public class YAMLViewFolderDAO implements ViewFolderDAO {
 
     @Override
     public void addAllViewsAssociation(Integer viewId, Integer environmentId) {
-        try {
-            String[] columnNames = { COL_ENVID, "VIEWFOLDERID", "VIEWID",
-                COL_CREATETIME, COL_CREATEBY, COL_MODIFYTIME, COL_MODIFYBY };
-            List<String> names = new ArrayList<String>(Arrays.asList(columnNames));
-            PreparedStatement pst = null;
-            ResultSet rs = null;
-            while (true) {
-                try {
-                    String statement = generator.getInsertStatement(
-                        params.getSchema(), "VFVASSOC", "VFVASSOCID", names, true);
-                    pst = con.prepareStatement(statement);
-                    int i = 1;
-                    pst.setInt(i++, environmentId);
-                    pst.setInt(i++, 0);
-                    pst.setInt(i++, viewId);
-                    pst.setString(i++, safrLogin.getUserId());
-                    pst.setString(i++, safrLogin.getUserId());
-                    rs = pst.executeQuery();
-                    rs.close();
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-            pst.close();
-
-        } catch (SQLException e) {
-            throw DataUtilities.createDAOException("Database error occurred while creating associations of View Folder with Views.",e);
-        }        
+//        try {
+//            String[] columnNames = { COL_ENVID, "VIEWFOLDERID", "VIEWID",
+//                COL_CREATETIME, COL_CREATEBY, COL_MODIFYTIME, COL_MODIFYBY };
+//            List<String> names = new ArrayList<String>(Arrays.asList(columnNames));
+//            PreparedStatement pst = null;
+//            ResultSet rs = null;
+//            while (true) {
+//                try {
+//                    String statement = generator.getInsertStatement(
+//                        params.getSchema(), "VFVASSOC", "VFVASSOCID", names, true);
+//                    pst = con.prepareStatement(statement);
+//                    int i = 1;
+//                    pst.setInt(i++, environmentId);
+//                    pst.setInt(i++, 0);
+//                    pst.setInt(i++, viewId);
+//                    pst.setString(i++, safrLogin.getUserId());
+//                    pst.setString(i++, safrLogin.getUserId());
+//                    rs = pst.executeQuery();
+//                    rs.close();
+//                    break;
+//                } catch (SQLException se) {
+//                    if (con.isClosed()) {
+//                        // lost database connection, so reconnect and retry
+//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
+//                    } else {
+//                        throw se;
+//                    }
+//                }
+//            }
+//            pst.close();
+//
+//        } catch (SQLException e) {
+//            throw DataUtilities.createDAOException("Database error occurred while creating associations of View Folder with Views.",e);
+//        }        
     }
 
 }

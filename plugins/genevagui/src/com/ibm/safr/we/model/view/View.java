@@ -2231,9 +2231,7 @@ public class View extends SAFRActivatedComponent {
                         for (ViewSource viewSource : viewSources) {
                             if (viewSource.getPersistence() == SAFRPersistence.DELETED) {
                                 deletedIds.add(viewSource.getId());
-                            } else if (viewSource.isForImport()
-                                    || viewSource.isForMigration()
-                                    || viewSource.getPersistence() != SAFRPersistence.OLD) {
+                            } else if (viewSource.isForImport() || viewSource.isForMigration() || viewSource.getPersistence() != SAFRPersistence.OLD) {
                                 ViewSourceTransfer viewSourceTransfer = new ViewSourceTransfer();
                                 viewSource.setTransferData(viewSourceTransfer);
                                 transList.add(viewSourceTransfer);
@@ -2241,8 +2239,7 @@ public class View extends SAFRActivatedComponent {
                             }
                         }
                         if (transList.size() > 0) {
-                            DAOFactoryHolder.getDAOFactory().getViewSourceDAO()
-                                    .persistViewSources(transList);
+                            DAOFactoryHolder.getDAOFactory().getViewSourceDAO().persistViewSources(transList);
                             for (int i = 0; i < transList.size(); i++) {
                                 ViewSourceTransfer viewSourceTrans = transList.get(i);
                                 ViewSource tmpSrc = viewSourceMap.get(viewSourceTrans);
