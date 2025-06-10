@@ -36,9 +36,12 @@ import com.ibm.safr.we.data.DAOFactoryHolder;
 import com.ibm.safr.we.data.DataUtilities;
 import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.ViewSourceDAO;
+import com.ibm.safr.we.data.transfer.ComponentAssociationTransfer;
 import com.ibm.safr.we.data.transfer.LookupPathSourceFieldTransfer;
 import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewSourceTransfer;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 import com.ibm.safr.we.model.query.EnvironmentalQueryBean;
 import com.ibm.safr.we.model.query.LogicalRecordQueryBean;
 import com.ibm.safr.we.model.query.LookupQueryBean;
@@ -70,6 +73,9 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 	private ConnectionParameters params;
 	private UserSessionParameters safrLogin;
 	private PGSQLGenerator generator = new PGSQLGenerator();
+
+	private YAMLViewSourceTransfer ourViewSource;
+	private static int maxid;
 
 	/**
 	 * Constructor for this class.
@@ -157,84 +163,41 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
         return result;
     }
 	
-	public List<ViewSourceTransfer> getViewSources(Integer viewId,
-			Integer environmentId) throws DAOException {
-		List<ViewSourceTransfer> result = new ArrayList<ViewSourceTransfer>();
-		try {
-			List<String> idNames = new ArrayList<String>();
-			if (viewId > 0) {
-				idNames.add(COL_VIEWID);
-			}
-			idNames.add(COL_ENVID);
+	public List<ViewSourceTransfer> getViewSources(Integer viewId, Integer environmentId) throws DAOException {
+		List<ViewSourceTransfer> viewSources = new ArrayList<>();
+		YAMLViewDAO.getCurrentView().getViewSources().stream().forEach(vs -> makeAndAddViewSource(viewSources, vs, environmentId));	
+		return viewSources;
+	}
 
-			String[] columnNames = { COL_ENVID, COL_ID, COL_VIEWID, COL_SEQNO,
-					COL_INLRLFASSOCID, COL_EXTRACTFILTLOGIC, 
-					COL_OUTLFPFASSOCID, COL_WRITEEXITID, COL_WRITEEXITPARM,
-					COL_EXTRACTOUTPUTIND, COL_EXTRACTOUTPUTLOGIC, 
-					COL_CREATETIME, COL_CREATEBY,
-					COL_MODIFYTIME, COL_MODIFYBY };
-			List<String> columns = Arrays.asList(columnNames);
-
-			String[] orderByNames = { COL_SEQNO };
-			List<String> orderBy = Arrays.asList(orderByNames);
-
-			String selectString = generator.getSelectColumnsStatement(columns,
-					params.getSchema(), TABLE_NAME, idNames, orderBy);
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					if (viewId > 0) {
-						pst.setInt(1, viewId);
-						pst.setInt(2, environmentId);
-					} else {
-						pst.setInt(1, environmentId);
-					}
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rs.next()) {
-				result.add(generateTransfer(rs));
-			}
-			pst.close();
-			rs.close();
-
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving the View Sources for the View with id ["+ viewId + "]", e);
-		}
-		return result;
+	private void makeAndAddViewSource(List<ViewSourceTransfer> viewSources, YAMLViewSourceTransfer yvs, Integer environmentId) {
+		ViewSourceTransfer vs = new ViewSourceTransfer();
+		vs.setId(maxid++);
+		vs.setEnvironmentId(environmentId);
+		vs.setExtractFileAssociationId(null);
+		vs.setExtractFilterLogic(yvs.getExtractFilter());
+		vs.setExtractOutputOverride(yvs.getOutputOverride());
+		vs.setExtractRecordOutput(yvs.getOutputLogic());
+		ComponentAssociationTransfer lrlf = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(yvs.getLogicalRecord(), yvs.getLogicalFile());
+		vs.setLRFileAssocId(lrlf.getAssociationId());
+		vs.setSourceSeqNo(yvs.getSequenceNumber());
+		vs.setWriteExitId(yvs.getWriteExit());
+		vs.setWriteExitParams(yvs.getWriteExitParms());
+		viewSources.add(vs);
 	}
 
 	public void persistViewSources(List<ViewSourceTransfer> viewSrcTransferList) throws DAOException {
 
-//		if (viewSrcTransferList == null || viewSrcTransferList.isEmpty()) {
-//			return;
-//		}
-//		List<ViewSourceTransfer> viewSrcCreate = new ArrayList<ViewSourceTransfer>();
-//		List<ViewSourceTransfer> viewSrcUpdate = new ArrayList<ViewSourceTransfer>();
-//
-//		for (ViewSourceTransfer viewSrcTrans : viewSrcTransferList) {
-//			if (!viewSrcTrans.isPersistent()) {
-//				viewSrcCreate.add(viewSrcTrans);
-//			} else {
-//				viewSrcUpdate.add(viewSrcTrans);
-//			}
-//		}
-//		if (viewSrcCreate.size() > 0) {
-//			createViewSources(viewSrcCreate);
-//		}
-//		if (viewSrcUpdate.size() > 0) {
-//			updateViewSources(viewSrcUpdate);
-//		}
+		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		viewSrcTransferList.stream().forEach(s -> addViewSources(vt, s));
+		YAMLViewDAO.saveView(vt);
+	}
+
+	private void addViewSources(YAMLViewTransfer vt, ViewSourceTransfer s) {
+		ourViewSource =new YAMLViewSourceTransfer(s);
+		ComponentAssociationTransfer lrlf = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(s.getLRFileAssocId(), s.getEnvironmentId());
+		ourViewSource.setLogicalFile(lrlf.getAssociatedComponentName());
+		ourViewSource.setLogicalRecord(lrlf.getAssociatingComponentName());
+		vt.addViewSource(ourViewSource);
 	}
 
 	private void createViewSources(List<ViewSourceTransfer> viewSrcCreate) throws DAOException {

@@ -125,53 +125,53 @@ public class YAMLViewSortKeyDAO implements ViewSortKeyDAO {
 	public List<ViewSortKeyTransfer> getViewSortKeys(Integer viewId,
 			Integer environmentId) throws DAOException {
 		List<ViewSortKeyTransfer> vstTransferList = new ArrayList<ViewSortKeyTransfer>();
-		try {
-			String selectString = "SELECT A.ENVIRONID,A.VIEWSORTKEYID,A.VIEWID,A.VIEWCOLUMNID,"
-					+ "A.KEYSEQNBR,A.SORTSEQCD,A.SORTBRKIND,A.PAGEBRKIND,"
-					+ "A.SORTKEYDISPLAYCD,A.SORTKEYLABEL,A.SKFLDFMTCD,"
-					+ "A.SKSIGNED,A.SKSTARTPOS,A.SKFLDLEN,A.SKDECIMALCNT,"
-					+ "A.SKFLDCONTENTCD,A.SORTTITLELRFIELDID, A.SORTTITLELENGTH, "
-					+ "A.CREATEDTIMESTAMP, A.LASTMODTIMESTAMP, "
-					+ "A.CREATEDUSERID, A.LASTMODUSERID FROM "
-					+ params.getSchema()+ "." + TABLE_NAME + " A INNER JOIN "
-					+ params.getSchema() + ".VIEWCOLUMN B ON A.ENVIRONID = B.ENVIRONID AND "
-					+ "A.VIEWID = B.VIEWID AND A.VIEWCOLUMNID = B.VIEWCOLUMNID "
-					+ " WHERE ";
-			if(viewId > 0) {
-				selectString  += "A.VIEWID = ? AND "; 
-			}
-			selectString  +=  "A.ENVIRONID = ? ORDER BY A.KEYSEQNBR";
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					int ndx = 1;
-					if(viewId > 0) {
-						pst.setInt(ndx++, viewId);
-					}
-					pst.setInt(ndx++, environmentId);
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rs.next()) {
-				ViewSortKeyTransfer vstTransfer = new ViewSortKeyTransfer();
-				vstTransfer = generateTransfer(rs);
-				vstTransferList.add(vstTransfer);
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving all View Sort Keys for the View with id ["+ viewId + "]", e);
-		}
+//		try {
+//			String selectString = "SELECT A.ENVIRONID,A.VIEWSORTKEYID,A.VIEWID,A.VIEWCOLUMNID,"
+//					+ "A.KEYSEQNBR,A.SORTSEQCD,A.SORTBRKIND,A.PAGEBRKIND,"
+//					+ "A.SORTKEYDISPLAYCD,A.SORTKEYLABEL,A.SKFLDFMTCD,"
+//					+ "A.SKSIGNED,A.SKSTARTPOS,A.SKFLDLEN,A.SKDECIMALCNT,"
+//					+ "A.SKFLDCONTENTCD,A.SORTTITLELRFIELDID, A.SORTTITLELENGTH, "
+//					+ "A.CREATEDTIMESTAMP, A.LASTMODTIMESTAMP, "
+//					+ "A.CREATEDUSERID, A.LASTMODUSERID FROM "
+//					+ params.getSchema()+ "." + TABLE_NAME + " A INNER JOIN "
+//					+ params.getSchema() + ".VIEWCOLUMN B ON A.ENVIRONID = B.ENVIRONID AND "
+//					+ "A.VIEWID = B.VIEWID AND A.VIEWCOLUMNID = B.VIEWCOLUMNID "
+//					+ " WHERE ";
+//			if(viewId > 0) {
+//				selectString  += "A.VIEWID = ? AND "; 
+//			}
+//			selectString  +=  "A.ENVIRONID = ? ORDER BY A.KEYSEQNBR";
+//			PreparedStatement pst = null;
+//			ResultSet rs = null;
+//			while (true) {
+//				try {
+//					pst = con.prepareStatement(selectString);
+//					int ndx = 1;
+//					if(viewId > 0) {
+//						pst.setInt(ndx++, viewId);
+//					}
+//					pst.setInt(ndx++, environmentId);
+//					rs = pst.executeQuery();
+//					break;
+//				} catch (SQLException se) {
+//					if (con.isClosed()) {
+//						// lost database connection, so reconnect and retry
+//						con = DAOFactoryHolder.getDAOFactory().reconnect();
+//					} else {
+//						throw se;
+//					}
+//				}
+//			}
+//			while (rs.next()) {
+//				ViewSortKeyTransfer vstTransfer = new ViewSortKeyTransfer();
+//				vstTransfer = generateTransfer(rs);
+//				vstTransferList.add(vstTransfer);
+//			}
+//			pst.close();
+//			rs.close();
+//		} catch (SQLException e) {
+//			throw DataUtilities.createDAOException("Database error occurred while retrieving all View Sort Keys for the View with id ["+ viewId + "]", e);
+//		}
 		return vstTransferList;
 	}
 

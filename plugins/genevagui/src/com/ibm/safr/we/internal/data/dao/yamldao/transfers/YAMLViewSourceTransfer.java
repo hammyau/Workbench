@@ -1,6 +1,7 @@
 package com.ibm.safr.we.internal.data.dao.yamldao.transfers;
 
 import com.ibm.safr.we.data.transfer.SAFREnvironmentalComponentTransfer;
+import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
@@ -21,16 +22,89 @@ import com.ibm.safr.we.data.transfer.SAFREnvironmentalComponentTransfer;
 
 
 
-public class YAMLViewSourceTransfer extends SAFREnvironmentalComponentTransfer {
+public class YAMLViewSourceTransfer {
 
-	private Integer viewId;
-	private Integer sourceSeqNo;
-	private Integer lrFileAssocId;
-	private String extractFilterLogic;
-    private Integer extractFileAssociationId; // Extr Output File, OUTLFPFASSOCID
-    private Integer writeExitId; // Extract Phase, WRITEEXITID
-    private String writeExitParams; // Extract Phase, WRITEEXITPARAM
-    private boolean extractOutputOverride; // EXTRACTOUTPUTIND
-    private String extractRecordOutput;
-
+	private int sequenceNumber;
+    private String logicalRecord;
+    private String logicalFile;
+    private String extractFilter;
+    private String outputLF;
+    private String outputPF;
+    private Integer writeExit;
+    private String writeExitParms;
+    private Boolean outputOverride;
+    private String outputLogic;
+    
+    public YAMLViewSourceTransfer() {
+    	
+    }
+    
+	public YAMLViewSourceTransfer(ViewSourceTransfer s) {
+		extractFilter = s.getExtractFilterLogic();
+		sequenceNumber = s.getSourceSeqNo();
+		writeExit = s.getWriteExitId();
+		writeExitParms = s.getWriteExitParams();
+		outputOverride = s.isExtractOutputOverride();
+		outputLogic = s.getExtractRecordOutput();
+	}
+	public String getLogicalRecord() {
+		return logicalRecord;
+	}
+	public void setLogicalRecord(String logicalRecord) {
+		this.logicalRecord = logicalRecord;
+	}
+	public String getLogicalFile() {
+		return logicalFile;
+	}
+	public void setLogicalFile(String logicalFile) {
+		this.logicalFile = logicalFile;
+	}
+	public int getSequenceNumber() {
+		return sequenceNumber;
+	}
+	public void setSequenceNumber(int sequenceNumber) {
+		this.sequenceNumber = sequenceNumber;
+	}
+	public String getExtractFilter() {
+		return extractFilter;
+	}
+	public void setExtractFilter(String extractFilter) {
+		this.extractFilter = extractFilter;
+	}
+	public String getOutputLF() {
+		return outputLF;
+	}
+	public void setOutputLF(String outputLF) {
+		this.outputLF = outputLF;
+	}
+	public String getOutputPF() {
+		return outputPF;
+	}
+	public void setOutputPF(String outputPF) {
+		this.outputPF = outputPF;
+	}
+	public Integer getWriteExit() {
+		return writeExit;
+	}
+	public void setWriteExit(Integer writeExit) {
+		this.writeExit = writeExit;
+	}
+	public String getWriteExitParms() {
+		return writeExitParms;
+	}
+	public void setWriteExitParms(String writeExitParms) {
+		this.writeExitParms = writeExitParms;
+	}
+	public Boolean getOutputOverride() {
+		return outputOverride;
+	}
+	public void setOutputOverride(Boolean outputOverride) {
+		this.outputOverride = outputOverride;
+	}
+	public String getOutputLogic() {
+		return outputLogic;
+	}
+	public void setOutputLogic(String outputLogic) {
+		this.outputLogic = outputLogic;
+	}
 }

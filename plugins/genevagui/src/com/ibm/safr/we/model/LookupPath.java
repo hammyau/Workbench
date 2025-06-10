@@ -539,16 +539,12 @@ public class LookupPath extends SAFRActivatedComponent {
 					
 					// store all step source fields
                     if (sourceFieldsTransfer.size() > 0) {
-                        DAOFactoryHolder.getDAOFactory()
-                            .getLookupPathStepDAO().persistLookupPathStepsSourceFields(
-                                    stepIds, sourceFieldsTransfer);
+                        DAOFactoryHolder.getDAOFactory().getLookupPathStepDAO().persistLookupPathStepsSourceFields(stepIds, sourceFieldsTransfer);
                     }
 
 					// inactivate dependent views.
 					if (!deactivatedViewList.isEmpty()) {
-						DAOFactoryHolder.getDAOFactory().getViewDAO()
-								.makeViewsInactive(deactivatedViewList,
-										getEnvironmentId());
+						DAOFactoryHolder.getDAOFactory().getViewDAO().makeViewsInactive(deactivatedViewList, getEnvironmentId());
 					}
 					
                     SAFRApplication.getModelCount().incCount(this.getClass(), 1);

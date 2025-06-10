@@ -123,57 +123,56 @@ public class YAMLViewColumnDAO implements ViewColumnDAO {
 		return vcTransfer;
 	}
 
-	public List<ViewColumnTransfer> getViewColumns(Integer viewId,
-			Integer environmentId) throws DAOException {
+	public List<ViewColumnTransfer> getViewColumns(Integer viewId,	Integer environmentId) throws DAOException {
 		List<ViewColumnTransfer> vcTransferList = new ArrayList<ViewColumnTransfer>();
-		try {
-
-			String whereStatement = " Where ";
-			if (viewId > 0) {
-				whereStatement += "VIEWID = ? AND "; 
-			}
-			whereStatement += " ENVIRONID = ?";
-
-			String selectString = "Select ENVIRONID, VIEWCOLUMNID, VIEWID, COLUMNNUMBER, "
-					+ "FLDFMTCD, SIGNEDIND, STARTPOSITION, MAXLEN, ORDINALPOSITION, "
-					+ "DECIMALCNT, ROUNDING, FLDCONTENTCD, JUSTIFYCD, DEFAULTVAL, "
-					+ "VISIBLE, SUBTOTALTYPECD, SPACESBEFORECOLUMN, EXTRACTAREACD, EXTRAREAPOSITION, "
-					+ "SUBTLABEL, RPTMASK,HDRJUSTIFYCD, HDRLINE1, HDRLINE2, HDRLINE3, FORMATCALCLOGIC, "
-					+ "CREATEDTIMESTAMP, LASTMODTIMESTAMP, CREATEDUSERID, LASTMODUSERID FROM "
-					+ params.getSchema() + ".VIEWCOLUMN "
-					+ whereStatement + " ORDER BY COLUMNNUMBER";
-
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					int i = 1;
-					if (viewId > 0) {
-						pst.setInt(i++, viewId);
-					}
-					pst.setInt(i++, environmentId);
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rs.next()) {
-				ViewColumnTransfer vcTransfer = new ViewColumnTransfer();
-				vcTransfer = generateTransfer(rs);
-				vcTransferList.add(vcTransfer);
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving all View Columns for View with id [" + viewId + "]", e);
-		}
+//		try {
+//
+//			String whereStatement = " Where ";
+//			if (viewId > 0) {
+//				whereStatement += "VIEWID = ? AND "; 
+//			}
+//			whereStatement += " ENVIRONID = ?";
+//
+//			String selectString = "Select ENVIRONID, VIEWCOLUMNID, VIEWID, COLUMNNUMBER, "
+//					+ "FLDFMTCD, SIGNEDIND, STARTPOSITION, MAXLEN, ORDINALPOSITION, "
+//					+ "DECIMALCNT, ROUNDING, FLDCONTENTCD, JUSTIFYCD, DEFAULTVAL, "
+//					+ "VISIBLE, SUBTOTALTYPECD, SPACESBEFORECOLUMN, EXTRACTAREACD, EXTRAREAPOSITION, "
+//					+ "SUBTLABEL, RPTMASK,HDRJUSTIFYCD, HDRLINE1, HDRLINE2, HDRLINE3, FORMATCALCLOGIC, "
+//					+ "CREATEDTIMESTAMP, LASTMODTIMESTAMP, CREATEDUSERID, LASTMODUSERID FROM "
+//					+ params.getSchema() + ".VIEWCOLUMN "
+//					+ whereStatement + " ORDER BY COLUMNNUMBER";
+//
+//			PreparedStatement pst = null;
+//			ResultSet rs = null;
+//			while (true) {
+//				try {
+//					pst = con.prepareStatement(selectString);
+//					int i = 1;
+//					if (viewId > 0) {
+//						pst.setInt(i++, viewId);
+//					}
+//					pst.setInt(i++, environmentId);
+//					rs = pst.executeQuery();
+//					break;
+//				} catch (SQLException se) {
+//					if (con.isClosed()) {
+//						// lost database connection, so reconnect and retry
+//						con = DAOFactoryHolder.getDAOFactory().reconnect();
+//					} else {
+//						throw se;
+//					}
+//				}
+//			}
+//			while (rs.next()) {
+//				ViewColumnTransfer vcTransfer = new ViewColumnTransfer();
+//				vcTransfer = generateTransfer(rs);
+//				vcTransferList.add(vcTransfer);
+//			}
+//			pst.close();
+//			rs.close();
+//		} catch (SQLException e) {
+//			throw DataUtilities.createDAOException("Database error occurred while retrieving all View Columns for View with id [" + viewId + "]", e);
+//		}
 		return vcTransferList;
 	}
 

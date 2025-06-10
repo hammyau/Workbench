@@ -63,14 +63,14 @@ public class YAMLizer {
         try {
             yamlMapper.writeValue(output.toFile(), txfr);
         } catch (IOException e) {
-            logger.atSevere().log("write coverage failed\n%s", e.getMessage());
+            logger.atSevere().log("write yaml failed\n%s", e.getMessage());
         }
     }
     public static void writeYamlCodes(Path output, Map<String, CodeSet> codemap) {
         try {
             yamlMapper.writeValue(output.toFile(), codemap);
         } catch (IOException e) {
-            logger.atSevere().log("write coverage failed\n%s", e.getMessage());
+            logger.atSevere().log("write yaml failed\n%s", e.getMessage());
         }
     }
     public static Map<String, CodeSet> readYamlCodes(Path input) {

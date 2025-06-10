@@ -20,6 +20,8 @@ package com.ibm.safr.we.data.transfer;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class ViewTransfer extends SAFRActiveComponentTransfer {
 
 	private String statusCode;
@@ -116,6 +118,7 @@ public class ViewTransfer extends SAFRActiveComponentTransfer {
 		this.lineSize = lineSize;
 	}
 
+	@JsonIgnore
 	public Boolean isSuppressZeroRecords() {
 		return zeroSuppressInd;
 	}
@@ -140,6 +143,7 @@ public class ViewTransfer extends SAFRActiveComponentTransfer {
 		this.extractMaxRecCount = extractMaxRecCnt;
 	}
 
+	@JsonIgnore
 	public Boolean isAggregateBySortKey() {
 		return extractSummaryIndicator;
 	}

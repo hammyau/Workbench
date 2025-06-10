@@ -3,6 +3,7 @@ package com.ibm.safr.we.internal.data.dao.yamldao.transfers;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 import com.ibm.safr.we.data.transfer.ViewTransfer;
 
 public class YAMLViewTransfer extends ViewTransfer {
@@ -34,16 +35,25 @@ public class YAMLViewTransfer extends ViewTransfer {
 		this.setId(viewTransfer.getId());
 //		this.setLineSize(viewTransfer.getLineSize());
 		this.setName(viewTransfer.getName());
-//		this.setOutputFormatCode(viewTransfer.getOutputFormatCode());
+		this.setOutputFormatCode(viewTransfer.getOutputFormatCode());
 		this.setOutputMaxRecCount(viewTransfer.getOutputMaxRecCount());
 //		this.setPageSize(viewTransfer.getPageSize());
 //		this.setStatusCode(viewTransfer.getStatusCode());
 //		this.setStringDelimCode(viewTransfer.getStringDelimCode());
-//		this.setTypeCode(viewTransfer.getTypeCode());
+		this.setTypeCode(viewTransfer.getTypeCode());
 //		this.setWriteExitId(viewTransfer.getWriteExitId());
 //		this.setWriteExitParams(viewTransfer.getWriteExitParams());
 //		this.setZeroSuppressInd(viewTransfer.isSuppressZeroRecords());
 	}
+	
+	public Boolean isExtractSummaryIndicator() {
+		return isAggregateBySortKey();
+	}
+
+	public Boolean isZeroSuppressInd() {
+		return isSuppressZeroRecords();
+	}
+
 
 	public List<YAMLViewSourceTransfer> getViewSources() {
 		return viewSources;
@@ -53,5 +63,8 @@ public class YAMLViewTransfer extends ViewTransfer {
 		this.viewSources = viewSources;
 	}
 	
+	public void addViewSource(YAMLViewSourceTransfer vst) {
+		viewSources.add(vst);
+	}
 	
 }

@@ -165,8 +165,7 @@ public class YAMLLookupDAO implements LookupDAO {
 		return ourLkTxf;
 	}
 
-	public LookupPathTransfer persistLookupPath(LookupPathTransfer lkuptrans)
-			throws DAOException, SAFRNotFoundException {
+	public LookupPathTransfer persistLookupPath(LookupPathTransfer lkuptrans) throws DAOException, SAFRNotFoundException {
 		if (!lkuptrans.isPersistent()) {
 			return (createLookupPath(lkuptrans));
 		} else {

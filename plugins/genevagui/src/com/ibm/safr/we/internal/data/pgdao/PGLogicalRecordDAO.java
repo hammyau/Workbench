@@ -3566,4 +3566,10 @@ public class PGLogicalRecordDAO implements LogicalRecordDAO {
         }
     }
 
+	@Override
+	public ComponentAssociationTransfer getLRLFAssociation(String logicalRecord, String logicalFile) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

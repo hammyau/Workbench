@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -83,8 +84,7 @@ import com.ibm.safr.we.model.query.ViewQueryBean;
  */
 public class YAMLViewDAO implements ViewDAO {
 
-	static transient Logger logger = Logger
-			.getLogger("com.ibm.safr.we.internal.data.dao.PGViewDAO");
+	static transient Logger logger = Logger.getLogger("com.ibm.safr.we.internal.data.dao.YAMLViewDAO");
 
 	private static final String TABLE_NAME = "VIEW";
 
@@ -162,8 +162,10 @@ public class YAMLViewDAO implements ViewDAO {
 
 	private boolean retryNeeded;
 
-	private YAMLViewTransfer ourViewTransfer;
+	private static YAMLViewTransfer ourViewTransfer;
 	private static int maxid;
+	private static Map<Integer, YAMLViewTransfer> viewTxfrsByID = new TreeMap<>();
+	private static Map<String, YAMLViewTransfer> viewTxfrsByName = new TreeMap<>();
 
 	/**
 	 * Constructor for this class.
@@ -237,53 +239,8 @@ public class YAMLViewDAO implements ViewDAO {
 	}
 
 	public ViewTransfer getView(Integer id, Integer environmentId)	throws DAOException {
-
-		ViewTransfer result = null;
-		try {
-
-			String selectString = "Select A.ENVIRONID, A.VIEWID, A.NAME, "
-					+ "A.VIEWSTATUSCD, A.EFFDATE, A.VIEWTYPECD, A.EXTRACTFILEPARTNBR, "
-					+ "A.OUTPUTMEDIACD, A.OUTPUTLRID, A.LFPFASSOCID, A.PAGESIZE, "
-					+ "A.LINESIZE, A.ZEROSUPPRESSIND, A.EXTRACTMAXRECCNT, "
-					+ "A.EXTRACTSUMMARYIND, A.EXTRACTSUMMARYBUF, A.OUTPUTMAXRECCNT, "
-					+ "A.CONTROLRECID, A.WRITEEXITID, A.WRITEEXITSTARTUP, A.FORMATEXITID, "
-					+ "A.FORMATEXITSTARTUP, A.FILEFLDDELIMCD, A.FILESTRDELIMCD, "
-					+ "A.COMMENTS, A.FORMATFILTLOGIC, "
-					+ "A.CREATEDTIMESTAMP, A.CREATEDUSERID, A.LASTMODTIMESTAMP, A.LASTMODUSERID,"
-					+ "A.COMPILER,A.LASTACTTIMESTAMP, A.LASTACTUSERID From "
-					+ params.getSchema()
-					+ ".VIEW A "
-					+ "Where A.VIEWID=? AND A.ENVIRONID=?";
-
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					pst.setInt(1, id);
-					pst.setInt(2, environmentId);
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			if (rs.next()) {
-				result = generateTransfer(rs);
-			} else {
-				logger.info("No such View in Env " + environmentId + " with ID : " + id);
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving the View with id ["+ id + "]", e);
-		}
-		return result;
+		ourViewTransfer = viewTxfrsByID.get(id); 
+		return ourViewTransfer;
 	}
 
 	public List<ViewTransfer> queryAllLogicBlocks() {
@@ -379,126 +336,12 @@ public class YAMLViewDAO implements ViewDAO {
 			}
 			return result;
 		}
-    
-//        boolean admin = SAFRApplication.getUserSession().isSystemAdministrator();
-//    
-//        String orderString = null;
-//        if (sortType.equals(SortType.SORT_BY_ID)) {
-//            orderString = " ORDER BY A.VIEWID";
-//        } else {
-//            orderString = " ORDER BY UPPER(A.NAME)";
-//        }
-//        try {
-//            String selectString = "";
-//            if (viewFolderId == -1L) {
-//                if (admin) {
-//                    selectString = "SELECT A.VIEWID, A.NAME, A.VIEWSTATUSCD, A.OUTPUTMEDIACD, "
-//                            + "A.VIEWTYPECD, A.CREATEDTIMESTAMP, A.CREATEDUSERID, "
-//                            + "A.LASTMODTIMESTAMP, A.LASTMODUSERID,A.COMPILER,A.LASTACTTIMESTAMP,A.LASTACTUSERID FROM "
-//                            + params.getSchema() + ".VIEW A "
-//                            + "WHERE A.VIEWID > 0 AND A.ENVIRONID = ? "  + orderString;
-//                } else {
-//                    selectString = "SELECT A.VIEWID, A.NAME, A.VIEWSTATUSCD, A.OUTPUTMEDIACD, "
-//                            + "A.VIEWTYPECD, C.RIGHTS, A.CREATEDTIMESTAMP, A.CREATEDUSERID, "
-//                            + "A.LASTMODTIMESTAMP, A.LASTMODUSERID,A.COMPILER,A.LASTACTTIMESTAMP,A.LASTACTUSERID FROM "
-//                            + params.getSchema() + ".VIEW A LEFT OUTER JOIN "
-//                            + params.getSchema() + ".SECVIEW C ON C.ENVIRONID=A.ENVIRONID AND A.VIEWID=C.VIEWID AND C.GROUPID = ? "
-//                            + " WHERE A.VIEWID > 0 AND A.ENVIRONID = ? " + orderString;
-//                }
-//    
-//            } else {
-//                if (admin) {
-//                    selectString = "SELECT A.VIEWID, A.NAME, A.VIEWSTATUSCD, A.OUTPUTMEDIACD, "
-//                            + "A.VIEWTYPECD, A.CREATEDTIMESTAMP, A.CREATEDUSERID, "
-//                            + "A.LASTMODTIMESTAMP,A.LASTMODUSERID,A.COMPILER,A.LASTACTTIMESTAMP,A.LASTACTUSERID FROM "
-//                            + params.getSchema() + ".VIEW A, "
-//                            + params.getSchema() + ".VFVASSOC B "
-//                            + "WHERE A.ENVIRONID=B.ENVIRONID "
-//                            + "AND A.VIEWID=B.VIEWID "
-//                            + "AND A.VIEWID > 0 AND A.ENVIRONID = ? "
-//                            + "AND B.VIEWFOLDERID = ? " 
-//                            + orderString;
-//                } else {
-//                    selectString = "SELECT A.VIEWID, A.NAME, A.VIEWSTATUSCD, A.OUTPUTMEDIACD, "
-//                            + "A.VIEWTYPECD, C.RIGHTS, A.CREATEDTIMESTAMP, A.CREATEDUSERID, "
-//                            + "A.LASTMODTIMESTAMP, A.LASTMODUSERID,A.COMPILER,A.LASTACTTIMESTAMP,A.LASTACTUSERID FROM "
-//                            + params.getSchema() + ".VIEW A INNER JOIN "
-//                            + params.getSchema() + ".VFVASSOC B ON A.ENVIRONID=B.ENVIRONID AND A.VIEWID=B.VIEWID LEFT OUTER JOIN "
-//                            + params.getSchema() + ".SECVIEW C ON B.ENVIRONID=C.ENVIRONID AND B.VIEWID=C.VIEWID "
-//                            + "AND C.GROUPID = ? "
-//                            + "WHERE A.VIEWID > 0 AND A.ENVIRONID = ? "
-//                            + "AND B.VIEWFOLDERID = ? "
-//                            + orderString;
-//                }
-//    
-//            }
-//            PreparedStatement pst = null;
-//            ResultSet rs = null;
-//            while (true) {
-//                try {
-//                    pst = con.prepareStatement(selectString);
-//                    if (viewFolderId == -1L) {
-//                        if (admin) {
-//                        	pst.setInt(1,  environmentId);
-//                        } else {
-//                        	pst.setInt(1,  SAFRApplication.getUserSession().getGroup().getId());
-//                        	pst.setInt(2,  environmentId);
-//                        }
-//                    } else {
-//                        if (admin) {
-//                        	pst.setInt(1,  environmentId);
-//                        	pst.setInt(2,  viewFolderId);
-//                        } else {
-//                        	pst.setInt(1,  SAFRApplication.getUserSession().getGroup().getId());
-//                        	pst.setInt(2,  environmentId);
-//                        	pst.setInt(3,  viewFolderId);                        	
-//                        }
-//                    }
-//                    rs = pst.executeQuery();
-//                    break;
-//                } catch (SQLException se) {
-//                    if (con.isClosed()) {
-//                        // lost database connection, so reconnect and retry
-//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-//                    } else {
-//                        throw se;
-//                    }
-//                }
-//            }
-//            while (rs.next()) {
-//                ViewQueryBean viewQueryBean = new ViewQueryBean(environmentId,
-//                    rs.getInt(COL_ID), 
-//                    DataUtilities.trimString(rs.getString(COL_NAME)), 
-//                    DataUtilities.trimString(rs.getString(COL_STATUS)),
-//                    DataUtilities.trimString(rs.getString(COL_OUTPUTFORMAT)),
-//                    DataUtilities.trimString(rs.getString(COL_TYPE)),
-//                    admin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
-//                        rs.getInt("RIGHTS"), ComponentType.View, environmentId), 
-//                    rs.getDate(COL_CREATETIME), 
-//                    DataUtilities.trimString(rs.getString(COL_CREATEBY)), 
-//                    rs.getDate(COL_MODIFYTIME), 
-//                    DataUtilities.trimString(rs.getString(COL_MODIFYBY)),
-//                    DataUtilities.trimString(rs.getString(COL_COMPILER)),
-//                    rs.getDate(COL_ACTIVATETIME), 
-//                    DataUtilities.trimString(rs.getString(COL_ACTIVATEBY)));
-//                result.add(viewQueryBean);
-//            }
-//            pst.close();
-//            rs.close();
-//            return result;
-//    
-//        } catch (SQLException e) {
-//            throw DataUtilities.createDAOException("Database error occurred while querying all Views.", e);
-//        }
+
     private void addToResults(List<ViewQueryBean> result, File vw, Integer environmentId) {
 		YAMLViewTransfer vwt = (YAMLViewTransfer) YAMLizer.readYaml(vw.toPath(), ComponentType.View);
 		if(vwt.getId() > maxid) {
 			maxid = vwt.getId();
 		}
-//		public ViewQueryBean(Integer environmentId, Integer id, String name,
-//				String status, String oldOutputFormat, String oldType, EditRights rights, Date createTime,
-//				String createBy, Date modifyTime, String modifyBy,  String compilerVersion,
-//				Date activatedTime, String activatedBy) {
 		ViewQueryBean lrBean = new ViewQueryBean(
 				environmentId, vwt.getId(), 
 				vwt.getName(),
@@ -514,8 +357,8 @@ public class YAMLViewDAO implements ViewDAO {
 				vwt.getCreateTime(),
 				vwt.getCreateBy()); 
 		result.add(lrBean);
-		//lrBeans.put(vwt.getId(), lrBean);
-		//lrTxfrsByID.put(vwt.getId(), vwt);
+		viewTxfrsByID.put(vwt.getId(), vwt);
+		viewTxfrsByName.put(vwt.getName(), vwt);
 		logger.info("Beans Add ViewTxf for View:" + vwt.getId());
 	}
 	
@@ -716,105 +559,16 @@ public class YAMLViewDAO implements ViewDAO {
 	}
 
 	private ViewTransfer createView(ViewTransfer viewTransfer) throws DAOException {
-//		ourLkTxf  = new YAMLViewTransfer();
-//		ourLkTxf.setEnvironmentId(SAFRApplication.getUserSession().getEnvironment().getId());
-//		ourLkTxf.setName(lkuptrans.getName());
-//		ourLkTxf.setId(lkuptrans.getId());
-//		ourLkTxf.setValidInd(lkuptrans.isValidInd());
-//		ourLkTxf.setSourceLRId(lkuptrans.getSourceLRId());
-//		ComponentAssociationTransfer lrlfa =  DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(lkuptrans.getTargetXLRFileId(), 0);
-//		ourLkTxf.setTargetLF(lrlfa.getAssociatedComponentId());
-//		ourLkTxf.setTargetLR(lrlfa.getAssociatingComponentId());
-//		ourLkTxf.setTargetXLRFileId(lrlfa.getAssociationId());
-//		ourLkTxf.setCreateBy(SAFRApplication.getUserSession().getUser().getUserid());
-//		ourLkTxf.setCreateTime(new Date());
-//		ourLkTxf.setModifyBy("");
-//		ourLkTxf.setModifyTime(null);
-//		ourLkTxf.setId(maxid + 1);
+		viewTransfer.setId(maxid + 1);
+		//YAML views are always stored as INACTIVE to for reactivation
+		viewTransfer.setStatusCode(SAFRApplication.getSAFRFactory().getCodeSet(CodeCategories.VIEWSTATUS).getCode(Codes.INACTIVE).getKey());
 		viewTransfer.setCreateBy(SAFRApplication.getUserSession().getUser().getUserid());
 		viewTransfer.setCreateTime(new Date());
 		saveView(viewTransfer);
 		return viewTransfer;
-//		try {
-//	        List<String> names = new ArrayList<String>();
-//	        names.add(COL_ENVID);
-//	        names.addAll(Arrays.asList(columnNames));
-//            if (viewTransfer.isForImportOrMigration()) {
-//                names.add(1, COL_ID);
-//                names.add(COL_CREATETIME);
-//                names.add(COL_COMPILER);
-//                names.add(COL_ACTIVATETIME);
-//                names.add(COL_ACTIVATEBY);
-//            } else {
-//            	names.addAll(Arrays.asList(creationNames));
-//                if (viewHasBeenActivated(viewTransfer)) { //Mmm you can't activate a view until it has been saved?
-//                    names.add(COL_COMPILER);
-//                    names.add(COL_ACTIVATETIME);
-//                    names.add(COL_ACTIVATEBY);
-//                }
-//            }            
-//            String statement = generator.getInsertStatement(params.getSchema(),
-//                TABLE_NAME, COL_ID, names, !viewTransfer.isForImportOrMigration());
-//            PreparedStatement pst = null;			
-//            ResultSet rs = null;
-//			while (true) {
-//				try {
-//					pst = con.prepareStatement(statement);
-//
-//					int i = 1;
-//					pst.setInt(i++, viewTransfer.getEnvironmentId());
-//		            if (viewTransfer.isForImportOrMigration()) {
-//		                pst.setInt(i++, viewTransfer.getId());
-//		            }
-//					i = prepareViewDetails(viewTransfer, pst, i);
-//					i = prepareCreation(viewTransfer, pst, i);
-////                    if (viewTransfer.isForImportOrMigration()) {
-////                        pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewTransfer.getEffectiveDate()));
-////                        pst.setString(i++, viewTransfer.getCompilerVersion());
-////                        pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewTransfer.getActivatedTime()));
-////                        pst.setString(i++, viewTransfer.getActivatedBy());
-////                    }
-////                    else  {
-//                        if (viewHasBeenActivated(viewTransfer)) {
-//                            pst.setString(i++, viewTransfer.getCompilerVersion());
-//                            pst.setString(i++, safrLogin.getUserId());
-//                        }
-////                    }
-//                    rs = pst.executeQuery();
-//                    rs.next();
-//                    int id = rs.getInt(1);          
-//                    viewTransfer.setId(id);
-//                    viewTransfer.setPersistent(true);
-//                    if (!viewTransfer.isForImportOrMigration()) {
-//                        viewTransfer.setCreateBy(safrLogin.getUserId());
-//                        viewTransfer.setCreateTime(rs.getDate(2));
-//                        viewTransfer.setModifyBy(safrLogin.getUserId());
-//                        viewTransfer.setModifyTime(rs.getDate(3));   
-//                        if (viewHasBeenActivated(viewTransfer)) {
-//                            viewTransfer.setActivatedBy(safrLogin.getUserId());
-//                            viewTransfer.setActivatedTime(rs.getDate(4));                               
-//                        }                        
-//                    }                   
-//                    rs.close();                         
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//            pst.close();			
-//
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException("Database error occurred while creating a new View.", e);
-//		}
-//		return viewTransfer;
 	}
 
-	private void saveView(ViewTransfer viewTransfer) {
+	public static void saveView(ViewTransfer viewTransfer) {
 		Path viewsPath = YAMLizer.getViewsPath();
 		viewsPath.toFile().mkdirs();
 		Path viewPath = viewsPath.resolve(viewTransfer.getName()+ ".yaml");
@@ -822,8 +576,7 @@ public class YAMLViewDAO implements ViewDAO {
 	}
 
 	private boolean viewHasBeenActivated(ViewTransfer viewTransfer) {
-		return viewTransfer.getStatusCode().equals(SAFRApplication.getSAFRFactory().
-		        getCodeSet(CodeCategories.VIEWSTATUS).getCode(Codes.ACTIVE).getKey());
+		return viewTransfer.getStatusCode().equals(SAFRApplication.getSAFRFactory().getCodeSet(CodeCategories.VIEWSTATUS).getCode(Codes.ACTIVE).getKey());
 	}
 
 	private int prepareViewDetails(ViewTransfer viewTransfer,
@@ -1157,98 +910,97 @@ public class YAMLViewDAO implements ViewDAO {
 		return result;
 	}
 
-	public Map<ComponentType, List<DependentComponentTransfer>> getInactiveDependenciesOfView(
-			Integer environmentId, Integer viewId) throws DAOException {
+	public Map<ComponentType, List<DependentComponentTransfer>> getInactiveDependenciesOfView(Integer environmentId, Integer viewId) throws DAOException {
 		Map<ComponentType, List<DependentComponentTransfer>> result = new HashMap<ComponentType, List<DependentComponentTransfer>>();
-		List<DependentComponentTransfer> inactiveLogicalRecords = new ArrayList<DependentComponentTransfer>();
-		List<DependentComponentTransfer> inactiveLookupPaths = new ArrayList<DependentComponentTransfer>();
-
-		try {
-
-			// This query is used to select the dependent inactive LRID and LR
-			// Name of the view.
-			String selectString = "SELECT A.LOGRECID, A.NAME FROM "
-					+ params.getSchema() + ".LOGREC A,"
-					+ params.getSchema() + ". LRLFASSOC B,"
-					+ params.getSchema() + ". VIEWSOURCE C, "
-					+ params.getSchema() + ".VIEW D WHERE B.LOGRECID = A.LOGRECID AND "
-					+ "B.ENVIRONID = A.ENVIRONID AND C.INLRLFASSOCID = B.LRLFASSOCID AND C.ENVIRONID = B.ENVIRONID AND "
-					+ "D.VIEWID = C.VIEWID AND D.ENVIRONID = C.ENVIRONID AND "
-					+ "A.LRSTATUSCD = 'INACT' AND  A.ENVIRONID = ? "+ " AND D.VIEWID = ? "
-					+ " GROUP BY A.NAME, A.LOGRECID";
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					pst.setInt(1, environmentId );
-					pst.setInt(2, viewId );
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rs.next()) {
-				DependentComponentTransfer depCompTransfer = new DependentComponentTransfer();
-				depCompTransfer.setId(rs.getInt("LOGRECID"));
-				depCompTransfer.setName(DataUtilities.trimString(rs.getString("NAME")));
-				inactiveLogicalRecords.add(depCompTransfer);
-			}
-			if (!inactiveLogicalRecords.isEmpty()) {
-				result.put(ComponentType.LogicalRecord, inactiveLogicalRecords);
-			}
-			pst.close();
-			rs.close();
-
-			// This query is used to select all the inactive Lookup Paths
-			// depending upon the view.
-			String selectStr = "SELECT A.LOOKUPID, A.NAME FROM "
-					+ params.getSchema() + ".LOOKUP A," + params.getSchema()
-					+ ".VIEWCOLUMNSOURCE B WHERE "
-					+ "B.LOOKUPID = A.LOOKUPID AND B.ENVIRONID = A.ENVIRONID "
-					+ "AND A.VALIDIND = 0 AND A.ENVIRONID = ? "
-					+ " AND B.VIEWID = ? "
-					+ " GROUP BY A.NAME, A.LOOKUPID";
-			PreparedStatement pstLkpPath = null;
-			ResultSet rsLkpPath = null;
-			while (true) {
-				try {
-					pstLkpPath = con.prepareStatement(selectStr);
-					pstLkpPath.setInt(1, environmentId );
-					pstLkpPath.setInt(2, viewId );
-					rsLkpPath = pstLkpPath.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rsLkpPath.next()) {
-				DependentComponentTransfer depCompTransfer = new DependentComponentTransfer();
-				depCompTransfer.setId(rsLkpPath.getInt("LOOKUPID"));
-				depCompTransfer.setName(DataUtilities.trimString(rsLkpPath.getString("NAME")));
-				inactiveLookupPaths.add(depCompTransfer);
-
-			}
-			if (!inactiveLookupPaths.isEmpty()) {
-				result.put(ComponentType.LookupPath, inactiveLookupPaths);
-			}
-			pstLkpPath.close();
-			rsLkpPath.close();
-
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving all the Inactive Logical Record and Lookup Path dependencies of a View.",e);
-		}
+//		List<DependentComponentTransfer> inactiveLogicalRecords = new ArrayList<DependentComponentTransfer>();
+//		List<DependentComponentTransfer> inactiveLookupPaths = new ArrayList<DependentComponentTransfer>();
+//
+//		try {
+//
+//			// This query is used to select the dependent inactive LRID and LR
+//			// Name of the view.
+//			String selectString = "SELECT A.LOGRECID, A.NAME FROM "
+//					+ params.getSchema() + ".LOGREC A,"
+//					+ params.getSchema() + ". LRLFASSOC B,"
+//					+ params.getSchema() + ". VIEWSOURCE C, "
+//					+ params.getSchema() + ".VIEW D WHERE B.LOGRECID = A.LOGRECID AND "
+//					+ "B.ENVIRONID = A.ENVIRONID AND C.INLRLFASSOCID = B.LRLFASSOCID AND C.ENVIRONID = B.ENVIRONID AND "
+//					+ "D.VIEWID = C.VIEWID AND D.ENVIRONID = C.ENVIRONID AND "
+//					+ "A.LRSTATUSCD = 'INACT' AND  A.ENVIRONID = ? "+ " AND D.VIEWID = ? "
+//					+ " GROUP BY A.NAME, A.LOGRECID";
+//			PreparedStatement pst = null;
+//			ResultSet rs = null;
+//			while (true) {
+//				try {
+//					pst = con.prepareStatement(selectString);
+//					pst.setInt(1, environmentId );
+//					pst.setInt(2, viewId );
+//					rs = pst.executeQuery();
+//					break;
+//				} catch (SQLException se) {
+//					if (con.isClosed()) {
+//						// lost database connection, so reconnect and retry
+//						con = DAOFactoryHolder.getDAOFactory().reconnect();
+//					} else {
+//						throw se;
+//					}
+//				}
+//			}
+//			while (rs.next()) {
+//				DependentComponentTransfer depCompTransfer = new DependentComponentTransfer();
+//				depCompTransfer.setId(rs.getInt("LOGRECID"));
+//				depCompTransfer.setName(DataUtilities.trimString(rs.getString("NAME")));
+//				inactiveLogicalRecords.add(depCompTransfer);
+//			}
+//			if (!inactiveLogicalRecords.isEmpty()) {
+//				result.put(ComponentType.LogicalRecord, inactiveLogicalRecords);
+//			}
+//			pst.close();
+//			rs.close();
+//
+//			// This query is used to select all the inactive Lookup Paths
+//			// depending upon the view.
+//			String selectStr = "SELECT A.LOOKUPID, A.NAME FROM "
+//					+ params.getSchema() + ".LOOKUP A," + params.getSchema()
+//					+ ".VIEWCOLUMNSOURCE B WHERE "
+//					+ "B.LOOKUPID = A.LOOKUPID AND B.ENVIRONID = A.ENVIRONID "
+//					+ "AND A.VALIDIND = 0 AND A.ENVIRONID = ? "
+//					+ " AND B.VIEWID = ? "
+//					+ " GROUP BY A.NAME, A.LOOKUPID";
+//			PreparedStatement pstLkpPath = null;
+//			ResultSet rsLkpPath = null;
+//			while (true) {
+//				try {
+//					pstLkpPath = con.prepareStatement(selectStr);
+//					pstLkpPath.setInt(1, environmentId );
+//					pstLkpPath.setInt(2, viewId );
+//					rsLkpPath = pstLkpPath.executeQuery();
+//					break;
+//				} catch (SQLException se) {
+//					if (con.isClosed()) {
+//						// lost database connection, so reconnect and retry
+//						con = DAOFactoryHolder.getDAOFactory().reconnect();
+//					} else {
+//						throw se;
+//					}
+//				}
+//			}
+//			while (rsLkpPath.next()) {
+//				DependentComponentTransfer depCompTransfer = new DependentComponentTransfer();
+//				depCompTransfer.setId(rsLkpPath.getInt("LOOKUPID"));
+//				depCompTransfer.setName(DataUtilities.trimString(rsLkpPath.getString("NAME")));
+//				inactiveLookupPaths.add(depCompTransfer);
+//
+//			}
+//			if (!inactiveLookupPaths.isEmpty()) {
+//				result.put(ComponentType.LookupPath, inactiveLookupPaths);
+//			}
+//			pstLkpPath.close();
+//			rsLkpPath.close();
+//
+//		} catch (SQLException e) {
+//			throw DataUtilities.createDAOException("Database error occurred while retrieving all the Inactive Logical Record and Lookup Path dependencies of a View.",e);
+//		}
 		return result;
 	}
 
@@ -2176,7 +1928,7 @@ public class YAMLViewDAO implements ViewDAO {
         return list;        
     }
     
-    public YAMLViewTransfer getCurrentView() {
+    public static YAMLViewTransfer getCurrentView() {
     	return ourViewTransfer;
     }
 }

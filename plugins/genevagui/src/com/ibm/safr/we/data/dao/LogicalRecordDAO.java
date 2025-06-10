@@ -510,5 +510,7 @@ public interface LogicalRecordDAO {
     
     Integer getNextKey();
 
+	ComponentAssociationTransfer getLRLFAssociation(String logicalRecord, String logicalFile);
+
 	
 }

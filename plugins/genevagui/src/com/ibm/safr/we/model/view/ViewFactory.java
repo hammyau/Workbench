@@ -152,13 +152,13 @@ public class ViewFactory {
     public static List<ViewColumnSource> getViewColumnSources(View view)
             throws SAFRException {
         List<ViewColumnSource> viewcolsrcs = new ArrayList<ViewColumnSource>();
-        List<ViewColumnSourceTransfer> vcsts = DAOFactoryHolder.getDAOFactory()
-                .getViewColumnSourceDAO().getViewColumnSources(view.getId(),
-                        view.getEnvironmentId());
-        for (ViewColumnSourceTransfer vcst : vcsts) {
-            ViewColumnSource vcs = new ViewColumnSource(view, vcst);
-            viewcolsrcs.add(vcs);
-        }
+//        List<ViewColumnSourceTransfer> vcsts = DAOFactoryHolder.getDAOFactory()
+//                .getViewColumnSourceDAO().getViewColumnSources(view.getId(),
+//                        view.getEnvironmentId());
+//        for (ViewColumnSourceTransfer vcst : vcsts) {
+//            ViewColumnSource vcs = new ViewColumnSource(view, vcst);
+//            viewcolsrcs.add(vcs);
+//        }
         return viewcolsrcs;
     }
 

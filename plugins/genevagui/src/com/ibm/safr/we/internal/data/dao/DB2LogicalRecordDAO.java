@@ -3480,4 +3480,10 @@ public class DB2LogicalRecordDAO implements LogicalRecordDAO {
         }
     }
 
+	@Override
+	public ComponentAssociationTransfer getLRLFAssociation(String logicalRecord, String logicalFile) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

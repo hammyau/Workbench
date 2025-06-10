@@ -167,6 +167,7 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 				Path lrPath = lrsPath.resolve(lrBeans.get(id).getName()+".yaml");
 				ourLRTxf = (YAMLLogicalRecordTransfer) YAMLizer.readYaml(lrPath, ComponentType.LogicalRecord);
 				lrTxfrsByID.put(id, ourLRTxf);
+				lrTxfrsByName.put(ourLRTxf.getName(), ourLRTxf);
 				logger.info("Make LRTxf for LR:" + id);
 			} else {
 				logger.info("Found LRTxf for LR:" + id);
@@ -221,6 +222,8 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 		result.add(lrBean);
 		lrBeans.put(lrt.getId(), lrBean);
 		lrTxfrsByID.put(lrt.getId(), lrt);
+		lrTxfrsByName.put(lrt.getName(), lrt);
+		getAssociatedLogicalFiles(lrt.getId(), environmentId);
 		logger.info("Beans Add LRTxf for LR:" + lrt.getId());
 	}
 
@@ -404,18 +407,18 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 		return result;
 	}
 
-	public List<ComponentAssociationTransfer> getAssociatedLogicalFiles(Integer id, Integer environmentId) throws DAOException {
+	public List<ComponentAssociationTransfer> getAssociatedLogicalFiles(Integer lrid, Integer environmentId) throws DAOException {
 		if(lrTxfrsByID.isEmpty()) {
-			logger.info("getAssociatedLogicalFiles queryAllLogicalRecords for LR:" + id);
+			logger.info("getAssociatedLogicalFiles queryAllLogicalRecords for LR:" + lrid);
 			queryAllLogicalRecords(environmentId, null);
 		}	
 		List<ComponentAssociationTransfer> LRLFAssociateions = new ArrayList<ComponentAssociationTransfer>();
-		ourLRTxf = lrTxfrsByID.get(id);
+		ourLRTxf = lrTxfrsByID.get(lrid);
 		if(ourLRTxf != null) {
 			ourLRTxf.getLfs().entrySet().stream().forEach(lfe -> addToLfs(LRLFAssociateions, lfe, environmentId));
-			ourLRLFAssociateionsByLR.put(id, LRLFAssociateions);
+			ourLRLFAssociateionsByLR.put(lrid, LRLFAssociateions);
 		} else {
-			logger.severe("Cannot find txfr for LR:" + id);
+			logger.severe("Cannot find txfr for LR:" + lrid);
 		}
 		return LRLFAssociateions;
 	}
@@ -701,6 +704,24 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 		return ourLRLFAssociateionsById.get(associationId);
 	}
 
+	public ComponentAssociationTransfer getLRLFAssociation(String LRname, Integer environmentId) throws DAOException {
+		if(lrTxfrsByID.isEmpty()) {
+			queryAllLogicalRecords(environmentId, null);
+		}
+		YAMLLogicalRecordTransfer lrtxfr = lrTxfrsByName.get(LRname);
+		Optional<ComponentAssociationTransfer> ct = ourLRLFAssociateionsByLR.get(lrtxfr.getId()).stream().filter(a -> a.getAssociatingComponentName() == LRname).findAny();
+		return ct.isPresent()  ? ct.get() : null; //A Migration check
+	}
+	
+	public ComponentAssociationTransfer getLRLFAssociation(String LRname, String LFname) throws DAOException {
+		if(lrTxfrsByID.isEmpty()) {
+			queryAllLogicalRecords(null, null);
+		}
+		YAMLLogicalRecordTransfer lrtxfr = lrTxfrsByName.get(LRname);
+		Optional<ComponentAssociationTransfer> ct = ourLRLFAssociateionsByLR.get(lrtxfr.getId()).stream().filter(a -> a.getAssociatedComponentName().equals(LFname)).findAny();
+		return ct.isPresent()  ? ct.get() : null; 
+	}
+	
 	public ComponentAssociationTransfer getLRLFAssociation(Integer LRId, Integer LFId, Integer environmentId) throws DAOException {
 		if(lrTxfrsByID.isEmpty()) {
 			queryAllLogicalRecords(environmentId, null);
