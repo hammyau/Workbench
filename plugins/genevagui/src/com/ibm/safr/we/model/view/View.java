@@ -2248,8 +2248,7 @@ public class View extends SAFRActivatedComponent {
                             }
                         }
                         if (deletedIds.size() > 0) {
-                            DAOFactoryHolder.getDAOFactory().getViewSourceDAO().removeViewSources(
-                                deletedIds,getEnvironmentId());
+                            DAOFactoryHolder.getDAOFactory().getViewSourceDAO().removeViewSources(deletedIds,getEnvironmentId());
                             viewSources.flushDeletedItems();
                         }
                     }
@@ -2265,10 +2264,8 @@ public class View extends SAFRActivatedComponent {
                     for (ViewColumn viewColumn : viewColumns) {
 
                         if (viewColumn.getPersistence() == SAFRPersistence.DELETED) {
-                            deletedColIds.add(viewColumn.getId());
-                        } else if (viewColumn.isForImport()
-                                || viewColumn.isForMigration()
-                                || viewColumn.getPersistence() != SAFRPersistence.OLD) {
+                        	deletedColIds.add(viewColumn.getId());
+                        } else if (viewColumn.isForImport() || viewColumn.isForMigration() || viewColumn.getPersistence() != SAFRPersistence.OLD) {
                             ViewColumnTransfer viewColumnTransfer = new ViewColumnTransfer();
                             viewColumn.setTransferData(viewColumnTransfer);
                             colTransList.add(viewColumnTransfer);
@@ -2276,8 +2273,7 @@ public class View extends SAFRActivatedComponent {
                         }
                     }
                     if (deletedColIds.size() > 0) {
-                        DAOFactoryHolder.getDAOFactory().getViewColumnDAO().removeViewColumns(
-                            deletedColIds,getEnvironmentId());
+                        DAOFactoryHolder.getDAOFactory().getViewColumnDAO().removeViewColumns(deletedColIds,getEnvironmentId());
                         viewColumns.flushDeletedItems();
                     }
                     
@@ -2304,9 +2300,7 @@ public class View extends SAFRActivatedComponent {
 
                         if (viewColumnSource.getPersistence() == SAFRPersistence.DELETED) {
                             deletedColSourceIds.add(viewColumnSource.getId());
-                        } else if (viewColumnSource.isForImport()
-                                || viewColumnSource.isForMigration()
-                                || viewColumnSource.getPersistence() != SAFRPersistence.OLD) {
+                        } else if (viewColumnSource.isForImport() || viewColumnSource.isForMigration() || viewColumnSource.getPersistence() != SAFRPersistence.OLD) {
                             ViewColumnSourceTransfer viewColumnSourceTransfer = new ViewColumnSourceTransfer();
                             viewColumnSource.setTransferData(viewColumnSourceTransfer);
                             colSourceTransList.add(viewColumnSourceTransfer);
@@ -2314,14 +2308,12 @@ public class View extends SAFRActivatedComponent {
                         }
                     }
                     if (deletedColSourceIds.size() > 0) {
-                        DAOFactoryHolder.getDAOFactory().getViewColumnSourceDAO().removeViewColumnSources(
-                            deletedColSourceIds,getEnvironmentId());
+                        DAOFactoryHolder.getDAOFactory().getViewColumnSourceDAO().removeViewColumnSources(deletedColSourceIds,getEnvironmentId());
                         viewColumnSources.flushDeletedItems();
 
                     }                    
                     if (colSourceTransList.size() > 0) {
-                        DAOFactoryHolder.getDAOFactory().getViewColumnSourceDAO()
-                        .persistViewColumnSources(colSourceTransList);
+                        DAOFactoryHolder.getDAOFactory().getViewColumnSourceDAO().persistViewColumnSources(colSourceTransList);
                         for (int i = 0; i < colSourceTransList.size(); i++) {
                             ViewColumnSourceTransfer viewColumnSourceTrans = colSourceTransList.get(i);
                             ViewColumnSource tmpViewCS = viewColumnSourceMap.get(viewColumnSourceTrans);
@@ -2335,12 +2327,9 @@ public class View extends SAFRActivatedComponent {
                     for (ViewColumnSource viewColumnSource : viewColumnSources) {
                         // set extract column assignment text and the
                         // compiled version if this view is active.
-                        if (!isForImport() && !isForMigration() && 
-                            viewColumnSource.getSourceType().getGeneralId() == Codes.FORMULA) {
-                            if (viewColumnSource.getExtractColumnAssignment() == null || 
-                                    viewColumnSource.getExtractColumnAssignment().isEmpty()) {
-                                logger.warning("No logic text for View Column Source "
-                                        + viewColumnSource.getId());
+                        if (!isForImport() && !isForMigration() && viewColumnSource.getSourceType().getGeneralId() == Codes.FORMULA) {
+                            if (viewColumnSource.getExtractColumnAssignment() == null || viewColumnSource.getExtractColumnAssignment().isEmpty()) {
+                                logger.warning("No logic text for View Column Source " + viewColumnSource.getId());
                                 if (!getConfirmWarningStrategy().confirmWarning("Saving View",
                                     "Extract Column Assignment in Column: "+ 
                                     viewColumnSource.getViewColumn().getColumnNo()

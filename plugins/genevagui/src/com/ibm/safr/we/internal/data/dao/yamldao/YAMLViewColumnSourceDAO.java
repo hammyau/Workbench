@@ -39,6 +39,7 @@ import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.ViewColumnSourceDAO;
 import com.ibm.safr.we.data.transfer.ViewColumnSourceTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 import com.ibm.safr.we.model.SAFRApplication;
 
 public class YAMLViewColumnSourceDAO implements ViewColumnSourceDAO {
@@ -222,50 +223,10 @@ public class YAMLViewColumnSourceDAO implements ViewColumnSourceDAO {
     }
 	
 	public List<ViewColumnSourceTransfer> persistViewColumnSources(List<ViewColumnSourceTransfer> viewColSrcTransferList) throws DAOException {
-
-//		if (viewColSrcTransferList == null || viewColSrcTransferList.isEmpty()) {
-//			return viewColSrcTransferList;
-//		}
-//        List<ViewColumnSourceTransfer> ret = new ArrayList<ViewColumnSourceTransfer>();
-//				
-//		List<ViewColumnSourceTransfer> viewColSrcCreate = new ArrayList<ViewColumnSourceTransfer>();
-//		List<ViewColumnSourceTransfer> viewColSrcUpdate = new ArrayList<ViewColumnSourceTransfer>();
-//
-//		int countCreate = 0;
-//		boolean fCreProc = false;
-//        int countUpdate = 0;
-//        boolean fUpProc = false;
-//		for (ViewColumnSourceTransfer viewColTrans : viewColSrcTransferList) {
-//		    if (countCreate % 500 == 0 && fCreProc) {
-//	            viewColSrcCreate = createViewColumnSources(viewColSrcCreate);
-//	            ret.addAll(viewColSrcCreate);		        
-//		        viewColSrcCreate.clear();
-//		        fCreProc = false;
-//		    }
-//            if (countUpdate % 500 == 0 && fUpProc) {
-//                viewColSrcUpdate = updateViewColumnSources(viewColSrcUpdate);
-//                ret.addAll(viewColSrcUpdate);               
-//                viewColSrcUpdate.clear();
-//                fUpProc = false;                
-//            }
-//			if (!viewColTrans.isPersistent()) {
-//                fCreProc = true;
-//                countCreate++;
-//				viewColSrcCreate.add(viewColTrans);
-//			} else {
-//                fUpProc = true;
-//                countUpdate++;
-//				viewColSrcUpdate.add(viewColTrans);
-//			}
-//		}
-//		if (viewColSrcCreate.size() > 0) {
-//			viewColSrcCreate = createViewColumnSources(viewColSrcCreate);
-//            ret.addAll(viewColSrcCreate);               
-//		}
-//		if (viewColSrcUpdate.size() > 0) {
-//			viewColSrcUpdate = updateViewColumnSources(viewColSrcUpdate);
-//            ret.addAll(viewColSrcUpdate);               
-//		}
+		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		vt.setViewColumnSources(viewColSrcTransferList);
+		//viewSrcTransferList.stream().forEach(s -> addViewSources(vt, s));
+		YAMLViewDAO.saveView(vt);
 		return viewColSrcTransferList;
 	}
 

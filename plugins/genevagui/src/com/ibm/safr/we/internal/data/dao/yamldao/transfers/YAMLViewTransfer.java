@@ -3,12 +3,16 @@ package com.ibm.safr.we.internal.data.dao.yamldao.transfers;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ibm.safr.we.data.transfer.ViewColumnTransfer;
+import com.ibm.safr.we.data.transfer.ViewColumnSourceTransfer;
 import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 import com.ibm.safr.we.data.transfer.ViewTransfer;
 
 public class YAMLViewTransfer extends ViewTransfer {
 	
 	private List<YAMLViewSourceTransfer> viewSources = new ArrayList<>();
+	private List<ViewColumnTransfer> viewColumns = new ArrayList<>();
+	private List<ViewColumnSourceTransfer> viewColumnSources = new ArrayList<>();
 	
 	public YAMLViewTransfer() {
 		super();
@@ -66,5 +70,29 @@ public class YAMLViewTransfer extends ViewTransfer {
 	public void addViewSource(YAMLViewSourceTransfer vst) {
 		viewSources.add(vst);
 	}
+
+	public List<ViewColumnTransfer> getViewColumns() {
+		return viewColumns;
+	}
+
+	public void setViewColumns(List<ViewColumnTransfer> viewColumns) {
+		this.viewColumns = viewColumns;
+	}
 	
+	public void addViewColumn(ViewColumnTransfer vct) {
+		viewColumns.add(vct);
+	}
+
+	public List<ViewColumnSourceTransfer> getViewColumnSources() {
+		return viewColumnSources;
+	}
+
+	public void setViewColumnSources(List<ViewColumnSourceTransfer> viewColumnSources) {
+		this.viewColumnSources = viewColumnSources;
+	}
+
+	public void addViewColumnSource(ViewColumnSourceTransfer vcst) {
+		viewColumnSources.add(vcst);
+	}
+
 }

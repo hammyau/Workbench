@@ -38,8 +38,12 @@ import com.ibm.safr.we.data.DAOFactoryHolder;
 import com.ibm.safr.we.data.DataUtilities;
 import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.ViewColumnDAO;
+import com.ibm.safr.we.data.transfer.ComponentAssociationTransfer;
 import com.ibm.safr.we.data.transfer.ViewColumnTransfer;
+import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewSourceTransfer;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 import com.ibm.safr.we.model.SAFRApplication;
 
 public class YAMLViewColumnDAO implements ViewColumnDAO {
@@ -178,54 +182,20 @@ public class YAMLViewColumnDAO implements ViewColumnDAO {
 
 	public List<ViewColumnTransfer> persistViewColumns(List<ViewColumnTransfer> viewColTransferList) throws DAOException {
 
-//		if (viewColTransferList == null || viewColTransferList.isEmpty()) {
-//			return viewColTransferList;
-//		}
-//		
-//		List<ViewColumnTransfer> viewColCreate = new ArrayList<ViewColumnTransfer>();
-//		List<ViewColumnTransfer> viewColUpdate = new ArrayList<ViewColumnTransfer>();
-//        List<ViewColumnTransfer> ret = new ArrayList<ViewColumnTransfer>();
-//
-//        int countCreate = 0;
-//        boolean fCreProc = false;
-//        int countUpdate = 0;
-//        boolean fUpProc = false;
-//        for (ViewColumnTransfer viewCol : viewColTransferList) {
-//            if (countCreate % 500 == 0 && fCreProc) {
-//                viewColCreate = createViewColumns(viewColCreate);
-//                ret.addAll(viewColCreate);               
-//                viewColCreate.clear();
-//                fCreProc = false;
-//            }
-//            if (countUpdate % 500 == 0 && fUpProc) {
-//                viewColUpdate = updateViewColumns(viewColUpdate);
-//                ret.addAll(viewColUpdate);               
-//                viewColUpdate.clear();
-//                fUpProc = false;                
-//            }
-//            if (!viewCol.isPersistent()) {
-//                fCreProc = true;
-//                countCreate++;
-//                viewColCreate.add(viewCol);
-//            } else {
-//                fUpProc = true;
-//                countUpdate++;
-//                viewColUpdate.add(viewCol);
-//            }
-//        }
-//        if (viewColCreate.size() > 0) {
-//            viewColCreate = createViewColumns(viewColCreate);
-//        }
-//        if (viewColUpdate.size() > 0) {
-//            viewColUpdate = updateViewColumns(viewColUpdate);
-//            ret.addAll(viewColUpdate);               
-//        }     
-//        
-//        if (viewColCreate.size() > 0) {
-//            fixUpCreatedColumns(viewColCreate);                    
-//            ret.addAll(viewColCreate);
-//        }
+		//Make YAMLViewColumnTransfer contain a ViewColumnTransfer and ignore the bits we don't want at ViewColumnTransfer class
+		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		vt.setViewColumns(viewColTransferList);
+		//viewSrcTransferList.stream().forEach(s -> addViewSources(vt, s));
+		YAMLViewDAO.saveView(vt);
 		return viewColTransferList;
+	}
+
+	private void addViewSources(YAMLViewTransfer vt, ViewSourceTransfer s) {
+//		ourViewSource =new YAMLViewSourceTransfer(s);
+//		ComponentAssociationTransfer lrlf = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(s.getLRFileAssocId(), s.getEnvironmentId());
+//		ourViewSource.setLogicalFile(lrlf.getAssociatedComponentName());
+//		ourViewSource.setLogicalRecord(lrlf.getAssociatingComponentName());
+//		vt.addViewSource(ourViewSource);
 	}
 
 	/*
