@@ -6,13 +6,14 @@ import java.util.List;
 import com.ibm.safr.we.data.transfer.ViewColumnTransfer;
 import com.ibm.safr.we.data.transfer.ViewColumnSourceTransfer;
 import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
+import com.ibm.safr.we.data.transfer.ViewSortKeyTransfer;
 import com.ibm.safr.we.data.transfer.ViewTransfer;
 
 public class YAMLViewTransfer extends ViewTransfer {
 	
 	private List<YAMLViewSourceTransfer> viewSources = new ArrayList<>();
-	private List<ViewColumnTransfer> viewColumns = new ArrayList<>();
-	private List<ViewColumnSourceTransfer> viewColumnSources = new ArrayList<>();
+	private List<YAMLViewColumnTransfer> viewColumns = new ArrayList<>();
+	private List<ViewSortKeyTransfer> viewSortKeys = new ArrayList<>();
 	
 	public YAMLViewTransfer() {
 		super();
@@ -42,7 +43,7 @@ public class YAMLViewTransfer extends ViewTransfer {
 		this.setOutputFormatCode(viewTransfer.getOutputFormatCode());
 		this.setOutputMaxRecCount(viewTransfer.getOutputMaxRecCount());
 //		this.setPageSize(viewTransfer.getPageSize());
-//		this.setStatusCode(viewTransfer.getStatusCode());
+		this.setStatusCode(viewTransfer.getStatusCode());
 //		this.setStringDelimCode(viewTransfer.getStringDelimCode());
 		this.setTypeCode(viewTransfer.getTypeCode());
 //		this.setWriteExitId(viewTransfer.getWriteExitId());
@@ -71,28 +72,30 @@ public class YAMLViewTransfer extends ViewTransfer {
 		viewSources.add(vst);
 	}
 
-	public List<ViewColumnTransfer> getViewColumns() {
+	public List<YAMLViewColumnTransfer> getViewColumns() {
 		return viewColumns;
 	}
 
-	public void setViewColumns(List<ViewColumnTransfer> viewColumns) {
+	public void setViewColumns(List<YAMLViewColumnTransfer> viewColumns) {
 		this.viewColumns = viewColumns;
 	}
 	
-	public void addViewColumn(ViewColumnTransfer vct) {
+	public void addViewColumn(YAMLViewColumnTransfer vct) {
 		viewColumns.add(vct);
 	}
 
-	public List<ViewColumnSourceTransfer> getViewColumnSources() {
-		return viewColumnSources;
+	public List<ViewSortKeyTransfer> getViewSortKeys() {
+		return viewSortKeys;
 	}
 
-	public void setViewColumnSources(List<ViewColumnSourceTransfer> viewColumnSources) {
-		this.viewColumnSources = viewColumnSources;
+	public void setViewSortKeys(List<ViewSortKeyTransfer> viewSortKeys) {
+		this.viewSortKeys = viewSortKeys;
+	}
+	
+	public void addViewSortKey(ViewSortKeyTransfer vskt) {
+		viewSortKeys.add(vskt);
 	}
 
-	public void addViewColumnSource(ViewColumnSourceTransfer vcst) {
-		viewColumnSources.add(vcst);
-	}
+	
 
 }

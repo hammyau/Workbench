@@ -154,36 +154,6 @@ public class YAMLUserExitRoutineDAO implements UserExitRoutineDAO {
 		return result;
 	}
 
-	/**
-	 * This method is used to generate a transfer object for the User Exit
-	 * Routine.
-	 * 
-	 * @param rs
-	 *            The result set of a database query run on EXIT table
-	 *            with which the values for the transfer objects are set.
-	 * @return A transfer object for the User Exit Routine with values set
-	 *         according to the result set.
-	 * @throws SQLException
-	 */
-	private UserExitRoutineTransfer generateTransfer(ResultSet rs)
-			throws SQLException {
-		UserExitRoutineTransfer userExitRoutineTransfer = new UserExitRoutineTransfer();
-		userExitRoutineTransfer.setEnvironmentId(rs.getInt(COL_ENVID));
-		userExitRoutineTransfer.setId(rs.getInt(COL_ID));
-		userExitRoutineTransfer.setName(DataUtilities.trimString(rs.getString(COL_NAME)));
-		userExitRoutineTransfer.setExecutable(DataUtilities.trimString(rs.getString(COL_EXECUTABLE)));
-		userExitRoutineTransfer.setTypeCode(DataUtilities.trimString(rs.getString(COL_TYPE)));
-		userExitRoutineTransfer.setLanguageCode(DataUtilities.trimString(rs.getString(COL_LANGUAGE)));
-		userExitRoutineTransfer.setOptimize(DataUtilities.intToBoolean(rs.getInt(COL_OPTIMIZED)));
-		userExitRoutineTransfer.setComments(DataUtilities.trimString(rs.getString(COL_COMMENT)));
-		userExitRoutineTransfer.setCreateTime(rs.getDate(COL_CREATETIME));
-		userExitRoutineTransfer.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-		userExitRoutineTransfer.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		userExitRoutineTransfer.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-
-		return userExitRoutineTransfer;
-	}
-
 	public UserExitRoutineTransfer persistUserExitRoutine(UserExitRoutineTransfer userExitRoutineTransfer) throws DAOException, SAFRNotFoundException {
 
 		if (!userExitRoutineTransfer.isPersistent()) {

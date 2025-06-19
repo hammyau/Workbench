@@ -131,32 +131,23 @@ public class Environment extends SAFRComponent {
 	public void store() throws SAFRException, DAOException {
 	    
 		if (SAFRApplication.getUserSession().isSystemAdminOrEnvAdmin(id)) {
-		    
 			EnvironmentTransfer trans = new EnvironmentTransfer();
 			setTransferData(trans);
-
-			// CQ 7329 Kanchan Rauthan 04/03/2010 To show error if environment
-			// is
-			// already deleted from database and user still tries to save it.
 			try {
-				trans = DAOFactoryHolder.getDAOFactory().getEnvironmentDAO()
-						.persistEnvironment(trans);
+				trans = DAOFactoryHolder.getDAOFactory().getEnvironmentDAO().persistEnvironment(trans);
 				setObjectData(trans);				
 				if(!crRequired){
 					DAOFactoryHolder.getDAOFactory().getControlRecordDAO().deleteAllControlRecordsFromEnvironment(trans.getId());
 				}
 
 			} catch (SAFRNotFoundException snfe) {
-				throw new SAFRException("The environment with id "+ this.getId()+ 
-				    " cannot be updated as its already been deleted from the database.", snfe);
+				throw new SAFRException("The environment with id "+ this.getId()+ " cannot be updated as its already been deleted from the database.", snfe);
 			}
 		} else {
 			if (this.id > 0) {
-				throw new SAFRException(
-						"The user is not authorized to update this environment.");
+				throw new SAFRException("The user is not authorized to update this environment.");
 			} else {
-				throw new SAFRException(
-						"The user is not authorized to create a new environment.");
+				throw new SAFRException("The user is not authorized to create a new environment.");
 			}
 		}
 	}

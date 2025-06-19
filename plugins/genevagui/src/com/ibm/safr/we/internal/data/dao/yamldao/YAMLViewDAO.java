@@ -90,30 +90,9 @@ public class YAMLViewDAO implements ViewDAO {
 
 	private static final String COL_ENVID = "ENVIRONID";
 	private static final String COL_ID = "VIEWID";
-	private static final String COL_NAME = "NAME";
 	private static final String COL_STATUS = "VIEWSTATUSCD";
-	private static final String COL_EFFDATE = "EFFDATE";
 	private static final String COL_TYPE = "VIEWTYPECD";
-	private static final String COL_WRKFILENBR = "EXTRACTFILEPARTNBR";
 	private static final String COL_OUTPUTFORMAT = "OUTPUTMEDIACD";
-	private static final String COL_OUTPUTLRID = "OUTPUTLRID";
-	private static final String COL_EXTFILEID = "LFPFASSOCID";
-	private static final String COL_PAGESZ = "PAGESIZE";
-	private static final String COL_LINESZ = "LINESIZE";
-	private static final String COL_ZEROSUPP = "ZEROSUPPRESSIND";
-	private static final String COL_EXTMAXREC = "EXTRACTMAXRECCNT";
-	private static final String COL_AGGBYSORTKEY = "EXTRACTSUMMARYIND";
-	private static final String COL_AGGBUFSIZE = "EXTRACTSUMMARYBUF";
-	private static final String COL_OUTPUTMAXREC = "OUTPUTMAXRECCNT";
-	private static final String COL_CTLID = "CONTROLRECID";
-	private static final String COL_WRITEXID = "WRITEEXITID";
-	private static final String COL_WRITEXSTART = "WRITEEXITSTARTUP";
-	private static final String COL_FORMEXID = "FORMATEXITID";
-	private static final String COL_FORMEXSTART = "FORMATEXITSTARTUP";
-	private static final String COL_FLDDELIM = "FILEFLDDELIMCD";
-	private static final String COL_STRDELIM = "FILESTRDELIMCD";
-    private static final String COL_FORMATFILTLOGIC = "FORMATFILTLOGIC";
-	private static final String COL_COMMENTS = "COMMENTS";
 	private static final String COL_CREATETIME = "CREATEDTIMESTAMP";
 	private static final String COL_CREATEBY = "CREATEDUSERID";
 	private static final String COL_MODIFYTIME = "LASTMODTIMESTAMP";
@@ -122,46 +101,12 @@ public class YAMLViewDAO implements ViewDAO {
     private static final String COL_ACTIVATETIME = "LASTACTTIMESTAMP";
     private static final String COL_ACTIVATEBY = "LASTACTUSERID";
     
-	private static String[] columnNames = { 
-		COL_NAME, 
-		COL_EFFDATE,
-		COL_STATUS, 
-        COL_TYPE, 
-        COL_WRKFILENBR, 
-        COL_OUTPUTFORMAT, 
-        COL_OUTPUTLRID, 
-        COL_EXTFILEID,
-        COL_PAGESZ, 
-        COL_LINESZ, 
-        COL_ZEROSUPP, 
-        COL_EXTMAXREC, 
-        COL_AGGBYSORTKEY, 
-        COL_AGGBUFSIZE, 
-        COL_OUTPUTMAXREC, 
-        COL_CTLID, 
-        COL_WRITEXID, 
-        COL_WRITEXSTART, 
-        COL_FORMEXID, 
-        COL_FORMEXSTART, 
-        COL_FLDDELIM, 
-        COL_STRDELIM, 
-        COL_FORMATFILTLOGIC, 
-        COL_COMMENTS };
-
-	private static String[] creationNames = { 
-		COL_CREATETIME,
-		COL_CREATEBY,
-		COL_MODIFYTIME,
-		COL_MODIFYBY
-	};
-
 	private Connection con;
 	private ConnectionParameters params;
 	private UserSessionParameters safrLogin;
 	private PGSQLGenerator generator = new PGSQLGenerator();
 
-	private boolean retryNeeded;
-
+	private static Map<Integer, ViewQueryBean> viewBeans = new TreeMap<>();
 	private static YAMLViewTransfer ourViewTransfer;
 	private static int maxid;
 	private static Map<Integer, YAMLViewTransfer> viewTxfrsByID = new TreeMap<>();
@@ -184,58 +129,6 @@ public class YAMLViewDAO implements ViewDAO {
 		this.con = con;
 		this.params = params;
 		this.safrLogin = safrLogin;
-	}
-
-	private ViewTransfer generateTransfer(ResultSet rs) throws SQLException {
-		ViewTransfer viewTransfer = new ViewTransfer();
-		viewTransfer.setEnvironmentId(rs.getInt(COL_ENVID));
-		viewTransfer.setId(rs.getInt(COL_ID));
-		viewTransfer.setName(DataUtilities.trimString(rs.getString(COL_NAME)));
-
-		viewTransfer.setStatusCode(DataUtilities.trimString(rs.getString(COL_STATUS)));
-		viewTransfer.setEffectiveDate(rs.getDate(COL_EFFDATE));
-		viewTransfer.setTypeCode(DataUtilities.trimString(rs.getString(COL_TYPE)));
-		viewTransfer.setWorkFileNumber(rs.getInt(COL_WRKFILENBR));
-		viewTransfer.setOutputFormatCode(DataUtilities.trimString(rs.getString(COL_OUTPUTFORMAT)));
-		viewTransfer.setOutputLRId(rs.getInt(COL_OUTPUTLRID));
-		if(rs.wasNull())  {
-			viewTransfer.setOutputLRId(null);
-		}
-		viewTransfer.setExtractFileAssocId(rs.getInt(COL_EXTFILEID));
-		if(rs.wasNull())  {
-			viewTransfer.setExtractFileAssocId(null);
-		}
-		viewTransfer.setPageSize(rs.getInt(COL_PAGESZ));
-		viewTransfer.setLineSize(rs.getInt(COL_LINESZ));
-		viewTransfer.setZeroSuppressInd(DataUtilities.intToBoolean(rs.getInt(COL_ZEROSUPP)));
-		viewTransfer.setExtractMaxRecCount(rs.getInt(COL_EXTMAXREC));
-		viewTransfer.setExtractSummaryIndicator(DataUtilities.intToBoolean(rs.getInt(COL_AGGBYSORTKEY)));
-		viewTransfer.setExtractSummaryBuffer(rs.getInt(COL_AGGBUFSIZE));
-		viewTransfer.setOutputMaxRecCount(rs.getInt(COL_OUTPUTMAXREC));
-		viewTransfer.setControlRecId(rs.getInt(COL_CTLID));
-		viewTransfer.setWriteExitId(rs.getInt(COL_WRITEXID));
-		if(rs.wasNull())  {
-			viewTransfer.setWriteExitId(null);
-		}
-		viewTransfer.setWriteExitParams(DataUtilities.trimString(rs.getString(COL_WRITEXSTART)));
-		viewTransfer.setFormatExitId(rs.getInt(COL_FORMEXID));
-		if(rs.wasNull())  {
-			viewTransfer.setFormatExitId(null);
-		}
-		viewTransfer.setFormatExitParams(DataUtilities.trimString(rs.getString(COL_FORMEXSTART)));
-		viewTransfer.setFieldDelimCode(DataUtilities.trimString(rs.getString(COL_FLDDELIM)));
-		viewTransfer.setStringDelimCode(DataUtilities.trimString(rs.getString(COL_STRDELIM)));
-        viewTransfer.setFormatFilterlogic(rs.getString(COL_FORMATFILTLOGIC));
-		viewTransfer.setComments(DataUtilities.trimString(rs.getString(COL_COMMENTS)));
-		viewTransfer.setCreateTime(rs.getDate(COL_CREATETIME));
-		viewTransfer.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-		viewTransfer.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		viewTransfer.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-        viewTransfer.setCompilerVersion(DataUtilities.trimString(rs.getString(COL_COMPILER)));
-        viewTransfer.setActivatedTime(rs.getDate(COL_ACTIVATETIME));
-        viewTransfer.setActivatedBy(DataUtilities.trimString(rs.getString(COL_ACTIVATEBY)));
-
-		return viewTransfer;
 	}
 
 	public ViewTransfer getView(Integer id, Integer environmentId)	throws DAOException {
@@ -322,22 +215,22 @@ public class YAMLViewDAO implements ViewDAO {
     
     public List<ViewQueryBean> queryAllViews(SortType sortType, Integer environmentId, Integer viewFolderId) throws DAOException {
         List<ViewQueryBean> result = new ArrayList<ViewQueryBean>();
-//		if(lrBeans.isEmpty()) {
 			logger.info("No Beans read the dir");
 			maxid = 0;
 			Path viewsPath = YAMLizer.getViewsPath();
 			viewsPath.toFile().mkdirs();
 			File[] views = viewsPath.toFile().listFiles();
-			
+			viewBeans.clear();
 			if(views.length > 0) {
 				Stream.of(views)
 			    	      .filter(file -> file.isFile())
-			    	      .forEach(lr -> addToResults(result, lr, environmentId));
+			    	      .forEach(lr -> addToResults(lr, environmentId));
 			}
+			result.addAll(viewBeans.values());
 			return result;
 		}
 
-    private void addToResults(List<ViewQueryBean> result, File vw, Integer environmentId) {
+    private void addToResults(File vw, Integer environmentId) {
 		YAMLViewTransfer vwt = (YAMLViewTransfer) YAMLizer.readYaml(vw.toPath(), ComponentType.View);
 		if(vwt.getId() > maxid) {
 			maxid = vwt.getId();
@@ -356,7 +249,7 @@ public class YAMLViewDAO implements ViewDAO {
 				"compilerVer",
 				vwt.getCreateTime(),
 				vwt.getCreateBy()); 
-		result.add(lrBean);
+		viewBeans.put(vwt.getId(), lrBean);
 		viewTxfrsByID.put(vwt.getId(), vwt);
 		viewTxfrsByName.put(vwt.getName(), vwt);
 		logger.info("Beans Add ViewTxf for View:" + vwt.getId());
@@ -572,15 +465,11 @@ public class YAMLViewDAO implements ViewDAO {
 		Path viewsPath = YAMLizer.getViewsPath();
 		viewsPath.toFile().mkdirs();
 		Path viewPath = viewsPath.resolve(viewTransfer.getName()+ ".yaml");
+		logger.info("Save View " + viewPath.toString());
 		YAMLizer.writeYaml(viewPath, viewTransfer);
 	}
 
-	private boolean viewHasBeenActivated(ViewTransfer viewTransfer) {
-		return viewTransfer.getStatusCode().equals(SAFRApplication.getSAFRFactory().getCodeSet(CodeCategories.VIEWSTATUS).getCode(Codes.ACTIVE).getKey());
-	}
-
-	private int prepareViewDetails(ViewTransfer viewTransfer,
-			PreparedStatement pst, int i) throws SQLException {
+	private int prepareViewDetails(ViewTransfer viewTransfer, PreparedStatement pst, int i) throws SQLException {
 		pst.setString(i++, viewTransfer.getName());
 		pst.setNull(i++, Types.DATE);
 		pst.setString(i++, viewTransfer.getStatusCode());
@@ -632,91 +521,13 @@ public class YAMLViewDAO implements ViewDAO {
 		return i;
 	}
 
-	private int prepareCreation(ViewTransfer viewTransfer,
-			PreparedStatement pst, int i) throws SQLException {
-		if (viewTransfer.isForImportOrMigration()) {
-			pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewTransfer.getCreateTime()));
-		}
-		pst.setString(i++, viewTransfer.isForImportOrMigration() ? viewTransfer.getCreateBy() : safrLogin.getUserId());
-		if (viewTransfer.isForImportOrMigration()) {
-			pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewTransfer.getModifyTime()));
-		}
-		pst.setString(i++,viewTransfer.isForImportOrMigration() ? viewTransfer.getModifyBy() : safrLogin.getUserId());
-		return i;
-	}
-
 	private ViewTransfer updateView(ViewTransfer viewTransfer) throws DAOException, SAFRNotFoundException {
 		viewTransfer.setModifyBy(SAFRApplication.getUserSession().getUser().getUserid());
 		viewTransfer.setModifyTime(new Date());
 		saveView(viewTransfer);
 		return viewTransfer;
-//        List<String> names = new ArrayList<String>();
-//        names.addAll(Arrays.asList(columnNames));
-//		try {
-//		    if ( viewTransfer.isForImportOrMigration())  {
-//		    	importUpdate(viewTransfer, names);
-//		    } else {
-//		    	normalUpdate(viewTransfer, names);
-//		    }
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException(
-//					"Database error occurred while updating the View.", e);
-//		}
 	}
 
-	private ViewTransfer normalUpdate(ViewTransfer viewTransfer, List<String> names) throws DAOException, SAFRNotFoundException, SQLException {
-	    
-        names.add(COL_MODIFYTIME);
-        names.add(COL_MODIFYBY);
-	    if (viewTransfer.isActivated()) {
-	        names.add(COL_COMPILER);
-	        names.add(COL_ACTIVATETIME);
-	        names.add(COL_ACTIVATEBY);
-	    }
-
-        List<String> whereNames = new ArrayList<String>();
-        whereNames.add(COL_ID);
-        whereNames.add(COL_ENVID);
-        
-        String statement = generator.getUpdateStatement(params.getSchema(),
-                TABLE_NAME, names, whereNames, !viewTransfer.isForImportOrMigration());    			
-        PreparedStatement pst = null;	
-        retryNeeded = true;
-		while (retryNeeded) {
-			pst = normalPrepareAndExecuteUpdate(viewTransfer, statement, pst);
-		}
-		pst.close();
-
-		return viewTransfer;
-	}
-
-	private ViewTransfer importUpdate(ViewTransfer viewTransfer, List<String> names) throws DAOException, SAFRNotFoundException, SQLException {
-	    
-	    names.add(COL_CREATETIME);
-	    names.add(COL_CREATEBY);
-	    names.add(COL_MODIFYTIME);
-	    names.add(COL_MODIFYBY);
-	    names.add(COL_COMPILER);
-	    names.add(COL_ACTIVATETIME);
-	    names.add(COL_ACTIVATEBY);
-
-        List<String> whereNames = new ArrayList<String>();
-        whereNames.add(COL_ID);
-        whereNames.add(COL_ENVID);
-        
-        String statement = generator.getUpdateStatement(params.getSchema(),
-                TABLE_NAME, names, whereNames, !viewTransfer.isForImportOrMigration());    			
-        PreparedStatement pst = null;	
-        retryNeeded = true;
-		while (retryNeeded) {
-			pst = importPrepareAndExecuteUpdate(viewTransfer, statement, pst);
-		}
-		pst.close();
-
-		return viewTransfer;
-	}
-
-	
 	//make an import and a normal prepare
 	private PreparedStatement normalPrepareAndExecuteUpdate(
 			ViewTransfer viewTransfer, String statement, PreparedStatement pst)
@@ -748,7 +559,6 @@ public class YAMLViewDAO implements ViewDAO {
 	        }                        
 	        rs.close();                 
 	        pst.close();
-			retryNeeded = false;
 		} catch (SQLException se) {
 			if (con.isClosed()) {
 				// lost database connection, so reconnect and retry
@@ -777,7 +587,6 @@ public class YAMLViewDAO implements ViewDAO {
 	            throw new SAFRNotFoundException("No Rows updated.");
 	        }                       
 	        pst.close();
-			retryNeeded = false;
 		} catch (SQLException se) {
 			if (con.isClosed()) {
 				// lost database connection, so reconnect and retry
@@ -797,210 +606,11 @@ public class YAMLViewDAO implements ViewDAO {
 		
 		innerList = crs.stream().collect(Collectors.toList());
 		result.put(ComponentType.ControlRecord, innerList);
-		
-		
-//        boolean success = false;
-//        while (!success) {                                                                              		
-//    		try {
-//                // start a transaction
-//                DAOFactoryHolder.getDAOFactory().getDAOUOW().begin();                               
-//    			boolean admin = SAFRApplication.getUserSession().isSystemAdministrator();
-//    
-//    			String statement = generator.getFunction(params.getSchema(),"getviewprops", 3);
-//    			CallableStatement proc = null;
-//    			ResultSet rs = null;
-//    			while (true) {
-//    				try {
-//    					proc = con.prepareCall(statement);
-//    					int i = 1;
-//    					proc.registerOutParameter(i++, Types.OTHER);
-//    					proc.setInt(i++, environmentId);
-//    					proc.setInt(i++, DataUtilities.booleanToInt(admin));
-//    					proc.setInt(i++, safrLogin.getGroupId());
-//    					proc.execute();
-//    					//rs = proc.getResultSet();
-//    					break;
-//    				} catch (SQLException se) {
-//    					if (con.isClosed()) {
-//    						// lost database connection, so reconnect and retry
-//    						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//    					} else {
-//    						throw se;
-//    					}
-//    				}
-//    			}
-//                rs = (ResultSet) proc.getObject(1);
-//    			while (rs.next()) {
-//    				String entityType = rs.getString(1);
-//    				EnvironmentalQueryBean environmentalQueryBean = null;
-//    				ComponentType compType = DataUtilities.getComponentTypeFromString(entityType);
-//    
-//    				if (compType == null) {
-//    					continue;
-//    
-//    				}
-//    				if (compType == ComponentType.ViewFolder) {
-//    					environmentalQueryBean = new ViewFolderQueryBean(
-//    							environmentId, rs.getInt(2), 
-//    							DataUtilities.trimString(rs.getString(3)),
-//    							SAFRApplication.getUserSession().getEditRights(
-//    							    rs.getInt(4), ComponentType.ViewFolder, environmentId),    							
-//    							null, null, null, null);
-//    
-//    				} else if (compType == ComponentType.ControlRecord) {
-//    					environmentalQueryBean = new ControlRecordQueryBean(
-//    							environmentId, rs.getInt(2), 
-//    							DataUtilities.trimString(rs.getString(3)), 
-//    							SAFRApplication.getUserSession().getEditRights(
-//    							    rs.getInt(4), ComponentType.ControlRecord, environmentId),
-//                                null, null, null, null);
-//    
-//    				} else if (compType == ComponentType.LogicalFile) {
-//    					environmentalQueryBean = new LogicalFileQueryBean(
-//   							environmentId, rs.getInt(2), 
-//   							DataUtilities.trimString(rs.getString(3)), 
-//                            SAFRApplication.getUserSession().getEditRights(
-//                                rs.getInt(4), ComponentType.LogicalFile, environmentId),
-//   							null, null, null, null);
-//    
-//    				} else if (compType == ComponentType.LogicalRecord) {
-//    					environmentalQueryBean = new LogicalRecordQueryBean(
-//   							environmentId, rs.getInt(2), 
-//   							DataUtilities.trimString(rs.getString(3)), 
-//   							null, null, null, null, 
-//                            SAFRApplication.getUserSession().getEditRights(
-//                                rs.getInt(4), ComponentType.LogicalRecord, environmentId),
-//   							null, null, null, null, null, null);
-//    
-//    				} else if (compType == ComponentType.WriteUserExitRoutine
-//    						|| compType == ComponentType.FormatUserExitRoutine) {
-//    					environmentalQueryBean = new UserExitRoutineQueryBean(
-//    							environmentId, rs.getInt(2), 
-//    							DataUtilities.trimString(rs.getString(3)),
-//    							DataUtilities.trimString(rs.getString(5)), null, null, 
-//                                SAFRApplication.getUserSession().getEditRights(
-//                                    rs.getInt(4), ComponentType.UserExitRoutine, environmentId),
-//    							null, null, null, null);
-//    				}
-//    
-//    				if (result.containsKey(compType)) {
-//    					result.get(compType).add(environmentalQueryBean);
-//    
-//    				} else {
-//    					innerList = new ArrayList<EnvironmentalQueryBean>();
-//    					innerList.add(environmentalQueryBean);
-//    					result.put(compType, innerList);
-//    				}
-//    			}
-//    
-//    			proc.close();
-//    			rs.close();
-//                success=true;
-//            } catch (DAOUOWInterruptedException e) {
-//                // UOW interrupted so retry it
-//                continue;                                                                                                                               
-//    		} catch (SQLException e) {
-//    			throw DataUtilities.createDAOException(
-//                    "Database error occurred while retrieving different metadata components which are used in View Properties.",e);
-//            } finally {
-//                DAOFactoryHolder.getDAOFactory().getDAOUOW().end();
-//            } // end transaction try
-//        } // end transaction while loop   
-//        
 		return result;
 	}
 
 	public Map<ComponentType, List<DependentComponentTransfer>> getInactiveDependenciesOfView(Integer environmentId, Integer viewId) throws DAOException {
 		Map<ComponentType, List<DependentComponentTransfer>> result = new HashMap<ComponentType, List<DependentComponentTransfer>>();
-//		List<DependentComponentTransfer> inactiveLogicalRecords = new ArrayList<DependentComponentTransfer>();
-//		List<DependentComponentTransfer> inactiveLookupPaths = new ArrayList<DependentComponentTransfer>();
-//
-//		try {
-//
-//			// This query is used to select the dependent inactive LRID and LR
-//			// Name of the view.
-//			String selectString = "SELECT A.LOGRECID, A.NAME FROM "
-//					+ params.getSchema() + ".LOGREC A,"
-//					+ params.getSchema() + ". LRLFASSOC B,"
-//					+ params.getSchema() + ". VIEWSOURCE C, "
-//					+ params.getSchema() + ".VIEW D WHERE B.LOGRECID = A.LOGRECID AND "
-//					+ "B.ENVIRONID = A.ENVIRONID AND C.INLRLFASSOCID = B.LRLFASSOCID AND C.ENVIRONID = B.ENVIRONID AND "
-//					+ "D.VIEWID = C.VIEWID AND D.ENVIRONID = C.ENVIRONID AND "
-//					+ "A.LRSTATUSCD = 'INACT' AND  A.ENVIRONID = ? "+ " AND D.VIEWID = ? "
-//					+ " GROUP BY A.NAME, A.LOGRECID";
-//			PreparedStatement pst = null;
-//			ResultSet rs = null;
-//			while (true) {
-//				try {
-//					pst = con.prepareStatement(selectString);
-//					pst.setInt(1, environmentId );
-//					pst.setInt(2, viewId );
-//					rs = pst.executeQuery();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			while (rs.next()) {
-//				DependentComponentTransfer depCompTransfer = new DependentComponentTransfer();
-//				depCompTransfer.setId(rs.getInt("LOGRECID"));
-//				depCompTransfer.setName(DataUtilities.trimString(rs.getString("NAME")));
-//				inactiveLogicalRecords.add(depCompTransfer);
-//			}
-//			if (!inactiveLogicalRecords.isEmpty()) {
-//				result.put(ComponentType.LogicalRecord, inactiveLogicalRecords);
-//			}
-//			pst.close();
-//			rs.close();
-//
-//			// This query is used to select all the inactive Lookup Paths
-//			// depending upon the view.
-//			String selectStr = "SELECT A.LOOKUPID, A.NAME FROM "
-//					+ params.getSchema() + ".LOOKUP A," + params.getSchema()
-//					+ ".VIEWCOLUMNSOURCE B WHERE "
-//					+ "B.LOOKUPID = A.LOOKUPID AND B.ENVIRONID = A.ENVIRONID "
-//					+ "AND A.VALIDIND = 0 AND A.ENVIRONID = ? "
-//					+ " AND B.VIEWID = ? "
-//					+ " GROUP BY A.NAME, A.LOOKUPID";
-//			PreparedStatement pstLkpPath = null;
-//			ResultSet rsLkpPath = null;
-//			while (true) {
-//				try {
-//					pstLkpPath = con.prepareStatement(selectStr);
-//					pstLkpPath.setInt(1, environmentId );
-//					pstLkpPath.setInt(2, viewId );
-//					rsLkpPath = pstLkpPath.executeQuery();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			while (rsLkpPath.next()) {
-//				DependentComponentTransfer depCompTransfer = new DependentComponentTransfer();
-//				depCompTransfer.setId(rsLkpPath.getInt("LOOKUPID"));
-//				depCompTransfer.setName(DataUtilities.trimString(rsLkpPath.getString("NAME")));
-//				inactiveLookupPaths.add(depCompTransfer);
-//
-//			}
-//			if (!inactiveLookupPaths.isEmpty()) {
-//				result.put(ComponentType.LookupPath, inactiveLookupPaths);
-//			}
-//			pstLkpPath.close();
-//			rsLkpPath.close();
-//
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException("Database error occurred while retrieving all the Inactive Logical Record and Lookup Path dependencies of a View.",e);
-//		}
 		return result;
 	}
 
@@ -1166,75 +776,6 @@ public class YAMLViewDAO implements ViewDAO {
 	}
 
 	public void makeViewsInactive(Collection<Integer> viewIds, Integer environmentId) throws DAOException {
-//		if (viewIds == null || viewIds.isEmpty()) {
-//			return;
-//		}
-//		try {
-//		    // determine existing state
-//			String placeholders = generator.getPlaceholders(viewIds.size());
-//			String statementViews = "UPDATE " + params.getSchema() + ".VIEW " + 
-//			    "SET VIEWSTATUSCD = 'INACT'," + 
-//			    "LASTACTTIMESTAMP=CURRENT_TIMESTAMP," +
-//			    "LASTACTUSERID='" + safrLogin.getUserId() + "' " +
-//			    "WHERE VIEWID IN ( " + placeholders + " )" +
-//			    "AND ENVIRONID = ?" +  " " +
-//			    "AND VIEWSTATUSCD != 'INACT'";
-//			PreparedStatement pst = null;
-//
-//			while (true) {
-//				try {
-//					pst = con.prepareStatement(statementViews);
-//					int ndx = 1;
-//					Iterator<Integer> si = viewIds.iterator();
-//					while(si.hasNext()) {
-//						Integer v = si.next(); 
-//						pst.setInt(ndx++, v);
-//					}
-//					pst.setInt(ndx, environmentId );
-//					pst.executeUpdate();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			pst.close();
-//			
-//			// delete logic dependency rows
-//            String deleteStatement = "DELETE FROM " + params.getSchema()
-//            + ".VIEWLOGICDEPEND WHERE environid = ? "
-//            + " AND viewid in (" + placeholders + ")";
-//
-//            while (true) {
-//                try {
-//                    pst = con.prepareStatement(deleteStatement);
-//					int ndx = 1;
-//					pst.setInt(ndx++, environmentId );
-//					Iterator<Integer> si = viewIds.iterator();
-//					while(si.hasNext()) {
-//						Integer v = si.next(); 
-//						pst.setInt(ndx++, v);
-//					}
-//                    pst.executeUpdate();
-//                    break;
-//                } catch (SQLException se) {
-//                    if (con.isClosed()) {
-//                        // lost database connection, so reconnect and retry
-//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-//                    } else {
-//                        throw se;
-//                    }
-//                }
-//            }
-//            pst.close();
-//			
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException("Database error occurred while making the Views inactive.",e);
-//		}
 	}
 
     private class ViewInfo {
@@ -1671,126 +1212,19 @@ public class YAMLViewDAO implements ViewDAO {
 
 	}
 
-	public void deleteView(Integer viewId, Integer environmentId)
-			throws DAOException {
-		try {
-            String statement = generator.getSelectFromFunction(params.getSchema(), 
-								"deleteView", 2);
-			PreparedStatement proc = null;
-			
-			while (true) {
-				try {
-                    proc = con.prepareStatement(statement);
-					proc.setInt(1, viewId);
-					proc.setInt(2, environmentId);
-
-					proc.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			proc.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while permanently deleting the View and its components.",e);
+	public void deleteView(Integer viewId, Integer environmentId) throws DAOException {
+		Path viewsPath = YAMLizer.getViewsPath();
+		ViewQueryBean vBean = viewBeans.get(viewId);
+		if(vBean != null) {
+			viewsPath.resolve(vBean.getName() + ".yaml").toFile().delete();
+		} else {
+			logger.severe("Unable to find view " + viewId);
 		}
-
-
 	}
 
     @Override
     public List<ViewFolderViewAssociationTransfer> getVVFAssociation(Integer environmentId, Integer id, boolean admin) {
-        List<ViewFolderViewAssociationTransfer> result = new ArrayList<ViewFolderViewAssociationTransfer>();
-//
-//        try {
-//            String schema = params.getSchema();
-//            String selectString = null;
-//
-//            if (!admin) { 
-//                admin = SAFRApplication.getUserSession().isSystemAdministrator();
-//            }
-//                
-//            if (admin) {
-//                selectString = "Select A.NAME AS VIEWNAME, A.VIEWID, B.VIEWFOLDERID, C.NAME AS VFNAME, B.VFVASSOCID, "
-//                        + "B.CREATEDTIMESTAMP, B.CREATEDUSERID, B.LASTMODTIMESTAMP, B.LASTMODUSERID "
-//                        + "From " 
-//                        + schema + ".VIEW A, "
-//                        + schema + ".VFVASSOC B, "
-//                        + schema + ".VIEWFOLDER C "
-//                        + "Where A.ENVIRONID = ? "
-//                        + " AND A.VIEWID = ? "
-//                        + " AND A.ENVIRONID = B.ENVIRONID AND A.VIEWID = B.VIEWID"
-//                        + " AND B.ENVIRONID = C.ENVIRONID AND B.VIEWFOLDERID = C.VIEWFOLDERID "
-//                        + "Order By B.VFVASSOCID";
-//            } else {
-//                selectString = "Select A.NAME AS VIEWNAME, A.VIEWID, B.VIEWFOLDERID, C.NAME AS VFNAME, B.VFVASSOCID, D.RIGHTS, "
-//                        + "B.CREATEDTIMESTAMP, B.CREATEDUSERID, B.LASTMODTIMESTAMP, B.LASTMODUSERID "
-//                        + "From "
-//                        + schema + ".VIEW A INNER JOIN "
-//                        + schema + ".VFVASSOC B ON A.ENVIRONID = B.ENVIRONID AND A.VIEWID = B.VIEWID INNER JOIN "
-//                        + schema + ".VIEWFOLDER C ON B.ENVIRONID = C.ENVIRONID AND B.VIEWFOLDERID = C.VIEWFOLDERID LEFT OUTER JOIN "
-//                        + schema + ".SECVIEWFOLDER D ON C.ENVIRONID = D.ENVIRONID AND C.VIEWFOLDERID = D.VIEWFOLDERID "
-//                        + " AND D.GROUPID = ?"
-//                        + " Where A.ENVIRONID = ?" 
-//                        + " AND A.VIEWID = ? "
-//                        + " Order By B.VFVASSOCID";
-//            }
-//            PreparedStatement pst = null;
-//            ResultSet rs = null;
-//            while (true) {
-//                try {
-//                    pst = con.prepareStatement(selectString);
-//                    if(admin) {
-//                    	pst.setInt(1,  environmentId);
-//                    	pst.setInt(2,  id);
-//                    } else {
-//                    	pst.setInt(1,  SAFRApplication.getUserSession().getGroup().getId());
-//                    	pst.setInt(2,  environmentId);
-//                    	pst.setInt(3,  id);
-//                    }
-//                    rs = pst.executeQuery();
-//                    break;
-//                } catch (SQLException se) {
-//                    if (con.isClosed()) {
-//                        // lost database connection, so reconnect and retry
-//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-//                    } else {
-//                        throw se;
-//                    }
-//                }
-//            }
-//            while (rs.next()) {
-//                ViewFolderViewAssociationTransfer vfvAssociationTransfer = new ViewFolderViewAssociationTransfer();
-//                vfvAssociationTransfer.setEnvironmentId(environmentId);
-//                vfvAssociationTransfer.setAssociatingComponentId(rs.getInt("VIEWID"));
-//                vfvAssociationTransfer.setAssociatingComponentName(
-//                    DataUtilities.trimString(rs.getString("VIEWNAME")));
-//                vfvAssociationTransfer.setAssociatedComponentId(rs.getInt("VIEWFOLDERID"));
-//                vfvAssociationTransfer.setAssociatedComponentName(
-//                    DataUtilities.trimString(rs.getString("VFNAME")));
-//                vfvAssociationTransfer.setAssociationId(rs.getInt("VFVASSOCID"));
-//                vfvAssociationTransfer.setAssociatedComponentRights(
-//                    admin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
-//                        rs.getInt("RIGHTS"), ComponentType.View, environmentId));              
-//                vfvAssociationTransfer.setCreateTime(rs.getDate(COL_CREATETIME));
-//                vfvAssociationTransfer.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-//                vfvAssociationTransfer.setModifyTime(rs.getDate(COL_MODIFYTIME));
-//                vfvAssociationTransfer.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));                             
-//                result.add(vfvAssociationTransfer);
-//            }
-//            pst.close();
-//            rs.close();
-            return result;
-//
-//        } catch (SQLException e) {
-//            String msg = "Database error occurred while retrieving view associations for Environment ["+ environmentId + "].";
-//            throw DataUtilities.createDAOException(msg, e);
-//        }
+        return new ArrayList<ViewFolderViewAssociationTransfer>();
     }
 
     @Override

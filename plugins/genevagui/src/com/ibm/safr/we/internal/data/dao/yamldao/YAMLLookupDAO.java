@@ -361,66 +361,8 @@ public class YAMLLookupDAO implements LookupDAO {
 
 	}
 
-	public LookupQueryBean queryLookupPath(Integer lookupPathId,
-			Integer environmentId) throws DAOException {
-		LookupQueryBean lookupPathQueryBean = null;
-		try {
-		    String selectString;
-            boolean admin = SAFRApplication.getUserSession().isSystemAdministrator();           
-            if (admin) {
-                selectString = "Select A.LOOKUPID, A.NAME From "
-					+ params.getSchema() + ".LOOKUP A Where A.LOOKUPID = ? "
-					+ " AND A.ENVIRONID = ? ";
-            }
-            else {
-                selectString = "Select A.LOOKUPID, A.NAME, B.RIGHTS "
-                    + "From " + params.getSchema() + ".LOOKUP A "
-                    + "LEFT OUTER JOIN " + params.getSchema() + ".SECLOOKUP B "
-                    + "ON A.LOOKUPID = B.LOOKUPID AND A.ENVIRONID = B.ENVIRONID AND B.GROUPID= ? "
-                    + "Where A.LOOKUPID = ? "
-                    + "AND A.ENVIRONID = ? ";                
-            }
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					if(admin) {
-						pst.setInt(1,  lookupPathId);
-						pst.setInt(2,  environmentId);
-					} else {
-						pst.setInt(1,  SAFRApplication.getUserSession().getGroup().getId());
-						pst.setInt(2,  lookupPathId);
-						pst.setInt(3,  environmentId);
-					}
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			if (rs.next()) {
-				lookupPathQueryBean = new LookupQueryBean(environmentId, 
-				    rs.getInt("LOOKUPID"), 
-				    DataUtilities.trimString(rs.getString("NAME")), 
-				    null, 0, 0, null, null, 
-                    admin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
-                        rs.getInt("RIGHTS"), ComponentType.LookupPath, environmentId),
-				    null, null, null, null, null, null);
-
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-			    "Database error occurred while querying the Lookup Path with the specified ID.",e);
-		}
-		return lookupPathQueryBean;
+	public LookupQueryBean queryLookupPath(Integer lookupPathId, Integer environmentId) throws DAOException {
+		return lkBeans.get(lookupPathId);
 	}
 
 	public Boolean isSameTarget(List<Integer> lookupPathIds,

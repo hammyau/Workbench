@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -32,6 +33,7 @@ public class YAMLizer {
     public static SAFRTransfer readYaml(Path input, ComponentType ctype) {
     	SAFRTransfer txfr = null;
         yamlMapper.findAndRegisterModules();
+        yamlMapper.setSerializationInclusion(Include.NON_NULL);
         logger.atInfo().log("Read %s %s", ctype, input);
         // cache.contains ? cache.get : read from disk
         try {
@@ -62,6 +64,7 @@ public class YAMLizer {
     public static void writeYaml(Path output, SAFRTransfer txfr) {
         try {
             yamlMapper.writeValue(output.toFile(), txfr);
+            logger.atInfo().log("Write yaml %s ", output);
         } catch (IOException e) {
             logger.atSevere().log("write yaml failed\n%s", e.getMessage());
         }

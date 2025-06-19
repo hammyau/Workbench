@@ -1,5 +1,7 @@
 package com.ibm.safr.we.data.transfer;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
  * 

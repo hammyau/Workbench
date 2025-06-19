@@ -32,9 +32,7 @@ public class DeleteMetadataComponentHandler extends AbstractHandler implements
 
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 
-		MetadataView view = (MetadataView) HandlerUtil
-				.getActiveWorkbenchWindow(event).getActivePage()
-				.getActivePart();
+		MetadataView view = (MetadataView) HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().getActivePart();
 		view.deleteMetadataComponent();
 		UIUtilities.enableDisableMenuAsPerUserRights();		
 		return null;

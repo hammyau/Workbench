@@ -28,8 +28,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import com.google.common.flogger.FluentLogger;
 import com.ibm.safr.we.data.ConnectionParameters;
 import com.ibm.safr.we.data.DAOException;
 import com.ibm.safr.we.data.DAOFactoryHolder;
@@ -37,9 +39,12 @@ import com.ibm.safr.we.data.DataUtilities;
 import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.ViewSourceDAO;
 import com.ibm.safr.we.data.transfer.ComponentAssociationTransfer;
+import com.ibm.safr.we.data.transfer.LogicalRecordTransfer;
 import com.ibm.safr.we.data.transfer.LookupPathSourceFieldTransfer;
+import com.ibm.safr.we.data.transfer.LookupPathTransfer;
 import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLookupTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewSourceTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 import com.ibm.safr.we.model.query.EnvironmentalQueryBean;
@@ -48,34 +53,15 @@ import com.ibm.safr.we.model.query.LookupQueryBean;
 
 public class YAMLViewSourceDAO implements ViewSourceDAO {
 
-	static transient Logger logger = Logger
-			.getLogger("com.ibm.safr.we.internal.data.dao.PGViewSourceDAO");
-
-	private static final String TABLE_NAME = "VIEWSOURCE";
-
-	private static final String COL_ENVID = "ENVIRONID";
-	private static final String COL_ID = "VIEWSOURCEID";
-    private static final String COL_VIEWID = "VIEWID";
-	private static final String COL_SEQNO = "SRCSEQNBR";
-	private static final String COL_INLRLFASSOCID = "INLRLFASSOCID";
-	private static final String COL_EXTRACTFILTLOGIC = "EXTRACTFILTLOGIC";
-    private static final String COL_OUTLFPFASSOCID = "OUTLFPFASSOCID";
-    private static final String COL_WRITEEXITID = "WRITEEXITID";
-    private static final String COL_WRITEEXITPARM = "WRITEEXITPARM";
-    private static final String COL_EXTRACTOUTPUTIND = "EXTRACTOUTPUTIND";
-    private static final String COL_EXTRACTOUTPUTLOGIC = "EXTRACTOUTPUTLOGIC";
-	private static final String COL_CREATETIME = "CREATEDTIMESTAMP";
-	private static final String COL_CREATEBY = "CREATEDUSERID";
-	private static final String COL_MODIFYTIME = "LASTMODTIMESTAMP";
-	private static final String COL_MODIFYBY = "LASTMODUSERID";
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
 	private Connection con;
 	private ConnectionParameters params;
-	private UserSessionParameters safrLogin;
 	private PGSQLGenerator generator = new PGSQLGenerator();
 
 	private YAMLViewSourceTransfer ourViewSource;
-	private static int maxid;
+	private static int maxid=1;
+	private static List<ViewSourceTransfer> viewSources;
 
 	/**
 	 * Constructor for this class.
@@ -93,85 +79,28 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 			UserSessionParameters safrLogin) {
 		this.con = con;
 		this.params = params;
-		this.safrLogin = safrLogin;
 	}
 
-	private ViewSourceTransfer generateTransfer(ResultSet rs)
-			throws SQLException {
-		ViewSourceTransfer vsTransfer = new ViewSourceTransfer();
-		vsTransfer.setEnvironmentId(rs.getInt(COL_ENVID));
-		vsTransfer.setId(rs.getInt(COL_ID));
-        vsTransfer.setViewId(rs.getInt(COL_VIEWID));
-		vsTransfer.setSourceSeqNo(rs.getInt(COL_SEQNO));
-		vsTransfer.setLRFileAssocId(rs.getInt(COL_INLRLFASSOCID));
-		vsTransfer.setExtractFilterLogic(rs.getString(COL_EXTRACTFILTLOGIC));
-		if (rs.wasNull())
-			vsTransfer.setExtractFileAssociationId(null);
-        vsTransfer.setWriteExitId(rs.getInt(COL_WRITEEXITID));
-		if (rs.wasNull())
-			vsTransfer.setWriteExitId(null);
-        vsTransfer.setWriteExitParams(rs.getString(COL_WRITEEXITPARM));
-        vsTransfer.setExtractOutputOverride(DataUtilities.intToBoolean(rs.getInt(COL_EXTRACTOUTPUTIND)));
-        vsTransfer.setExtractRecordOutput(rs.getString(COL_EXTRACTOUTPUTLOGIC));
-		vsTransfer.setCreateTime(rs.getDate(COL_CREATETIME));
-		vsTransfer.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-		vsTransfer.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		vsTransfer.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-
-		return vsTransfer;
-	}
-
-    public int getViewSourceLrId(Integer viewSrcId, Integer environmentId) throws DAOException {
-        int result = 0;
-        try {
-            String selectString = "SELECT A.LOGRECID FROM " + 
-                params.getSchema()+ ".LRLFASSOC A," +
-                params.getSchema()+ ".VIEWSOURCE B " +
-                "WHERE A.ENVIRONID=B.ENVIRONID " + 
-                "AND A.LRLFASSOCID=B.INLRLFASSOCID " +
-                "AND B.VIEWSOURCEID=?" +
-                "AND B.ENVIRONID=?";
-            PreparedStatement pst = null;
-            ResultSet rs = null;
-            while (true) {
-                try {
-                    pst = con.prepareStatement(selectString);
-                    pst.setInt(1, viewSrcId);
-                    pst.setInt(2, environmentId);
-                    rs = pst.executeQuery();
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-            
-            if (rs.next()) {
-                result = rs.getInt(1);
-            }
-            pst.close();
-            rs.close();
-    
-        } catch (SQLException e) {
-            throw DataUtilities.createDAOException(
-                "Database error occurred while retrieving the View Sources with id ["+ viewSrcId + "]", e);
-        }
-        return result;
+	public int getViewSourceLrId(Integer viewSrcId, Integer environmentId) throws DAOException {
+    	YAMLViewTransfer v = YAMLViewDAO.getCurrentView();
+    	String lrName = v.getViewSources().stream().filter(vs -> vs.getSequenceNumber()==viewSrcId).findFirst().get().getLogicalRecord();
+    	return YAMLLogicalRecordDAO.getLogicalRecord(lrName, environmentId).getId();
     }
 	
 	public List<ViewSourceTransfer> getViewSources(Integer viewId, Integer environmentId) throws DAOException {
-		List<ViewSourceTransfer> viewSources = new ArrayList<>();
-		YAMLViewDAO.getCurrentView().getViewSources().stream().forEach(vs -> makeAndAddViewSource(viewSources, vs, environmentId));	
+		//Within the scope of this view
+		maxid=1;
+		viewSources = new ArrayList<>();
+		YAMLViewTransfer v = YAMLViewDAO.getCurrentView();
+		v.getViewSources().stream().forEach(vs -> makeAndAddViewSource(viewSources, vs, environmentId, v.getId()));	
 		return viewSources;
 	}
 
-	private void makeAndAddViewSource(List<ViewSourceTransfer> viewSources, YAMLViewSourceTransfer yvs, Integer environmentId) {
+	private void makeAndAddViewSource(List<ViewSourceTransfer> viewSources, YAMLViewSourceTransfer yvs, Integer environmentId, Integer viewId) {
 		ViewSourceTransfer vs = new ViewSourceTransfer();
 		vs.setId(maxid++);
+		vs.setViewId(viewId);
+		vs.setPersistent(false);
 		vs.setEnvironmentId(environmentId);
 		vs.setExtractFileAssociationId(null);
 		vs.setExtractFilterLogic(yvs.getExtractFilter());
@@ -182,6 +111,7 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 		vs.setSourceSeqNo(yvs.getSequenceNumber());
 		vs.setWriteExitId(yvs.getWriteExit());
 		vs.setWriteExitParams(yvs.getWriteExitParms());
+		logger.atInfo().log("Made VS:%d for view:%d", vs.getId(), vs.getViewId());
 		viewSources.add(vs);
 	}
 
@@ -200,254 +130,39 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 		vt.addViewSource(ourViewSource);
 	}
 
-	private void createViewSources(List<ViewSourceTransfer> viewSrcCreate) throws DAOException {
-
-		boolean isImportOrMigrate = viewSrcCreate.get(0).isForImport()
-		|| viewSrcCreate.get(0).isForMigration() ? true : false;
-
-		try {
-            String[] columnNames = { COL_ENVID, COL_VIEWID, COL_SEQNO,   
-                COL_INLRLFASSOCID, COL_EXTRACTFILTLOGIC, 
-                COL_OUTLFPFASSOCID, COL_WRITEEXITID, COL_WRITEEXITPARM, 
-                COL_EXTRACTOUTPUTIND, COL_EXTRACTOUTPUTLOGIC,
-                COL_CREATETIME, COL_CREATEBY, COL_MODIFYTIME, COL_MODIFYBY };
-            List<String> names = new ArrayList<String>(Arrays.asList(columnNames));
-            if (isImportOrMigrate) {
-                names.add(1, COL_ID);
-            }
-            String statement = generator.getInsertStatement(params.getSchema(), TABLE_NAME, COL_ID, names, !isImportOrMigrate);         
-			PreparedStatement pst = null;
-            ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(statement);
-
-					for (ViewSourceTransfer viewSrcTrans : viewSrcCreate) {
-						int i = 1;
-                        pst.setInt(i++, viewSrcTrans.getEnvironmentId());
-                        if (isImportOrMigrate) {
-                            pst.setInt(i++, viewSrcTrans.getId());
-                        }						
-                        pst.setInt(i++, viewSrcTrans.getViewId());
-						pst.setInt(i++, viewSrcTrans.getSourceSeqNo());
-						pst.setInt(i++, viewSrcTrans.getLRFileAssocId());
-						if (viewSrcTrans.getExtractFilterLogic() == null) {
-							pst.setNull(i++, Types.INTEGER);
-						} else {
-							pst.setString(i++, viewSrcTrans.getExtractFilterLogic());
-						}
-	                    pst.setNull(i++, Types.INTEGER);						    
-                        if (viewSrcTrans.getWriteExitId() == null || viewSrcTrans.getWriteExitId() == 0) {
-                            pst.setNull(i++, Types.INTEGER);                            
-                        }
-                        else {
-                            pst.setInt(i++, DataUtilities.getInt(viewSrcTrans.getWriteExitId()));                            
-                        }
-                        pst.setString(i++, viewSrcTrans.getWriteExitParams());
-                        pst.setInt(i++, DataUtilities.booleanToInt(viewSrcTrans.isExtractOutputOverride()));
-						if (viewSrcTrans.getExtractRecordOutput() == null) {
-							pst.setString(i++, "");
-						} else {
-							pst.setString(i++, viewSrcTrans.getExtractRecordOutput());
-						}
-						
-						if (isImportOrMigrate) {
-							pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewSrcTrans.getCreateTime()));
-						}
-						pst.setString(i++,isImportOrMigrate ? viewSrcTrans.getCreateBy() : safrLogin.getUserId());
-						if (isImportOrMigrate) {
-							pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewSrcTrans.getModifyTime()));
-						}
-						pst.setString(i++,isImportOrMigrate ? viewSrcTrans.getModifyBy() : safrLogin.getUserId());
-                        rs = pst.executeQuery();
-                        rs.next();
-                        int id = rs.getInt(1);          
-                        viewSrcTrans.setId(id);
-                        viewSrcTrans.setPersistent(true);
-                        if (!isImportOrMigrate) {
-                            viewSrcTrans.setCreateBy(safrLogin.getUserId());
-                            viewSrcTrans.setCreateTime(rs.getDate(2));
-                            viewSrcTrans.setModifyBy(safrLogin.getUserId());
-                            viewSrcTrans.setModifyTime(rs.getDate(3));                            
-                        }
-                        rs.close();     
-					}
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			pst.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while creating new View Sources.",e);
-		}
-	}
-
-	private void updateViewSources(List<ViewSourceTransfer> viewSrcUpdate) throws DAOException {
-
-		boolean isImportOrMigrate = viewSrcUpdate.get(0).isForImport()
-		|| viewSrcUpdate.get(0).isForMigration() ? true : false;
-		try {
-			String statement1 = "";
-			if (!isImportOrMigrate) {
-				statement1 = "Update "
-						+ "VIEWSOURCE Set SRCSEQNBR = ?,"
-						+ " INLRLFASSOCID=?, EXTRACTFILTLOGIC=?, OUTLFPFASSOCID=?,"
-						+ " WRITEEXITID=?, WRITEEXITPARM=?,"
-						+ " EXTRACTOUTPUTIND=?, EXTRACTOUTPUTLOGIC=?, "
-						+ "LASTMODTIMESTAMP = CURRENT_TIMESTAMP, LASTMODUSERID =? "
-						+ "WHERE VIEWSOURCEID = ? AND ENVIRONID = ?";
-			} else {
-				statement1 = "Update "
-						+ params.getSchema()
-						+ ".VIEWSOURCE Set SRCSEQNBR = ?,"
-                        + " INLRLFASSOCID=?, EXTRACTFILTLOGIC=?, OUTLFPFASSOCID=?,"
-                        + " WRITEEXITID=?, WRITEEXITPARM=?,"
-                        + " EXTRACTOUTPUTIND=?, EXTRACTOUTPUTLOGIC=?, "
-						+ "CREATEDTIMESTAMP = ?, CREATEDUSERID = ?, "
-						+ "LASTMODTIMESTAMP = ?, LASTMODUSERID =? "
-						+ "WHERE VIEWSOURCEID = ? AND ENVIRONID = ?";
-			}
-			PreparedStatement pst = null;
-
-			while (true) {
-				try {
-
-					pst = con.prepareStatement(statement1);
-
-					for (ViewSourceTransfer viewSrcTrans : viewSrcUpdate) {
-						int i = 1;
-
-						pst.setInt(i++, viewSrcTrans.getSourceSeqNo());
-						pst.setInt(i++, viewSrcTrans.getLRFileAssocId());
-						if (viewSrcTrans.getExtractFilterLogic() == null) {
-							pst.setString(i++, "");
-						} else {
-							pst.setString(i++, viewSrcTrans.getExtractFilterLogic());
-						}
-                        
-                        if (viewSrcTrans.getExtractFileAssociationId() == null) {
-                            pst.setNull(i++, Types.INTEGER);                           
-                        }
-                        else {                          
-                            pst.setInt(i++, DataUtilities.getInt(viewSrcTrans.getExtractFileAssociationId()));
-                        }
-                        if (viewSrcTrans.getWriteExitId() == null) {
-                            pst.setNull(i++, Types.INTEGER); //.setInt(i++, 0);                            
-                        } 
-                        else {
-                            pst.setInt(i++, viewSrcTrans.getWriteExitId());                            
-                        }
-                        pst.setString(i++, viewSrcTrans.getWriteExitParams());
-                        pst.setInt(i++, DataUtilities.booleanToInt(viewSrcTrans.isExtractOutputOverride()));
-						if (viewSrcTrans.getExtractRecordOutput() == null) {
-							pst.setString(i++, "");
-						} else {
-							pst.setString(i++, viewSrcTrans.getExtractRecordOutput());
-						}
-						if (isImportOrMigrate) {
-							// createby and lastmod set from import data
-							pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewSrcTrans.getCreateTime()));
-							pst.setString(i++, viewSrcTrans.getCreateBy());
-							pst.setTimestamp(i++, DataUtilities.getTimeStamp(viewSrcTrans.getModifyTime()));
-							pst.setString(i++, viewSrcTrans.getModifyBy());
-						} else {
-							// createby details are untouched
-							// lastmodtimestamp is CURRENT_TIMESTAMP
-							// lastmoduserid is logged in user
-							pst.setString(i++, safrLogin.getUserId());
-						}
-						pst.setInt(i++, viewSrcTrans.getId());
-						pst.setInt(i++, viewSrcTrans.getEnvironmentId());
-						pst.executeUpdate();
-
-					}
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			pst.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-					"Database error occurred while updating View Sources.", e);
-		}
-	}
-
-	public Map<Integer, List<EnvironmentalQueryBean>> getViewSourceLookupPathDetails(
-			Integer logicalRecordId, Integer environmentId) throws DAOException {
+	public Map<Integer, List<EnvironmentalQueryBean>> getViewSourceLookupPathDetails(Integer srcLRID, Integer environmentId) throws DAOException {
 		Map<Integer, List<EnvironmentalQueryBean>> result = new HashMap<Integer, List<EnvironmentalQueryBean>>();
-		List<EnvironmentalQueryBean> innerList = null;
-		try {
-			String selectQuery = "SELECT A.LOOKUPID, A.NAME AS LOOKNAME, B.LOGRECID, C.NAME AS RECNAME "
-			        + "FROM "
-					+ params.getSchema() + ".LOOKUP A, "
-					+ params.getSchema() + ".LRLFASSOC B, "
-					+ params.getSchema() + ".LOGREC C "
-					+ "WHERE (A.ENVIRONID = ? "
-					+ " AND C.LRSTATUSCD = 'ACTVE' AND A.SRCLRID = ? "
-					+ ") AND (B.ENVIRONID = ? "
-					+ " AND A.DESTLRLFASSOCID = B.LRLFASSOCID ) "
-					+ "AND (C.ENVIRONID = ? "
-					+ " AND B.LOGRECID = C.LOGRECID ) "
-					+ "AND A.VALIDIND = 1 ORDER BY A.DESTLRLFASSOCID";
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectQuery);
-					pst.setInt(1,  environmentId);
-					pst.setInt(2,  logicalRecordId);
-					pst.setInt(3,  environmentId);
-					pst.setInt(4,  environmentId);
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rs.next()) {
-				LookupQueryBean lkupPathQueryBean = new LookupQueryBean(
-					environmentId, rs.getInt("LOOKUPID"), 
-					DataUtilities.trimString(rs.getString("LOOKNAME")), 
-					null, 1, 0, null, null, null, null, null, null, null, null, null);
-				LogicalRecordQueryBean logicalRecordQueryBean = new LogicalRecordQueryBean(
-					environmentId, rs.getInt("LOGRECID"), 
-					DataUtilities.trimString(rs.getString("RECNAME")), 
-					null, null, null, null, null, null, null, null, null, null, null);
+		//Want to find the lookups that logicalRecordId can be the source for
+		List<LookupQueryBean> lks = DAOFactoryHolder.getDAOFactory().getLookupDAO().queryAllLookups(environmentId, null);
+		LogicalRecordTransfer srclr = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecord(srcLRID, environmentId);
+		LogicalRecordQueryBean srclrBean = new LogicalRecordQueryBean(environmentId, srclr.getId(),srclr.getName(), null, null, null, null, null, null, null, null, null, null, null);
 
-				Integer LRId = rs.getInt("LOGRECID");
-				if (result.containsKey(LRId)) {
-					result.get(LRId).add(lkupPathQueryBean);
-
-				} else {
-					innerList = new ArrayList<EnvironmentalQueryBean>();
-					innerList.add(logicalRecordQueryBean);
-					innerList.add(lkupPathQueryBean);
-					result.put(LRId, innerList);
-				}
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving all the Lookup Paths which has the Logical Record as its source LR and all the target LR for those Lookup Paths.",e);
-		}
+		lks.stream().filter(lk -> lk.getSourceLR().equalsIgnoreCase(srclr.getName())).forEach(lk -> buildResult(result, lk, srclrBean, environmentId));
+		
+		logger.atInfo().log("ViewSourceLookupPathDetails");
+		result.entrySet().stream().forEach(e -> loglk(e));
+		
 		return result;
+	}
+
+	private void loglk(Entry<Integer, List<EnvironmentalQueryBean>> e) {
+		logger.atInfo().log("srcLr %d", e.getKey());
+		e.getValue().stream().forEach(v -> logger.atInfo().log("id %d name %s", v.getId(), v.getName()));
+	}
+
+	private void buildResult(Map<Integer, List<EnvironmentalQueryBean>> result, LookupQueryBean lk, LogicalRecordQueryBean srclrBean, Integer environmentId) {
+		LookupQueryBean lkBean = new LookupQueryBean(environmentId, lk.getId(), lk.getName(), null, 1, 0, null, null, null, null, null, null, null, null, null);
+		YAMLLookupTransfer ylkt = YAMLLookupDAO.getCurrentLKTransfer();
+		LogicalRecordTransfer targlr = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecord(ylkt.getTargetLR(), environmentId);
+		LogicalRecordQueryBean targlrBean = new LogicalRecordQueryBean(environmentId, targlr.getId(),targlr.getName(), null, null, null, null, null, null, null, null, null, null, null);
+		if(result.containsKey(srclrBean.getId())) {
+			result.get(srclrBean.getId()).add(lkBean);
+		} else {
+			ArrayList<EnvironmentalQueryBean> innerList = new ArrayList<EnvironmentalQueryBean>();
+			innerList.add(targlrBean);
+			innerList.add(lkBean);
+			result.put(targlr.getId(), innerList);
+		}
 	}
 
 	public Map<Integer, List<LookupPathSourceFieldTransfer>> getLookupPathSymbolicFields(
@@ -517,7 +232,7 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 		}
 		try {
 			String placeholders = generator.getPlaceholders(vwSrcIds.size());
-			String vwSrcIdsString = DataUtilities.integerListToString(vwSrcIds);
+			DataUtilities.integerListToString(vwSrcIds);
 
 			// deleting the column sources related to these View Sources.
 			String deleteColSourcesQuery = "DELETE FROM " + params.getSchema()
@@ -578,5 +293,9 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 					"Database error occurred while deleting View Sources.", e);
 		}
 
+	}
+	
+	public static List<ViewSourceTransfer> getViewSources() {
+		return viewSources;
 	}
 }

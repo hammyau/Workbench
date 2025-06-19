@@ -42,31 +42,20 @@ import com.ibm.safr.we.data.transfer.ComponentAssociationTransfer;
 import com.ibm.safr.we.data.transfer.ViewColumnTransfer;
 import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewColumnTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewSourceTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 import com.ibm.safr.we.model.SAFRApplication;
 
 public class YAMLViewColumnDAO implements ViewColumnDAO {
 
-	static transient Logger logger = Logger
-			.getLogger("com.ibm.safr.we.internal.data.dao.PGViewColumnDAO");
-
-	@SuppressWarnings("unused")
-    private static final String TABLE_NAME = "VIEWCOLUMN";
-    
-	private static final String COL_ENVID = "ENVIRONID";
-	private static final String COL_ID = "VIEWCOLUMNID";
-	private static final String COL_VIEWID = "VIEWID";
-
-	private static final String COL_CREATETIME = "CREATEDTIMESTAMP";
-	private static final String COL_CREATEBY = "CREATEDUSERID";
-	private static final String COL_MODIFYTIME = "LASTMODTIMESTAMP";
-	private static final String COL_MODIFYBY = "LASTMODUSERID";
+	static transient Logger logger = Logger.getLogger("com.ibm.safr.we.internal.data.dao.PGViewColumnDAO");
 
 	private Connection con;
 	private ConnectionParameters params;
 	private UserSessionParameters safrLogin;
 	private PGSQLGenerator generator = new PGSQLGenerator();
+	private static int maxid;
 
 	/**
 	 * Constructor for this class.
@@ -87,115 +76,38 @@ public class YAMLViewColumnDAO implements ViewColumnDAO {
 		this.safrLogin = safrLogin;
 	}
 
-	private ViewColumnTransfer generateTransfer(ResultSet rs)
-			throws SQLException {
-		ViewColumnTransfer vcTransfer = new ViewColumnTransfer();
-		vcTransfer.setEnvironmentId(rs.getInt(COL_ENVID));
-		vcTransfer.setId(rs.getInt(COL_ID));
-		vcTransfer.setViewId(rs.getInt(COL_VIEWID));
-		vcTransfer.setColumnNo(rs.getInt("COLUMNNUMBER"));
-		vcTransfer.setDataType(DataUtilities.trimString(rs.getString("FLDFMTCD")));
-		vcTransfer.setSigned(DataUtilities.intToBoolean(rs.getInt("SIGNEDIND")));
-		vcTransfer.setStartPosition(rs.getInt("STARTPOSITION"));
-		vcTransfer.setLength(rs.getInt("MAXLEN"));
-		vcTransfer.setOrdinalPosition(rs.getInt("ORDINALPOSITION"));
-		vcTransfer.setDecimalPlaces(rs.getInt("DECIMALCNT"));
-		vcTransfer.setScalingFactor(rs.getInt("ROUNDING"));
-		vcTransfer.setDateTimeFormat(DataUtilities.trimString(rs.getString("FLDCONTENTCD")));
-		vcTransfer.setDataAlignmentCode(DataUtilities.trimString(rs.getString("JUSTIFYCD")));
-		vcTransfer.setDefaultValue(DataUtilities.trimString(rs.getString("DEFAULTVAL")));
-		vcTransfer.setVisible(DataUtilities.intToBoolean(rs.getInt("VISIBLE")));
-		vcTransfer.setSubtotalTypeCode(DataUtilities.trimString(rs.getString("SUBTOTALTYPECD")));
-		vcTransfer.setSpacesBeforeColumn(rs.getInt("SPACESBEFORECOLUMN"));
-		vcTransfer.setExtractAreaCode(DataUtilities.trimString(rs.getString("EXTRACTAREACD")));
-		vcTransfer.setExtractAreaPosition(rs.getInt("EXTRAREAPOSITION"));
-		vcTransfer.setSortkeyFooterLabel(DataUtilities.trimString(rs.getString("SUBTLABEL")));
-		vcTransfer.setNumericMask(rs.getString("RPTMASK"));
-		vcTransfer.setHeaderAlignment(DataUtilities.trimString(rs.getString("HDRJUSTIFYCD")));
-		vcTransfer.setColumnHeading1(DataUtilities.trimString(rs.getString("HDRLINE1")));
-		vcTransfer.setColumnHeading2(DataUtilities.trimString(rs.getString("HDRLINE2")));
-		vcTransfer.setColumnHeading3(DataUtilities.trimString(rs.getString("HDRLINE3")));
-        String l = rs.getString("FORMATCALCLOGIC");
-        if (l != null) {
-            vcTransfer.setFormatColumnLogic(l);
-        }		
-		vcTransfer.setCreateTime(rs.getDate(COL_CREATETIME));
-		vcTransfer.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-		vcTransfer.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		vcTransfer.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-
-		return vcTransfer;
+	public List<ViewColumnTransfer> getViewColumns(Integer viewId,	Integer environmentId) throws DAOException {
+		maxid=1;
+		List<ViewColumnTransfer> vcTransferList = new ArrayList<ViewColumnTransfer>();
+		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		vt.getViewColumns().stream().forEach(c -> addColumnToTxfrList(vcTransferList, c));
+		return vcTransferList;
 	}
 
-	public List<ViewColumnTransfer> getViewColumns(Integer viewId,	Integer environmentId) throws DAOException {
-		List<ViewColumnTransfer> vcTransferList = new ArrayList<ViewColumnTransfer>();
-//		try {
-//
-//			String whereStatement = " Where ";
-//			if (viewId > 0) {
-//				whereStatement += "VIEWID = ? AND "; 
-//			}
-//			whereStatement += " ENVIRONID = ?";
-//
-//			String selectString = "Select ENVIRONID, VIEWCOLUMNID, VIEWID, COLUMNNUMBER, "
-//					+ "FLDFMTCD, SIGNEDIND, STARTPOSITION, MAXLEN, ORDINALPOSITION, "
-//					+ "DECIMALCNT, ROUNDING, FLDCONTENTCD, JUSTIFYCD, DEFAULTVAL, "
-//					+ "VISIBLE, SUBTOTALTYPECD, SPACESBEFORECOLUMN, EXTRACTAREACD, EXTRAREAPOSITION, "
-//					+ "SUBTLABEL, RPTMASK,HDRJUSTIFYCD, HDRLINE1, HDRLINE2, HDRLINE3, FORMATCALCLOGIC, "
-//					+ "CREATEDTIMESTAMP, LASTMODTIMESTAMP, CREATEDUSERID, LASTMODUSERID FROM "
-//					+ params.getSchema() + ".VIEWCOLUMN "
-//					+ whereStatement + " ORDER BY COLUMNNUMBER";
-//
-//			PreparedStatement pst = null;
-//			ResultSet rs = null;
-//			while (true) {
-//				try {
-//					pst = con.prepareStatement(selectString);
-//					int i = 1;
-//					if (viewId > 0) {
-//						pst.setInt(i++, viewId);
-//					}
-//					pst.setInt(i++, environmentId);
-//					rs = pst.executeQuery();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			while (rs.next()) {
-//				ViewColumnTransfer vcTransfer = new ViewColumnTransfer();
-//				vcTransfer = generateTransfer(rs);
-//				vcTransferList.add(vcTransfer);
-//			}
-//			pst.close();
-//			rs.close();
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException("Database error occurred while retrieving all View Columns for View with id [" + viewId + "]", e);
-//		}
-		return vcTransferList;
+	private void addColumnToTxfrList(List<ViewColumnTransfer> vcTransferList, YAMLViewColumnTransfer c) {
+		ViewColumnTransfer vct = c.getColumn();
+		vct.setId(maxid++);
+		vct.setEnvironmentId(0);
+		vct.setPersistent(false);
+		vcTransferList.add(vct);
 	}
 
 	public List<ViewColumnTransfer> persistViewColumns(List<ViewColumnTransfer> viewColTransferList) throws DAOException {
 
 		//Make YAMLViewColumnTransfer contain a ViewColumnTransfer and ignore the bits we don't want at ViewColumnTransfer class
 		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
-		vt.setViewColumns(viewColTransferList);
-		//viewSrcTransferList.stream().forEach(s -> addViewSources(vt, s));
+		List<YAMLViewColumnTransfer> ourViewColTransferList = new ArrayList<>(); 
+		viewColTransferList.stream().forEach(c -> addToOurTransferlist(ourViewColTransferList, c));
+		vt.setViewColumns(ourViewColTransferList);
 		YAMLViewDAO.saveView(vt);
 		return viewColTransferList;
 	}
 
-	private void addViewSources(YAMLViewTransfer vt, ViewSourceTransfer s) {
-//		ourViewSource =new YAMLViewSourceTransfer(s);
-//		ComponentAssociationTransfer lrlf = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(s.getLRFileAssocId(), s.getEnvironmentId());
-//		ourViewSource.setLogicalFile(lrlf.getAssociatedComponentName());
-//		ourViewSource.setLogicalRecord(lrlf.getAssociatingComponentName());
-//		vt.addViewSource(ourViewSource);
+	private void addToOurTransferlist(List<YAMLViewColumnTransfer> ourViewColTransferList, ViewColumnTransfer c) {
+		YAMLViewColumnTransfer yvct = new YAMLViewColumnTransfer();
+		c.setId(c.getColumnNo());
+		yvct.setColumn(c);
+		ourViewColTransferList.add(yvct);
 	}
 
 	/*
@@ -292,90 +204,6 @@ public class YAMLViewColumnDAO implements ViewColumnDAO {
     
 	
 	
-    private String getUpdateXml(List<ViewColumnTransfer> srcFlds) throws SQLException, DAOException {
-        StringBuffer buf = new StringBuffer();
-        buf.append("<Root>\n");
-        for (ViewColumnTransfer srcFld : srcFlds) {
-            buf.append(" <Record>\n");
-            buf.append("  <ENVIRONID>"+ srcFld.getEnvironmentId() + "</ENVIRONID>\n");
-            buf.append("  <VIEWCOLUMNID>"+ srcFld.getId() + "</VIEWCOLUMNID>\n");
-            getXml(srcFld, buf);
-            if (srcFld.isForImportOrMigration()) {
-                buf.append("  <CREATEDTIMESTAMP>"+ generator.genTimeParm(srcFld.getCreateTime()) + "</CREATEDTIMESTAMP>\n");
-                buf.append("  <CREATEDUSERID>"+ srcFld.getCreateBy() + "</CREATEDUSERID>\n");
-                buf.append("  <LASTMODTIMESTAMP>"+ generator.genTimeParm(srcFld.getModifyTime()) + "</LASTMODTIMESTAMP>\n");
-                buf.append("  <LASTMODUSERID>"+ srcFld.getModifyBy() + "</LASTMODUSERID>\n");
-            }
-            else {
-                buf.append("  <LASTMODUSERID>"+ safrLogin.getUserId() + "</LASTMODUSERID>\n");
-            }            
-            buf.append(" </Record>\n");            
-        }
-        buf.append("</Root>");
-        return buf.toString();
-    }
-	
-    private String getCreateXml(List<ViewColumnTransfer> srcFlds) throws SQLException, DAOException {
-        
-        StringBuffer buf = new StringBuffer();
-        buf.append("<Root>\n");
-        for (ViewColumnTransfer srcFld : srcFlds) {
-            buf.append(" <Record>\n");
-            buf.append("  <ENVIRONID>"+ srcFld.getEnvironmentId() + "</ENVIRONID>\n");
-            if (srcFld.isForImportOrMigration()) {
-                buf.append("  <VIEWCOLUMNID>"+ srcFld.getId() + "</VIEWCOLUMNID>\n");
-            }
-            getXml(srcFld, buf);
-            if (srcFld.isForImportOrMigration()) {
-                buf.append("  <CREATEDTIMESTAMP>"+ generator.genTimeParm(srcFld.getCreateTime()) + "</CREATEDTIMESTAMP>\n");
-                buf.append("  <CREATEDUSERID>"+ srcFld.getCreateBy() + "</CREATEDUSERID>\n");
-                buf.append("  <LASTMODTIMESTAMP>"+ generator.genTimeParm(srcFld.getModifyTime()) + "</LASTMODTIMESTAMP>\n");
-                buf.append("  <LASTMODUSERID>"+ srcFld.getModifyBy() + "</LASTMODUSERID>\n");
-            }
-            else {
-                buf.append("  <CREATEDUSERID>"+ safrLogin.getUserId() + "</CREATEDUSERID>\n");
-                buf.append("  <LASTMODUSERID>"+ safrLogin.getUserId() + "</LASTMODUSERID>\n");
-            }            
-            buf.append(" </Record>\n");            
-        }
-        buf.append("</Root>");
-        return buf.toString();
-    }   
-	
-
-	private List<ViewColumnTransfer> createViewColumns(
-			List<ViewColumnTransfer> viewColCreateList) throws DAOException {
-		try {
-            String statement = generator.getSelectFromFunction(params.getSchema(), "insertColumnWithId", 1);
-            if (viewColCreateList.isEmpty() || !viewColCreateList.get(0).isForImportOrMigration()) {
-    			statement = generator.getSelectFromFunction(params.getSchema(), "insertColumn", 1);
-            }
-			PreparedStatement proc = null;
-
-            while (true) {
-                try {
-                    proc = con.prepareStatement(statement);
-                    String xml = getCreateXml(viewColCreateList);
-                    proc.setString(1, xml);
-                    proc.executeQuery();
-                    proc.close();
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-					"Database error occurred while creating View Columns.", e);
-		}
-		return viewColCreateList;
-	}
-
     protected Map<Integer, Integer> getColIDMap(List<ViewColumnTransfer> viewColCreateList) throws SQLException {
         
         Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
@@ -406,46 +234,7 @@ public class YAMLViewColumnDAO implements ViewColumnDAO {
     }
 
     
-    //Split the import and normal to separate functions
-	private List<ViewColumnTransfer> updateViewColumns(
-			List<ViewColumnTransfer> viewColUpdateList) throws DAOException {
-		try {
-		    SAFRApplication.getTimingMap().startTiming("PGViewColumnDAO.updateViewColumns");
-
-            String statement = generator.getSelectFromFunction(params.getSchema(), "updateViewColumnWithId", 1);
-            if (viewColUpdateList.isEmpty() || !viewColUpdateList.get(0).isForImportOrMigration()) {
-			    statement = generator.getSelectFromFunction(params.getSchema(), "updateViewColumn", 1);
-            }    
-			CallableStatement proc = null;
-
-            while (true) {
-                try {
-                    proc = con.prepareCall(statement);
-                    String xml = getUpdateXml(viewColUpdateList);
-                    proc.setString(1, xml);
-                    proc.execute();
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-			proc.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-					"Database error occurred while updating View Columns.", e);
-		}
-		SAFRApplication.getTimingMap().stopTiming("PGViewColumnDAO.updateViewColumns");
-		
-		return viewColUpdateList;
-	}
-
-	public void removeViewColumns(List<Integer> vwColumnIds,
-			Integer environmentId) throws DAOException {
+    public void removeViewColumns(List<Integer> vwColumnIds, Integer environmentId) throws DAOException {
 		if (vwColumnIds == null || vwColumnIds.size() == 0) {
 			return;
 		}

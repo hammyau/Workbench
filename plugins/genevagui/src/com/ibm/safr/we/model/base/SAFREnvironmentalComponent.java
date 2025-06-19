@@ -84,12 +84,10 @@ abstract public class SAFREnvironmentalComponent extends SAFRComponent {
 	 *            environment ID in the SAFREnvironmentalComponentTransfer
 	 *            object is null then it throws a Null pointer Exception.
 	 */
-	protected SAFREnvironmentalComponent(
-			SAFREnvironmentalComponentTransfer trans) {
+	protected SAFREnvironmentalComponent(SAFREnvironmentalComponentTransfer trans) {
 		super(trans);
 		if (trans.getEnvironmentId() == null) {
-			throw new NullPointerException(
-					"Environment ID is null in the database");
+			throw new NullPointerException("Environment ID is null in the database");
 		}
 	}
 

@@ -191,14 +191,9 @@ public class NewViewSourceDialog extends TitleAreaDialog {
 		try {
 			comboLogicalFile.getTable().deselectAll();
 
-			LogicalRecordQueryBean logicalRecordBean = (LogicalRecordQueryBean) comboLogicalRecord
-					.getTable().getSelection()[0].getData();
+			LogicalRecordQueryBean logicalRecordBean = (LogicalRecordQueryBean) comboLogicalRecord.getTable().getSelection()[0].getData();
 			if (logicalRecordBean != null) {
-
-				logicalFileAssociations = SAFRAssociationFactory
-						.getLogicalRecordToLogicalFileAssociations(
-								logicalRecordBean.getId(), UIUtilities
-										.getCurrentEnvironmentID());
+				logicalFileAssociations = SAFRAssociationFactory.getLogicalRecordToLogicalFileAssociations(logicalRecordBean.getId(), UIUtilities.getCurrentEnvironmentID());
 
 				Integer counter = 0;
 				comboLogicalFile.getTable().removeAll();
@@ -208,8 +203,7 @@ public class NewViewSourceDialog extends TitleAreaDialog {
 
 				for (ComponentAssociation association : logicalFileAssociations) {
 					// This method stores the ComponentAssociation object
-					comboLogicalFile.setData(Integer.toString(counter),
-							association);
+					comboLogicalFile.setData(Integer.toString(counter),	association);
 					counter++;
 				}
 			}

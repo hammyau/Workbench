@@ -62,7 +62,10 @@ public class YAMLDAOFactory implements DAOFactory {
 	UserSessionParameters _safrLogin;
 	private static Path gersHome;
 	private YAMLDAOUOW _uow;
-	private YAMLLogicalRecordDAO ourLRDAO;
+	private static YAMLLogicalRecordDAO ourLRDAO;
+	private static PhysicalFileDAO pfDao;
+	private static LogicalFileDAO lfDao;
+	private static LRFieldDAO fieldDao;
 
 	public YAMLDAOFactory(ConnectionParameters p) {
 		makeGenevaERSDirectory();
@@ -149,7 +152,10 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public PhysicalFileDAO getPhysicalFileDAO() throws DAOException {
-		return new YAMLPhysicalFileDAO(getConnection(), _params, _safrLogin);
+		if(pfDao == null) {
+			pfDao = new YAMLPhysicalFileDAO(getConnection(), _params, _safrLogin);
+		}
+		return pfDao; 
 	}
 
 	@Override
@@ -159,7 +165,10 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public LogicalFileDAO getLogicalFileDAO() throws DAOException {
-		return new YAMLLogicalFileDAO(getConnection(), _params, getSAFRLogin());
+		if(lfDao == null) {
+			lfDao = new YAMLLogicalFileDAO(getConnection(), _params, getSAFRLogin());
+		}
+		return lfDao; 
 	}
 
 	@Override
@@ -172,7 +181,10 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public LRFieldDAO getLRFieldDAO() throws DAOException {
-		return new YAMLLRFieldDAO(getConnection(), _params, getSAFRLogin());
+		if(fieldDao == null) {
+			fieldDao = new YAMLLRFieldDAO(getConnection(), _params, getSAFRLogin());
+		}
+		return fieldDao;
 	}
 
 	@Override

@@ -598,9 +598,7 @@ public class ViewColumnEditor {
 
                 ViewSource source = (ViewSource) m.getData();
                 // get the view source of current column.
-                ViewColumnSource vsource = view.getViewColumns()
-                        .getActiveItems().get(colIndex).getViewColumnSources()
-                        .get(source.getSequenceNo() - 1);
+                ViewColumnSource vsource = view.getViewColumns().getActiveItems().get(colIndex).getViewColumnSources().get(source.getSequenceNo() - 1);
                 try {
                     if (vsource.getSourceType() != null) {
                         if (vsource.getSourceType().getGeneralId() == Codes.CONSTANT) {

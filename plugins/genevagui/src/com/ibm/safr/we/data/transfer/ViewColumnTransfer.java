@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 
-@JsonIgnoreProperties({ "viewId", "id", "comments", "createTime", "createBy", "modifyTime", "modifyBy"})
+@JsonIgnoreProperties({ "environmentId", "viewId", "id", "comments", "createTime", "createBy", "modifyTime", "modifyBy"})
 public class ViewColumnTransfer extends SAFRFieldTransfer {
 
 	private Integer viewId;

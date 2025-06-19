@@ -130,7 +130,7 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 	private static Map<Integer, List<ComponentAssociationTransfer>> ourLRLFAssociateionsByLR = new HashMap<>();
 	private static Map<Integer, ComponentAssociationTransfer> ourLRLFAssociateionsById = new HashMap<>();
 	
-	private static YAMLLogicalRecordTransfer ourLRTxf;
+	private static YAMLLogicalRecordTransfer currentLRTxf;
 	private static Map<Integer, YAMLLogicalRecordTransfer> lrTxfrsByID = new TreeMap<>();
 	private static Map<String, YAMLLogicalRecordTransfer> lrTxfrsByName = new TreeMap<>();
 
@@ -156,29 +156,28 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 	}
 
 	public LogicalRecordTransfer getLogicalRecord(Integer id, Integer environmentId) throws DAOException {
-		ourLRTxf = null;
+		currentLRTxf = null;
 		if(id > 0) {
 			LogicalRecordTransfer result = null;
 			Path lrsPath = YAMLizer.getLRsPath();
 			lrsPath.toFile().mkdirs();
-			ourLRTxf = lrTxfrsByID.get(id);
-			if(ourLRTxf == null) {
+			currentLRTxf = lrTxfrsByID.get(id);
+			if(currentLRTxf == null) {
 				queryAllLogicalRecords(environmentId, null);
 				Path lrPath = lrsPath.resolve(lrBeans.get(id).getName()+".yaml");
-				ourLRTxf = (YAMLLogicalRecordTransfer) YAMLizer.readYaml(lrPath, ComponentType.LogicalRecord);
-				lrTxfrsByID.put(id, ourLRTxf);
-				lrTxfrsByName.put(ourLRTxf.getName(), ourLRTxf);
+				currentLRTxf = (YAMLLogicalRecordTransfer) YAMLizer.readYaml(lrPath, ComponentType.LogicalRecord);
+				lrTxfrsByID.put(id, currentLRTxf);
+				lrTxfrsByName.put(currentLRTxf.getName(), currentLRTxf);
 				logger.info("Make LRTxf for LR:" + id);
 			} else {
 				logger.info("Found LRTxf for LR:" + id);
 			}
 		}
-		return ourLRTxf;
+		return currentLRTxf;
 	}
 
-	public LogicalRecordTransfer getLogicalRecord(String name, Integer environmentId) throws DAOException {	
-		LogicalRecordTransfer result = null;
-		return result;
+	public static LogicalRecordTransfer getLogicalRecord(String name, Integer environmentId) throws DAOException {	
+		return currentLRTxf = lrTxfrsByName.get(name);
 	}
 
 	public List<LogicalRecordQueryBean> queryAllLogicalRecords(	Integer environmentId, SortType sortType) throws DAOException {
@@ -237,87 +236,16 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 	}
 
 	public List<LogicalRecordQueryBean> queryAllActiveLogicalRecords(Integer environmentId, SortType sortType) throws DAOException {
-		//YAML world let's make these the same
 		logger.info("queryAllActiveLogicalRecords");
-//		List<LogicalRecordQueryBean> result = new ArrayList<LogicalRecordQueryBean>();
-//		maxid = 0;
-//		Path lrsPath = YAMLizer.getLRsPath();
-//		lrsPath.toFile().mkdirs();
-//		File[] lrs = lrsPath.toFile().listFiles();
-//		
-//		if(lrs.length > 0) {
-//			Stream.of(lrs)
-//		    	      .filter(file -> file.isFile())
-//		    	      .forEach(lr -> addToResults(result, lr, environmentId));
-//		}
 		return queryAllLogicalRecords(environmentId, sortType);
 	}
 
-    /**
-     * This method is to generate a list of Query Bean objects.
-     * 
-     * @param selectString
-     *            : The Query which is to be run.
-     * @param environmentId
-     *            : The ID of the environment.
-     * @return A List of LogicalRecordQueryBean objects.
-     * @throws SQLException
-     * @throws DAOException
-     */
-    private List<LogicalRecordQueryBean> generateActiveQueryBeansList(
-            String selectString, Integer environmentId, boolean isAdmin)
-            throws SQLException, DAOException {
-        List<LogicalRecordQueryBean> result = new ArrayList<LogicalRecordQueryBean>();
-
-        PreparedStatement pst = null;
-        ResultSet rs = null;
-        while (true) {
-            try {
-                pst = con.prepareStatement(selectString);
-				pst.setInt(1, environmentId);
-                rs = pst.executeQuery();
-                break;
-            } catch (SQLException se) {
-                if (con.isClosed()) {
-                    // lost database connection, so reconnect and retry
-                    con = DAOFactoryHolder.getDAOFactory().reconnect();
-                } else {
-                    throw se;
-                }
-            }
-        }
-        while (rs.next()) {
-            LogicalRecordQueryBean logicalRecordQueryBean = new LogicalRecordQueryBean(
-                environmentId, rs.getInt(COL_ID), 
-                DataUtilities.trimString(rs.getString(COL_NAME)), 
-                DataUtilities.trimString(rs.getString(COL_STATUS)),
-                null, null, 
-                DataUtilities.trimString(rs.getString(COL_TYPE)),                
-                isAdmin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
-                    rs.getInt("RIGHTS"), ComponentType.LogicalRecord, environmentId), 
-                rs.getDate(COL_CREATETIME), 
-                DataUtilities.trimString(rs.getString(COL_CREATEBY)), 
-                rs.getDate(COL_MODIFYTIME), 
-                DataUtilities.trimString(rs.getString(COL_MODIFYBY)),
-                rs.getDate(COL_ACTIVATETIME), 
-                DataUtilities.trimString(rs.getString(COL_ACTIVATEBY)));
-            result.add(logicalRecordQueryBean);
-        }
-        pst.close();
-        rs.close();
-        return result;
-
-    }
-	
-	public LogicalRecordTransfer persistLogicalRecord(
-			LogicalRecordTransfer logicalRecordTransfer) throws DAOException,
-			SAFRNotFoundException {
+    public LogicalRecordTransfer persistLogicalRecord(LogicalRecordTransfer logicalRecordTransfer) throws DAOException,	SAFRNotFoundException {
 		if (!logicalRecordTransfer.isPersistent()) {
 			return (createLogicalRecord(logicalRecordTransfer));
 		} else {
             return (updateLogicalRecord(logicalRecordTransfer));		    
 		}
-
 	}
 
     /**
@@ -332,25 +260,21 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 	 * @throws DAOException
 	 */
 	private LogicalRecordTransfer createLogicalRecord(LogicalRecordTransfer logicalRecord) throws DAOException {
-		ourLRTxf  = new YAMLLogicalRecordTransfer();
-		ourLRTxf.setEnvironmentId(SAFRApplication.getUserSession().getEnvironment().getId());
-		ourLRTxf.setName(logicalRecord.getName());
-		ourLRTxf.setId(logicalRecord.getId());
-		ourLRTxf.setLrStatusCode(logicalRecord.getLrStatusCode());
-		ourLRTxf.setLrTypeCode(logicalRecord.getLrTypeCode());
-		ourLRTxf.setCreateBy(SAFRApplication.getUserSession().getUser().getUserid());
-		ourLRTxf.setCreateTime(new Date());
-		ourLRTxf.setModifyBy("");
-		ourLRTxf.setModifyTime(null);
-		ourLRTxf.setId(maxid + 1);
+		currentLRTxf  = new YAMLLogicalRecordTransfer();
+		currentLRTxf.setEnvironmentId(SAFRApplication.getUserSession().getEnvironment().getId());
+		currentLRTxf.setName(logicalRecord.getName());
+		currentLRTxf.setId(logicalRecord.getId());
+		currentLRTxf.setLrStatusCode(logicalRecord.getLrStatusCode());
+		currentLRTxf.setLrTypeCode(logicalRecord.getLrTypeCode());
+		currentLRTxf.setCreateBy(SAFRApplication.getUserSession().getUser().getUserid());
+		currentLRTxf.setCreateTime(new Date());
+		currentLRTxf.setModifyBy("");
+		currentLRTxf.setModifyTime(null);
+		currentLRTxf.setId(maxid + 1);
 		saveLR();
-		return ourLRTxf;
+		return currentLRTxf;
 	}
 
-	private void updateLRIndexInLR(LRIndexTransfer lrIndexTransfer) {
-        
-	}
-	
 	/**
 	 * This function is used to update a Logical Record in LOGREC table
 	 * 
@@ -367,17 +291,17 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 		Path lrsPath = YAMLizer.getLRsPath();
 		Path lrPath = lrsPath.resolve(logicalRecordTransfer.getName() + ".yaml");
 		if(lrPath.toFile().exists()) {
-			if(ourLRTxf == null || ourLRTxf.getId() != logicalRecordTransfer.getId()) {
-				ourLRTxf  = new YAMLLogicalRecordTransfer();
+			if(currentLRTxf == null || currentLRTxf.getId() != logicalRecordTransfer.getId()) {
+				currentLRTxf  = new YAMLLogicalRecordTransfer();
 			}
-			ourLRTxf.setEnvironmentId(SAFRApplication.getUserSession().getEnvironment().getId());
-			ourLRTxf.setName(logicalRecordTransfer.getName());
-			ourLRTxf.setId(logicalRecordTransfer.getId());
-			ourLRTxf.setLrStatusCode(logicalRecordTransfer.getLrStatusCode());
-			ourLRTxf.setComments(logicalRecordTransfer.getComments());
-			ourLRTxf.setModifyBy(SAFRApplication.getUserSession().getUser().getUserid());
-			ourLRTxf.setModifyTime(new Date());
-			YAMLizer.writeYaml(lrPath, ourLRTxf);
+			currentLRTxf.setEnvironmentId(SAFRApplication.getUserSession().getEnvironment().getId());
+			currentLRTxf.setName(logicalRecordTransfer.getName());
+			currentLRTxf.setId(logicalRecordTransfer.getId());
+			currentLRTxf.setLrStatusCode(logicalRecordTransfer.getLrStatusCode());
+			currentLRTxf.setComments(logicalRecordTransfer.getComments());
+			currentLRTxf.setModifyBy(SAFRApplication.getUserSession().getUser().getUserid());
+			currentLRTxf.setModifyTime(new Date());
+			YAMLizer.writeYaml(lrPath, currentLRTxf);
 		} else {
 			//SaveAs via name change
 			createLogicalRecord(logicalRecordTransfer);
@@ -413,10 +337,11 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 			queryAllLogicalRecords(environmentId, null);
 		}	
 		List<ComponentAssociationTransfer> LRLFAssociateions = new ArrayList<ComponentAssociationTransfer>();
-		ourLRTxf = lrTxfrsByID.get(lrid);
-		if(ourLRTxf != null) {
-			ourLRTxf.getLfs().entrySet().stream().forEach(lfe -> addToLfs(LRLFAssociateions, lfe, environmentId));
+		currentLRTxf = lrTxfrsByID.get(lrid);
+		if(currentLRTxf != null) {
+			currentLRTxf.getLfs().entrySet().stream().forEach(lfe -> addToLfs(LRLFAssociateions, lfe, environmentId));
 			ourLRLFAssociateionsByLR.put(lrid, LRLFAssociateions);
+			logger.info("Current LR:" + currentLRTxf.getId());
 		} else {
 			logger.severe("Cannot find txfr for LR:" + lrid);
 		}
@@ -428,14 +353,15 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 			ComponentAssociationTransfer cat = new ComponentAssociationTransfer();
 			cat.setAssociatedComponentId(lfe.getKey());
 			cat.setAssociatedComponentName(lfe.getValue());
-			cat.setAssociatingComponentId(ourLRTxf.getId());
-			cat.setAssociatingComponentName(ourLRTxf.getName());
+			cat.setAssociatingComponentId(currentLRTxf.getId());
+			cat.setAssociatingComponentName(currentLRTxf.getName());
 			cat.setAssociationId(maxLrLfAssocid++); //Use the lf id as the assoc id. Trick when want to delete
 			logger.info("LRLF assoc:" + cat.getAssociationId() + " LR:" + cat.getAssociatingComponentId() + " LF:" + cat.getAssociatedComponentId());
 			ourLRLFAssociateionsById.put(cat.getAssociationId(), cat);
 			result.add(cat);
 		} else {
 			logger.info("Already have association for id:" + lfe.getKey());
+			result.add(ourLRLFAssociateionsById.get(lfe.getKey()));
 		}
 	}
 
@@ -557,8 +483,8 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 
 	public LRIndexTransfer persistLRIndex(LRIndexTransfer lrIndexTransfer)
 			throws DAOException {
-		ourLRTxf.clearIndexes();
-		ourLRTxf.setIndex(lrIndexTransfer);
+		currentLRTxf.clearIndexes();
+		currentLRTxf.setIndex(lrIndexTransfer);
 		saveLR();
 		return lrIndexTransfer;
 	}
@@ -570,8 +496,8 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 	}
 
 	public void persistLRIndexFields(List<LRIndexFieldTransfer> lrIndexFieldTransfers)			throws DAOException {
-		ourLRTxf.clearIndexes();
-		lrIndexFieldTransfers.stream().forEach(ndxf -> ourLRTxf.addIndex(ndxf));
+		currentLRTxf.clearIndexes();
+		lrIndexFieldTransfers.stream().forEach(ndxf -> currentLRTxf.addIndex(ndxf));
 		saveLR();
 	}
 
@@ -579,10 +505,6 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 	}
 
 	public void removeLRIndexFieldsForLR(Integer lrId, Integer environmentId) throws DAOException {
-	}
-
-	private void createLRIndexFields(List<LRIndexFieldTransfer> lrIndexFieldTransfers)	throws DAOException {
-		
 	}
 
 	public List<LogicalFileQueryBean> queryPossibleLFAssociations(Integer environmentId, List<Integer>  notInParam) throws DAOException {
@@ -615,34 +537,19 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 
 	public List<ComponentAssociationTransfer> persistAssociatedLF(List<ComponentAssociationTransfer> componentAssociationTransfers,
 			Integer logicalRecordId) throws DAOException {
-		ourLRTxf.clearLFs();
+		currentLRTxf.clearLFs();
 		for (ComponentAssociationTransfer associateLF : componentAssociationTransfers) {
-			ourLRTxf.addLF(associateLF.getAssociatedComponentId(), associateLF.getAssociatedComponentName());
+			currentLRTxf.addLF(associateLF.getAssociatedComponentId(), associateLF.getAssociatedComponentName());
 		}
 		saveLR();
 		return componentAssociationTransfers;
 
 	}
 
-	private List<ComponentAssociationTransfer> updateAssociatedLFs(List<ComponentAssociationTransfer> associatedLFUpdates) throws DAOException {
-		ourLRTxf.clearLFs();
-		for (ComponentAssociationTransfer associateLF : associatedLFUpdates) {
-			ourLRTxf.addLF(associateLF.getAssociatedComponentId(), associateLF.getAssociatedComponentName());
-		}
-		return associatedLFUpdates;
-	}
-
-	private List<ComponentAssociationTransfer> createAssociatedLFs(List<ComponentAssociationTransfer> associatedLFCreates,	Integer logicalRecordId) throws DAOException {
-		for (ComponentAssociationTransfer associateLF : associatedLFCreates) {
-			ourLRTxf.addLF(associateLF.getAssociatedComponentId(), associateLF.getAssociatedComponentName());
-		}
-		return associatedLFCreates;
-	}
-
 	public void deleteAssociatedLF(Integer environmentId, List<Integer>  inList) throws DAOException {
 		//The integer here is the association id. Not the lf id.
 		//When we created the association used lf id as the assoc id.
-		inList.stream().forEach(lf -> ourLRTxf.removeLF(lf));
+		inList.stream().forEach(lf -> currentLRTxf.removeLF(lf));
 		saveLR();
 	}
 
@@ -689,7 +596,8 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 
 	public LogicalRecordTransfer getLogicalRecordFromLRLFAssociation(Integer LRLFAssociationId, Integer environmentId) throws DAOException {
 		ComponentAssociationTransfer lrlf = ourLRLFAssociateionsById.get(LRLFAssociationId);
-		return lrTxfrsByID.get(lrlf.getAssociatingComponentId());
+		currentLRTxf =  lrTxfrsByID.get(lrlf.getAssociatingComponentId());
+		return currentLRTxf;
 	}
 
 	public ComponentAssociationTransfer getTargetLogicalFileAssociation(Integer LRLFAssociationId, Integer environmentId) throws DAOException {
@@ -735,45 +643,8 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
 		return result; //An Import check thing
 	}
 
-	public LogicalRecordQueryBean queryLogicalRecordByField(Integer LRFieldId,
-			Integer environmentId) throws DAOException {
-		LogicalRecordQueryBean logicalRecordQueryBean = null;
-		try {
-			String selectString = "Select B.LOGRECID, B.NAME From "
-					+ params.getSchema() + ".LRFIELD A, "
-					+ params.getSchema() + ".LOGREC B Where A.LRFIELDID = ? "
-					+ " AND A.LOGRECID = B.LOGRECID AND A.ENVIRONID = B.ENVIRONID "
-					+ "AND A.ENVIRONID = ? ";
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					pst.setInt(1,  LRFieldId);
-					pst.setInt(2,  environmentId);
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			if (rs.next()) {
-				logicalRecordQueryBean = new LogicalRecordQueryBean(
-					environmentId, rs.getInt("LOGRECID"), 
-					DataUtilities.trimString(rs.getString("NAME")), 
-					null, null, null, null, null, null, null, null, null, null, null);
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving the Logical Record to which the Field with specified ID belongs.",e);
-		}
-		return logicalRecordQueryBean;
+	public LogicalRecordQueryBean queryLogicalRecordByField(Integer LRFieldId, Integer environmentId) throws DAOException {
+		return lrBeans.get(currentLRTxf.getId());
 	}
 
 	public List<LRIndexQueryBean> queryLRIndexes(Integer environmentId)
@@ -899,13 +770,13 @@ public class YAMLLogicalRecordDAO implements LogicalRecordDAO {
     }
 
 	public YAMLLogicalRecordTransfer getCurrentLRTransfer() {
-		return ourLRTxf;
+		return currentLRTxf;
 	}
 	
 	private void saveLR() {
 		Path lrsPath = YAMLizer.getLRsPath();
 		lrsPath.toFile().mkdirs();
-		Path lrPath = lrsPath.resolve(ourLRTxf.getName()+ ".yaml");
-		YAMLizer.writeYaml(lrPath, ourLRTxf);
+		Path lrPath = lrsPath.resolve(currentLRTxf.getName()+ ".yaml");
+		YAMLizer.writeYaml(lrPath, currentLRTxf);
 	}
 }

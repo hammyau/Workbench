@@ -118,9 +118,7 @@ public class ViewFactory {
      */
     public static List<ViewColumn> getViewColumns(View view) throws SAFRException {
         List<ViewColumn> viewcols = new ArrayList<ViewColumn>();
-        List<ViewColumnTransfer> vcts = DAOFactoryHolder.getDAOFactory()
-                .getViewColumnDAO().getViewColumns(view.getId(),
-                        view.getEnvironmentId());
+        List<ViewColumnTransfer> vcts = DAOFactoryHolder.getDAOFactory().getViewColumnDAO().getViewColumns(view.getId(), view.getEnvironmentId());
         for (ViewColumnTransfer vct : vcts) {
             ViewColumn vc = new ViewColumn(view, vct);
             viewcols.add(vc);
@@ -152,13 +150,11 @@ public class ViewFactory {
     public static List<ViewColumnSource> getViewColumnSources(View view)
             throws SAFRException {
         List<ViewColumnSource> viewcolsrcs = new ArrayList<ViewColumnSource>();
-//        List<ViewColumnSourceTransfer> vcsts = DAOFactoryHolder.getDAOFactory()
-//                .getViewColumnSourceDAO().getViewColumnSources(view.getId(),
-//                        view.getEnvironmentId());
-//        for (ViewColumnSourceTransfer vcst : vcsts) {
-//            ViewColumnSource vcs = new ViewColumnSource(view, vcst);
-//            viewcolsrcs.add(vcs);
-//        }
+        List<ViewColumnSourceTransfer> vcsts = DAOFactoryHolder.getDAOFactory().getViewColumnSourceDAO().getViewColumnSources(view.getId(), view.getEnvironmentId());
+        for (ViewColumnSourceTransfer vcst : vcsts) {
+            ViewColumnSource vcs = new ViewColumnSource(view, vcst);
+            viewcolsrcs.add(vcs);
+        }
         return viewcolsrcs;
     }
 
@@ -199,9 +195,7 @@ public class ViewFactory {
      */
     public static List<ViewSource> getViewSources(View view) throws SAFRException {
         List<ViewSource> viewsrcs = new ArrayList<ViewSource>();
-        List<ViewSourceTransfer> vsts = DAOFactoryHolder.getDAOFactory()
-                .getViewSourceDAO().getViewSources(view.getId(),
-                        view.getEnvironmentId());
+        List<ViewSourceTransfer> vsts = DAOFactoryHolder.getDAOFactory().getViewSourceDAO().getViewSources(view.getId(), view.getEnvironmentId());
         for (ViewSourceTransfer vst : vsts) {
             ViewSource vs = new ViewSource(view, vst);
             viewsrcs.add(vs);

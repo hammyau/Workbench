@@ -30,6 +30,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
 import java.util.List;
@@ -37,7 +38,10 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import com.google.common.flogger.FluentLogger;
+import com.ibm.db2.jcc.am.en;
 import com.ibm.safr.we.constants.ComponentType;
+import com.ibm.safr.we.constants.SAFRPersistence;
 import com.ibm.safr.we.constants.SortType;
 import com.ibm.safr.we.data.ConnectionParameters;
 import com.ibm.safr.we.data.DAOException;
@@ -45,11 +49,13 @@ import com.ibm.safr.we.data.DAOFactoryHolder;
 import com.ibm.safr.we.data.DataUtilities;
 import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.EnvironmentDAO;
+import com.ibm.safr.we.data.transfer.ControlRecordTransfer;
 import com.ibm.safr.we.data.transfer.EnvironmentTransfer;
 import com.ibm.safr.we.data.transfer.GroupEnvironmentAssociationTransfer;
 import com.ibm.safr.we.exceptions.SAFRNotFoundException;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
 import com.ibm.safr.we.internal.data.YAMLDAOFactory;
+import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.model.query.EnvComponentQueryBean;
 import com.ibm.safr.we.model.query.EnvironmentQueryBean;
 import com.ibm.safr.we.model.query.GroupQueryBean;
@@ -62,7 +68,7 @@ import com.ibm.safr.we.model.query.GroupQueryBean;
  */
 public class YAMLEnvironmentDAO implements EnvironmentDAO {
 
-	static transient Logger logger = Logger.getLogger("com.ibm.safr.we.internal.data.dao.YAMLEnvironmentDAO");
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
 	private static final String TABLE_NAME = "ENVIRON";
 	private static final String COL_ID = "ENVIRONID";
@@ -79,21 +85,9 @@ public class YAMLEnvironmentDAO implements EnvironmentDAO {
 	private PGSQLGenerator generator = new PGSQLGenerator();
 	
 	private static Map<Integer, EnvironmentQueryBean> environs = new TreeMap<>();
+	private static Map<String, EnvironmentQueryBean> environsByName = new TreeMap<>();
 
-	/**
-	 * Constructor for this class
-	 * 
-	 * @param con
-	 *            : The connection set for database access.
-	 * @param params
-	 *            : The connection parameters which define the URL, userId and
-	 *            other details of the connection.
-	 * @param safrLogin
-	 *            : The parameters related to the user who has logged into the
-	 *            workbench.
-	 */
-	public YAMLEnvironmentDAO(Connection con, ConnectionParameters params,
-			UserSessionParameters safrLogin) {
+	public YAMLEnvironmentDAO(Connection con, ConnectionParameters params, UserSessionParameters safrLogin) {
 		this.con = con;
 		this.params = params;
 		this.safrLogin = safrLogin;
@@ -104,19 +98,17 @@ public class YAMLEnvironmentDAO implements EnvironmentDAO {
 	}
 
 	public EnvironmentTransfer getEnvironment(String name) throws DAOException {
-
 		EnvironmentTransfer result = null;
 		return result;
 	}
 	
-	public List<EnvironmentQueryBean> queryAllEnvironments(SortType sortType)
-			throws DAOException {
+	public List<EnvironmentQueryBean> queryAllEnvironments(SortType sortType) throws DAOException {
 		List<EnvironmentQueryBean> result = new ArrayList<EnvironmentQueryBean>();
-
+		environs.clear();
 		File[] envs = YAMLDAOFactory.getGersHome().toFile().listFiles();
 		if(envs.length > 0) {
 			Stream.of(envs)
-		    	      .filter(file -> file.isDirectory())
+		    	      .filter(file -> file.isDirectory() && !file.getName().startsWith("."))
 		    	      .forEach(env -> addToResults(result, env));
 		} else {
 			Path defaultPath = YAMLDAOFactory.getGersHome().resolve("DefaultYAML_Env");
@@ -126,6 +118,7 @@ public class YAMLEnvironmentDAO implements EnvironmentDAO {
 					"me", 
 					new Date(), "me");
 			environs.put(1, environmentBean);
+			environsByName.put(environmentBean.getName(), environmentBean);
 			result.add(environmentBean);
 		}
 		return result;
@@ -145,6 +138,7 @@ public class YAMLEnvironmentDAO implements EnvironmentDAO {
 					"me", 
 					crDate, "me");
 			environs.put(id, environmentBean);
+			environsByName.put(environmentBean.getName(), environmentBean);
 			result.add(environmentBean);
 		} catch (IOException ex) {
 		    // handle exception
@@ -152,32 +146,18 @@ public class YAMLEnvironmentDAO implements EnvironmentDAO {
 		return environmentBean;
 	}
 
-	public List<EnvironmentQueryBean> queryAllEnvironments(SortType sortType,
-			String userid, Boolean onlyWithEnvAdminRights) throws DAOException {
+	public List<EnvironmentQueryBean> queryAllEnvironments(SortType sortType, String userid, Boolean onlyWithEnvAdminRights) throws DAOException {
 		//Won't be needed only a none admin call
 		List<EnvironmentQueryBean> result = new ArrayList<EnvironmentQueryBean>();
 		return result;
 	}
 
-	public List<EnvironmentQueryBean> queryEnvironmentsForGroup(
-			SortType sortType, Integer groupId, Boolean onlyWithAdminRights)
-			throws DAOException {
+	public List<EnvironmentQueryBean> queryEnvironmentsForGroup(SortType sortType, Integer groupId, Boolean onlyWithAdminRights) throws DAOException {
 		//Won't be needed only a none admin call
 		List<EnvironmentQueryBean> result = new ArrayList<EnvironmentQueryBean>();
 		return result;
 	}
 
-	/**
-	 * This function is used to generate a transfer object for the environment.
-	 * @param id 
-	 * 
-	 * @param rs
-	 *            : The result set of a database query run on ENVIRON table
-	 *            with which the values for the transfer objects are set.
-	 * @return a transfer object for the environment with values set according
-	 *         to the result set.
-	 * @throws SQLException
-	 */
 	private EnvironmentTransfer generateTransfer(Integer id)  {
 		EnvironmentQueryBean envBean = environs.get(id);
 		EnvironmentTransfer environment =   new EnvironmentTransfer();;
@@ -192,48 +172,37 @@ public class YAMLEnvironmentDAO implements EnvironmentDAO {
 		return environment;
 	}
 
-	public EnvironmentTransfer persistEnvironment(
-			EnvironmentTransfer environment) throws DAOException,
-			SAFRNotFoundException {
-
+	public EnvironmentTransfer persistEnvironment(EnvironmentTransfer environment) throws DAOException,	SAFRNotFoundException {
 		if (environment.getId() == 0) {
 			return (createEnvironment(environment));
 		} else {
 			return (updateEnvironment(environment));
 		}
-
 	}
 
-	/**
-	 * This function is used to create an environment in ENVIRON table. It
-	 * uses a stored procedure GP_INITVALUES to create the environment.
-	 * 
-	 * @param environment
-	 *            : The transfer object which contains the values which are to
-	 *            be set in the fields for the corresponding environment which
-	 *            is being created.
-	 * @return The transfer object which contains the values which are received
-	 *         from the ENVIRON for the environment which is created.
-	 * @throws DAOException
-	 */
-	private EnvironmentTransfer createEnvironment(
-			EnvironmentTransfer environment) throws DAOException {
-		//just a make dir
-		return null;
+	private EnvironmentTransfer createEnvironment(EnvironmentTransfer environment) throws DAOException {
+		//just a make dir - then can't contain comments? keep the comments etc in a YAML file of the directory?
+	    Path pathToEnv = YAMLDAOFactory.getGersHome().resolve(environment.getName());
+	    pathToEnv.toFile().mkdirs();
+	    queryAllEnvironments(null);
+	    environment.setId(environsByName.get(environment.getName()).getId());
+	    //we should make the named default CR too.)
+	    //It will later be deleted if not required
+	    ControlRecordTransfer cr = new ControlRecordTransfer();
+	    cr.setEnvironmentId(environs.size());
+	    cr.setFirstFiscalMonth(1);
+	    cr.setBeginPeriod(1);
+	    cr.setEndPeriod(12);
+	    cr.setName("YAML_Auto_Created");
+	    cr.setComments("Auto Created");
+	    cr.setCreateBy("Auto");
+	    cr.setCreateTime(new Date());
+	    cr.setPersistent(false);
+	    YAMLControlRecordDAO crd = new YAMLControlRecordDAO();
+	    crd.addControlRecordToEnvironment(cr, environment.getName());
+		return environment;
 	}
 
-	/**
-	 * This function is used to update an environment in ENVIRON table.
-	 * 
-	 * @param environment
-	 *            :The transfer object which contains the values which are to be
-	 *            set in the fields for the corresponding environment which is
-	 *            being updated.
-	 * @return The transfer object which contains the values which are received
-	 *         from the ENVIRON for the environment which is updated.
-	 * @throws DAOException
-	 * @throws SAFRNotFoundException
-	 */
 	private EnvironmentTransfer updateEnvironment(EnvironmentTransfer environment) throws DAOException,	SAFRNotFoundException {
 		//Not sure what this means
 			return (environment);
@@ -263,15 +232,48 @@ public class YAMLEnvironmentDAO implements EnvironmentDAO {
 
 	public void clearEnvironment(Integer environmentId) throws DAOException {
 		//If we want to do this means recursively delete directory
+		EnvironmentQueryBean envBean = environs.get(environmentId);
+		if (envBean != null) {
+			Path pathToBeDeleted = YAMLDAOFactory.getGersHome().resolve(envBean.getName());
+			deleteDirectoryContents(pathToBeDeleted.toFile());
+		} else {
+			logger.atSevere().log("Unable to find Environment %d", environmentId);
+		}
+		queryAllEnvironments(null);
 	}
+	
+    public void deleteDirectoryContents(File directory) {
+        if (!directory.exists()) {
+            return;
+        }
+
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectoryContents(file); 
+                }
+                file.delete();
+            }
+        }
+    }
 
 	public void removeEnvironment(Integer environmentId) throws DAOException {
-		//If we want to do this means recursively delete directory
+		EnvironmentQueryBean envBean = environs.get(environmentId);
+		if (envBean != null) {
+			YAMLDAOFactory.getGersHome().resolve(envBean.getName()).toFile().delete();
+		}
 	}
 
 	public Boolean hasDependencies(Integer environmentId) throws DAOException {
-		//Means directory has stuff?
-		return true;
+		EnvironmentQueryBean envBean = environs.get(environmentId);
+		if (envBean != null) {
+			//Means directory has stuff?
+			File[] fs = YAMLDAOFactory.getGersHome().resolve(envBean.getName()).toFile().listFiles();
+			return fs.length > 0;
+		} else {
+			return false;
+		}
 	}
 
 	public List<GroupQueryBean> queryPossibleGroupAssociations(

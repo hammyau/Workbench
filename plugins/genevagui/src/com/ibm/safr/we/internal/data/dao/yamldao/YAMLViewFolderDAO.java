@@ -92,75 +92,7 @@ public class YAMLViewFolderDAO implements ViewFolderDAO {
 		null);
 
 		result.add(viewFolderBean);
-//
-//		boolean admin = SAFRApplication.getUserSession().isSystemAdministrator();
-//
-//		String orderString = null;
-//		if (sortType.equals(SortType.SORT_BY_ID)) {
-//			orderString = "VF.VIEWFOLDERID";
-//		} else {
-//			orderString = "UPPER(VF.NAME)";
-//		}
-//
-//		try {
-//			String selectString = "";
-//			if (admin) {
-//
-//				selectString = "SELECT VF.VIEWFOLDERID,VF.NAME,  "
-//						+ "VF.CREATEDTIMESTAMP, VF.CREATEDUSERID, VF.LASTMODTIMESTAMP, VF.LASTMODUSERID FROM "
-//						+ params.getSchema() + ".VIEWFOLDER VF "
-//						+ "WHERE VF.ENVIRONID = ? " 
-//						+ " ORDER BY " + orderString;
-//			} else {
-//				selectString = "SELECT VF.VIEWFOLDERID,VF.NAME, L.RIGHTS, "
-//						+ "VF.CREATEDTIMESTAMP, VF.CREATEDUSERID, VF.LASTMODTIMESTAMP, VF.LASTMODUSERID FROM "
-//						+ params.getSchema() + ".VIEWFOLDER VF "
-//						+ "LEFT OUTER JOIN "
-//						+ params.getSchema() + ".SECVIEWFOLDER L "
-//						+ "ON VF.ENVIRONID = L.ENVIRONID AND VF.VIEWFOLDERID = L.VIEWFOLDERID "
-//						+ " AND L.GROUPID=" + SAFRApplication.getUserSession().getGroup().getId() + " "
-//						+ "WHERE VF.ENVIRONID = ? " 
-//						+ " ORDER BY " + orderString;
-//			}
-//			PreparedStatement pst = null;
-//			ResultSet rs = null;
-//			while (true) {
-//				try {
-//					pst = con.prepareStatement(selectString);
-//					pst.setInt(1, environmentId);
-//					rs = pst.executeQuery();
-//					break;
-//				} catch (SQLException se) {
-//					if (con.isClosed()) {
-//						// lost database connection, so reconnect and retry
-//						con = DAOFactoryHolder.getDAOFactory().reconnect();
-//					} else {
-//						throw se;
-//					}
-//				}
-//			}
-//			while (rs.next()) {
-//				ViewFolderQueryBean viewFolderBean = new ViewFolderQueryBean(
-//					environmentId, rs.getInt(COL_ID), 
-//					DataUtilities.trimString(rs.getString(COL_NAME)),
-//                    admin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
-//                        rs.getInt("RIGHTS"), ComponentType.ViewFolder, environmentId),					
-//					rs.getDate(COL_CREATETIME), 
-//					DataUtilities.trimString(rs.getString(COL_CREATEBY)), 
-//					rs.getDate(COL_MODIFYTIME), 
-//					DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-//
-//				result.add(viewFolderBean);
-//			}
-//			pst.close();
-//			rs.close();
 			return result;
-//
-//		} catch (SQLException e) {
-//			throw DataUtilities.createDAOException(
-//			    "Database error occurred while querying all View Folders.",e);
-//		}
-//
 	}
 
 	public List<ViewFolderQueryBean> queryViewFolders(Integer environmentId,
@@ -1198,40 +1130,6 @@ public class YAMLViewFolderDAO implements ViewFolderDAO {
 
     @Override
     public void addAllViewsAssociation(Integer viewId, Integer environmentId) {
-//        try {
-//            String[] columnNames = { COL_ENVID, "VIEWFOLDERID", "VIEWID",
-//                COL_CREATETIME, COL_CREATEBY, COL_MODIFYTIME, COL_MODIFYBY };
-//            List<String> names = new ArrayList<String>(Arrays.asList(columnNames));
-//            PreparedStatement pst = null;
-//            ResultSet rs = null;
-//            while (true) {
-//                try {
-//                    String statement = generator.getInsertStatement(
-//                        params.getSchema(), "VFVASSOC", "VFVASSOCID", names, true);
-//                    pst = con.prepareStatement(statement);
-//                    int i = 1;
-//                    pst.setInt(i++, environmentId);
-//                    pst.setInt(i++, 0);
-//                    pst.setInt(i++, viewId);
-//                    pst.setString(i++, safrLogin.getUserId());
-//                    pst.setString(i++, safrLogin.getUserId());
-//                    rs = pst.executeQuery();
-//                    rs.close();
-//                    break;
-//                } catch (SQLException se) {
-//                    if (con.isClosed()) {
-//                        // lost database connection, so reconnect and retry
-//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-//                    } else {
-//                        throw se;
-//                    }
-//                }
-//            }
-//            pst.close();
-//
-//        } catch (SQLException e) {
-//            throw DataUtilities.createDAOException("Database error occurred while creating associations of View Folder with Views.",e);
-//        }        
     }
 
 }

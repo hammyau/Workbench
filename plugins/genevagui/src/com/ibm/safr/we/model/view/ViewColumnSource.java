@@ -661,12 +661,10 @@ public class ViewColumnSource extends SAFREnvironmentalComponent {
 	 * @return the Logical Record Query bean.
 	 * @throws DAOException
 	 */
-	public LogicalRecordQueryBean getLogicalRecordQueryBean()
-			throws DAOException {
+	public LogicalRecordQueryBean getLogicalRecordQueryBean() throws DAOException {
 		if (logicalRecordQueryBean == null) {
 			if (lrFieldId != null && lrFieldId > 0) {
-				logicalRecordQueryBean = SAFRQuery.queryLogicalRecordByField(
-				    lrFieldId, getEnvironmentId());
+				logicalRecordQueryBean = SAFRQuery.queryLogicalRecordByField(lrFieldId, getEnvironmentId());
 			}
 		}
 		return logicalRecordQueryBean;

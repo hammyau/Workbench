@@ -2352,34 +2352,24 @@ public class View extends SAFRActivatedComponent {
                     for (ViewSortKey viewSortKey : viewSortKeys) {
                         if (viewSortKey.getPersistence() == SAFRPersistence.DELETED) {
                             deletedSortKeyIds.add(viewSortKey.getId());
-                        } else if (viewSortKey.isForImport()
-                                || viewSortKey.isForMigration()
-                                || viewSortKey.getPersistence() != SAFRPersistence.OLD) {
+                        } else if (viewSortKey.isForImport() || viewSortKey.isForMigration() || viewSortKey.getPersistence() != SAFRPersistence.OLD) {
                             ViewSortKeyTransfer viewSortKeyTransfer = new ViewSortKeyTransfer();
                             viewSortKey.setTransferData(viewSortKeyTransfer);
                             sortKeyTransList.add(viewSortKeyTransfer);
-                            viewSortKeyMap
-                                    .put(viewSortKeyTransfer, viewSortKey);
+                            viewSortKeyMap.put(viewSortKeyTransfer, viewSortKey);
                         }
                     }
                     if (sortKeyTransList.size() > 0) {
-                        DAOFactoryHolder.getDAOFactory().getViewSortKeyDAO()
-                                .persistViewSortKeys(sortKeyTransList);
+                        DAOFactoryHolder.getDAOFactory().getViewSortKeyDAO().persistViewSortKeys(sortKeyTransList);
                         for (int i = 0; i < sortKeyTransList.size(); i++) {
-                            ViewSortKeyTransfer viewSortKeyTrans = sortKeyTransList
-                                    .get(i);
-                            ViewSortKey tmpSK = viewSortKeyMap
-                                    .get(viewSortKeyTrans);
+                            ViewSortKeyTransfer viewSortKeyTrans = sortKeyTransList.get(i);
+                            ViewSortKey tmpSK = viewSortKeyMap.get(viewSortKeyTrans);
                             tmpSK.setObjectData(viewSortKeyTrans);
                             savedObjs.add(tmpSK);
                         }
                     }
                     if (deletedSortKeyIds.size() > 0) {
-                        DAOFactoryHolder
-                                .getDAOFactory()
-                                .getViewSortKeyDAO()
-                                .removeViewSortKeys(deletedSortKeyIds,
-                                        getEnvironmentId());
+                        DAOFactoryHolder.getDAOFactory().getViewSortKeyDAO().removeViewSortKeys(deletedSortKeyIds, getEnvironmentId());
                         viewSortKeys.flushDeletedItems();
                     }
                                         

@@ -64,24 +64,13 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 	static transient Logger logger = Logger
 			.getLogger("com.ibm.safr.we.internal.data.dao.PGLogicalFileDAO");
 
-    private static final String TABLE_NAME = "LOGFILE";
-	private static final String TABLE_LF_PF_ASSOC = "LFPFASSOC";
-	private static final String COL_ENVID = "ENVIRONID";
-	private static final String COL_ID = "LOGFILEID";
-	private static final String COL_NAME = "NAME";
-	private static final String COL_COMMENT = "COMMENTS";
-	private static final String COL_CREATETIME = "CREATEDTIMESTAMP";
+    private static final String COL_CREATETIME = "CREATEDTIMESTAMP";
 	private static final String COL_CREATEBY = "CREATEDUSERID";
 	private static final String COL_MODIFYTIME = "LASTMODTIMESTAMP";
 	private static final String COL_MODIFYBY = "LASTMODUSERID";
 
 	private Connection con;
 	private ConnectionParameters params;
-	private UserSessionParameters safrLogin;
-	private PGSQLGenerator generator = new PGSQLGenerator();
-
-	private static YAMLLogicalFileTransfer lfRead;
-
 	private static Map<Integer, LogicalFileQueryBean> lfBeans = new TreeMap<>();
 
 	private static int maxid;
@@ -90,30 +79,9 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 
 	private static Path lfPath;
 
-	public YAMLLogicalFileDAO(Connection con, ConnectionParameters params,
-			UserSessionParameters safrlogin) {
+	public YAMLLogicalFileDAO(Connection con, ConnectionParameters params, UserSessionParameters safrlogin) {
 		this.con = con;
 		this.params = params;
-		this.safrLogin = safrlogin;
-	}
-
-	private LogicalFileTransfer generateTransfer(ResultSet rs)
-			throws SQLException {
-		LogicalFileTransfer logicalFileTransfer = new LogicalFileTransfer();
-		logicalFileTransfer.setEnvironmentId(rs.getInt(COL_ENVID));
-		logicalFileTransfer.setId(rs.getInt(COL_ID));
-		logicalFileTransfer.setName(DataUtilities.trimString(rs
-				.getString(COL_NAME)));
-		logicalFileTransfer.setComments(DataUtilities.trimString(rs
-				.getString(COL_COMMENT)));
-		logicalFileTransfer.setCreateTime(rs.getDate(COL_CREATETIME));
-		logicalFileTransfer.setCreateBy(DataUtilities.trimString(rs
-				.getString(COL_CREATEBY)));
-		logicalFileTransfer.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		logicalFileTransfer.setModifyBy(DataUtilities.trimString(rs
-				.getString(COL_MODIFYBY)));
-
-		return logicalFileTransfer;
 	}
 
 	public LogicalFileTransfer getDuplicateLogicalFile(String logicalFileName, Integer logicalFileId, Integer environmentId) throws DAOException {
@@ -144,42 +112,6 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 
 	public LogicalFileTransfer getLogicalFile(String name, Integer environmentId) throws DAOException {
 		LogicalFileTransfer result = null;
-		try {
-			List<String> idNames = new ArrayList<String>();
-			idNames.add(COL_NAME);
-			idNames.add(COL_ENVID);
-
-			String selectString = generator.getSelectStatement(params
-					.getSchema(), TABLE_NAME, idNames, null);
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					pst.setString(1, name);
-					pst.setInt(2, environmentId);
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			if (rs.next()) {
-				result = generateTransfer(rs);
-			} else {
-				logger.info("No such Logical File in Env " + environmentId + " with id : " + name);
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-					"Database error occurred while retrieving the Logical File with id ["+ name + "]", e);
-		}
 		return result;
 	}
 
@@ -305,18 +237,13 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 		File[] pfs = pfsPath.toFile().listFiles();
 		
 		if(pfs.length > 0) {
-			Stream.of(pfs)
-		    	      .filter(file -> file.isFile())
-		    	      .forEach(pf -> getAssocs(result, pf, environmentId));
+			Stream.of(pfs).filter(file -> file.isFile()).forEach(pf -> getAssocs(result, pf));
 		}
 		return result;
 	}
 
-	private Object getAssocs(List<PhysicalFileQueryBean> result, File pf, Integer environmentId) {
+	private Object getAssocs(List<PhysicalFileQueryBean> result, File pf) {
 		PhysicalFileTransfer pft = (PhysicalFileTransfer) YAMLizer.readYaml(pf.toPath(), ComponentType.PhysicalFile);
-		if(pft.getId() > maxid) {
-			maxid = pft.getId();
-		}
 		PhysicalFileQueryBean pfBean = new PhysicalFileQueryBean();
 		pfBean.setName(pft.getName());
 		pfBean.setId(pft.getId()); 
@@ -324,9 +251,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 		return pfBean;
 	}
 
-	public List<FileAssociationTransfer> persistAssociatedPFs(
-			List<FileAssociationTransfer> fileAssociationTransfers,
-			Integer logicalFileId) throws DAOException {
+	public List<FileAssociationTransfer> persistAssociatedPFs(List<FileAssociationTransfer> fileAssociationTransfers, Integer logicalFileId) throws DAOException {
 
 		List<FileAssociationTransfer> associatedPFCreates = new ArrayList<FileAssociationTransfer>();
 		List<FileAssociationTransfer> associatedPFUpdates = new ArrayList<FileAssociationTransfer>();
@@ -339,7 +264,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 			}
 		}
 		if (associatedPFCreates.size() > 0) {
-			associatedPFCreates = createAssociatedPFs(associatedPFCreates, logicalFileId);
+			associatedPFCreates = createAssociatedPFs(associatedPFCreates);
 		}
 		if (associatedPFUpdates.size() > 0) {
 			associatedPFUpdates = updateAssociatedPFs(associatedPFUpdates);
@@ -351,7 +276,7 @@ public class YAMLLogicalFileDAO implements LogicalFileDAO {
 
 	}
 
-	private List<FileAssociationTransfer> createAssociatedPFs(List<FileAssociationTransfer> associatedPFCreates, Integer logicalFileId) throws DAOException {
+	private List<FileAssociationTransfer> createAssociatedPFs(List<FileAssociationTransfer> associatedPFCreates) throws DAOException {
 		Path lfsPath = YAMLizer.getLFsPath();
 		Path lfPath = lfsPath.resolve(ourTxf.getName() + ".yaml");
 		

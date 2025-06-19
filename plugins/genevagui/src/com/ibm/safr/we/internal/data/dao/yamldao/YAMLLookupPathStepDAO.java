@@ -58,17 +58,6 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	private static final String TABLE_NAME_SOURCEFIELD = "LOOKUPSRCKEY";
 	private static final String COL_ENVID = "ENVIRONID";
 	private static final String COL_ID = "LOOKUPSTEPID";
-	private static final String COL_LOOKUPID = "LOOKUPID";
-	private static final String COL_STEPSEQNBR = "STEPSEQNBR";
-	private static final String COL_SOURCE = "SRCLRID";
-	private static final String COL_LRLFASSOCID = "LRLFASSOCID";
-	private static final String COL_CREATETIME = "CREATEDTIMESTAMP";
-	private static final String COL_CREATEBY = "CREATEDUSERID";
-	private static final String COL_MODIFYTIME = "LASTMODTIMESTAMP";
-	private static final String COL_MODIFYBY = "LASTMODUSERID";
-
-	private static final String COL_KEYSEQNBR = "KEYSEQNBR";
-
 	private Connection con;
 	private ConnectionParameters params;
 	private UserSessionParameters safrLogin;
@@ -91,7 +80,7 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	}
 
     private void addToStepResult(List<LookupPathStepTransfer> result, YAMLLookupPathStepTransfer lk) {
-		List<ComponentAssociationTransfer> lfa = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getAssociatedLogicalFiles(ourLkTxf.getTargetLR(), null);
+		DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getAssociatedLogicalFiles(ourLkTxf.getTargetLR(), null);
 		ComponentAssociationTransfer lrlfa =  DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(ourLkTxf.getTargetLR(), ourLkTxf.getTargetLF(), null);
 		if(lrlfa == null) {
 			logger.severe("No association for target LR " + ourLkTxf.getTargetLR());
@@ -237,7 +226,7 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	 * @throws DAOException
 	 */
 	private LookupPathStepTransfer createLookupPathStep(LookupPathStepTransfer lkupPathStepTransfer) throws DAOException {
-		YAMLLookupDAO lkdao = (YAMLLookupDAO)DAOFactoryHolder.getDAOFactory().getLookupDAO();
+		DAOFactoryHolder.getDAOFactory().getLookupDAO();
 		ourLkTxf = YAMLLookupDAO.getCurrentLKTransfer();
 		currentStep = new YAMLLookupPathStepTransfer();
 		currentStep.setEnvironmentId(lkupPathStepTransfer.getEnvironmentId());
@@ -268,7 +257,7 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 	 */
 	private LookupPathStepTransfer updateLookupPathStep(LookupPathStepTransfer lkupPathStepTransfer) throws DAOException {
 		
-		YAMLLookupDAO lkdao = (YAMLLookupDAO)DAOFactoryHolder.getDAOFactory().getLookupDAO();
+		DAOFactoryHolder.getDAOFactory().getLookupDAO();
 		ourLkTxf = YAMLLookupDAO.getCurrentLKTransfer();
 		currentStep = new YAMLLookupPathStepTransfer();
 		currentStep.setEnvironmentId(lkupPathStepTransfer.getEnvironmentId());
@@ -425,44 +414,6 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
     public void removeLookupPathStepsSourceField(List<Integer> lkupPathStepIds, Integer environmentId) throws DAOException {
     	YAMLLookupTransfer lkTxf = YAMLLookupDAO.getCurrentLKTransfer();
     	lkTxf.clearSteps();
-//        try {
-//            SAFRApplication.getTimingMap().startTiming("PGLookupPathStepDAO.removeLookupPathStepsSourceField");
-//            String placeholders = generator.getPlaceholders(lkupPathStepIds.size());
-//            
-//            String statement = "DELETE FROM "
-//                + params.getSchema()
-//                + "." + TABLE_NAME_SOURCEFIELD + " WHERE "
-//                + COL_ENVID + "= ? AND "
-//                + COL_ID + " IN (" + placeholders + " )"; 
-//            
-//            PreparedStatement pst = null;
-//
-//            while (true) {
-//                try {
-//                    pst = con.prepareStatement(statement);
-//                    int ndx = 1;
-//                    pst.setInt(ndx++, environmentId);
-//            		for( int i = 0 ; i < lkupPathStepIds.size(); i++ ) {
-//                        pst.setInt(ndx++, lkupPathStepIds.get(i));
-//            		}
-//                    pst.execute();
-//                    break;
-//                } catch (SQLException se) {
-//                    if (con.isClosed()) {
-//                        // lost database connection, so reconnect and retry
-//                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-//                    } else {
-//                        throw se;
-//                    }
-//                }
-//            }
-//            pst.close();
-//
-//        } catch (SQLException e) {
-//            throw DataUtilities.createDAOException("Database error occurred while deleting the source fields belonging to the specified Lookup Path Step.",e);
-//        }
-//        SAFRApplication.getTimingMap().stopTiming("PGLookupPathStepDAO.removeLookupPathStepsSourceField");
-       
     }
 	
 	public void removeLookupPathStepSourceField(Integer lkupPathStepId,
@@ -504,14 +455,6 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 		return currentStep;
 	}
 
-	/**
-	 * This method is to convert an integer into its equivalent enum value of
-	 * sourceFieldType.
-	 * 
-	 * @param sourceFieldTypeInt
-	 *            : The integer returned from the database
-	 * @return : The equivalent enum value.
-	 */
 	private LookupPathSourceFieldType intToEnum(int sourceFieldTypeInt) {
 		if (sourceFieldTypeInt == 0) {
 			return LookupPathSourceFieldType.LRFIELD;
@@ -524,13 +467,6 @@ public class YAMLLookupPathStepDAO implements LookupPathStepDAO {
 		}
 	}
 
-	/**
-	 * This method is to convert enum value of edit rights into an integer.
-	 * 
-	 * @param sourceFieldTypeEnum
-	 *            : The enum value of sourceFieldType.
-	 * @return : The equivalent integer value.
-	 */
 	private int enumToInt(LookupPathSourceFieldType sourceFieldTypeEnum) {
 		if (sourceFieldTypeEnum == LookupPathSourceFieldType.LRFIELD) {
 			return 0;

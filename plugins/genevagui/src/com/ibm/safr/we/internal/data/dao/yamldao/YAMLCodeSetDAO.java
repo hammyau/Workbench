@@ -51,32 +51,7 @@ public class YAMLCodeSetDAO implements CodeSetDAO {
 	static transient Logger logger = Logger
 			.getLogger("com.ibm.safr.we.internal.data.dao.PGCodeSetDAO");
 
-	private static final String TABLE_NAME = "CODE";
-	private static final String COL_CODECATEGORY = "SRCID";
-	private static final String COL_CODEVALUE = "KEYID";
-	private static final String COL_GENERALID = "GENERALID";
-	private static final String COL_CODEDESCRIPTION = "DESCRIPTION";
-
-	private Connection con;
-	private ConnectionParameters params;
-	private PGSQLGenerator generator = new PGSQLGenerator();
-
-	/**
-	 * Constructor for this class.
-	 * 
-	 * @param con
-	 *            : The connection set for database access.
-	 * @param params
-	 *            : The connection parameters which define the URL, userId and
-	 *            other details of the connection.
-	 * @param safrLogin
-	 *            : The parameters related to the user who has logged into the
-	 *            workbench.
-	 */
-	public YAMLCodeSetDAO(Connection con, ConnectionParameters params,
-			UserSessionParameters safrlogin) {
-		this.con = con;
-		this.params = params;
+	public YAMLCodeSetDAO(Connection con, ConnectionParameters params, UserSessionParameters safrlogin) {
 	}
 
 	public List<CodeTransfer> getCodeSet(String codeCategory) throws DAOException {
@@ -85,32 +60,10 @@ public class YAMLCodeSetDAO implements CodeSetDAO {
 	}
 
 	public Map<String, CodeSet> getCodeSetsMap() throws DAOException {
-		List<CodeTransfer> codeSet = new ArrayList<CodeTransfer>();
+		new ArrayList<CodeTransfer>();
 		Path homePath = YAMLDAOFactory.getGersHome();
 		Path codesPath = homePath.resolve("codes.yaml");
 		return YAMLizer.readYamlCodes(codesPath);
-	}
-
-	/**
-	 * This function is used to generate a transfer object for the Code in the
-	 * CODE
-	 * 
-	 * @param rs
-	 *            : The result set of a database query run on CODE table
-	 *            with which the values for the transfer objects are set.
-	 * @return a transfer object for the Code with values set according to the
-	 *         result set.
-	 * @throws SQLException
-	 */
-	private CodeTransfer generateTransfer(ResultSet rs) throws SQLException {
-
-		CodeTransfer code = new CodeTransfer();
-		code.setCodeCategory(rs.getString(COL_CODECATEGORY).trim());
-		code.setCodeValue(rs.getString(COL_CODEVALUE).trim());
-		code.setCodeDescription(rs.getString(COL_CODEDESCRIPTION).trim());
-		code.setGeneralId(rs.getInt(COL_GENERALID));
-
-		return code;
 	}
 
 	@Override

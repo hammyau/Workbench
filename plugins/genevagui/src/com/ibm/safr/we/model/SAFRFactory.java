@@ -910,12 +910,10 @@ public class SAFRFactory extends SAFRObject {
 			throws SAFRException {
 		LRField lrField = null;
 		LRFieldTransfer lrFieldTransfer = null;
-		lrFieldTransfer = DAOFactoryHolder.getDAOFactory().getLRFieldDAO()
-				.getLRField(envId, id, retrieveKeyInfo);
+		lrFieldTransfer = DAOFactoryHolder.getDAOFactory().getLRFieldDAO().getLRField(envId, id, retrieveKeyInfo);
 
 		if (lrFieldTransfer == null) {
-			throw new SAFRNotFoundException("LR Field '" + id
-					+ "' not found in Environment '" + envId + "'.", id);
+			throw new SAFRNotFoundException("LR Field '" + id + "' not found in Environment '" + envId + "'.", id);
 		} else {
 			lrField = new LRField(lrFieldTransfer);
 		}
@@ -1681,8 +1679,7 @@ public class SAFRFactory extends SAFRObject {
             " in schema " + DAOFactoryHolder.getDAOFactory().getConnectionParameters().getSchema());	    
 		if (SAFRApplication.getUserSession().isSystemAdministrator() ||
 		    SAFRApplication.getUserSession().isEnvironmentAdministrator(environmentId)) {
-			DAOFactoryHolder.getDAOFactory().getEnvironmentDAO()
-					.clearEnvironment(environmentId);
+			DAOFactoryHolder.getDAOFactory().getEnvironmentDAO().clearEnvironment(environmentId);
 			// clear the data if the user is an environment admin and has admin
 			// permissions on the environment to be cleared.
 		} else {
@@ -1710,18 +1707,14 @@ public class SAFRFactory extends SAFRObject {
 			// If there are any dependencies deps will be 1 and a
 			// SAFRDepencencyException is thrown, else it will proceed with the
 			// deletion of an environment.
-			Boolean deps = DAOFactoryHolder.getDAOFactory().getEnvironmentDAO()
-					.hasDependencies(environmentId);
+			Boolean deps = DAOFactoryHolder.getDAOFactory().getEnvironmentDAO().hasDependencies(environmentId);
 			if (deps) {
 				throw new SAFRDependencyException(null);
 			} else {
-				DAOFactoryHolder.getDAOFactory().getEnvironmentDAO()
-						.removeEnvironment(environmentId);
+				DAOFactoryHolder.getDAOFactory().getEnvironmentDAO().removeEnvironment(environmentId);
 			}
 		} else {
-			throw new SAFRException(
-					"The user is not authorized to perform this deletion.");
-
+			throw new SAFRException("The user is not authorized to perform this deletion.");
 		}
 	}
 

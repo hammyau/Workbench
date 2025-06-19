@@ -137,16 +137,15 @@ public class ViewColumn extends SAFRField {
 			// phase
 			// record aggregation is on, the subtotal type code.
 
-			this.breakSubtotalCodeIntoAggregationFunctions(parentView
-					.getOutputFormat(), parentView
-					.isFormatPhaseRecordAggregationOn(),
-					subtotalTypeCode == null ? null : subtotalTypeCode
-							.getGeneralId().intValue());
+			this.breakSubtotalCodeIntoAggregationFunctions(
+					parentView.getOutputFormat(), 
+					parentView.isFormatPhaseRecordAggregationOn(),
+					subtotalTypeCode == null ? null : subtotalTypeCode.getGeneralId().intValue()
+				 );
 
 			// Get load warnings, if any, from super class.
 			if (!super.getLoadWarningProperties().isEmpty()) {
-				for (SAFRField.Property property : super
-						.getLoadWarningProperties()) {
+				for (SAFRField.Property property : super.getLoadWarningProperties()) {
 					loadWarnings.add("View Column " + this.columnNo
 							+ " does not have a valid " + property.getText()
 							+ ". Please select a valid " + property.getText()
@@ -510,8 +509,7 @@ public class ViewColumn extends SAFRField {
 	 */
 	public SAFRImmutableList<ViewColumnSource> getViewColumnSources() {
 		List<ViewColumnSource> result = new ArrayList<ViewColumnSource>();
-		List<ViewColumnSource> vcss = view.getViewColumnSources()
-				.getActiveItems();
+		List<ViewColumnSource> vcss = view.getViewColumnSources().getActiveItems();
 		for (ViewColumnSource vcs : vcss) {
 			if (vcs.getViewColumn().getId() == this.getId()) {
 				result.add(vcs);

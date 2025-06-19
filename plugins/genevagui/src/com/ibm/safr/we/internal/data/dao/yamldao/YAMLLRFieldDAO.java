@@ -30,12 +30,15 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import com.google.common.flogger.FluentLogger;
 import com.ibm.safr.we.constants.SortType;
 import com.ibm.safr.we.data.ConnectionParameters;
 import com.ibm.safr.we.data.DAOException;
@@ -56,8 +59,7 @@ import com.ibm.safr.we.model.query.LogicalRecordFieldQueryBean;
  *
  */
 public class YAMLLRFieldDAO implements LRFieldDAO {
-	static transient Logger logger = Logger
-			.getLogger("com.ibm.safr.we.internal.data.dao.PGLRFieldDAO");
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
     private static final String TABLE_LRFIELD = "LRFIELD";
 
@@ -143,25 +145,11 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
 	private Integer effStartdate = 0;
 	private Integer effEndDate = 0;
 	private Map<Integer, Integer> pKey = new HashMap<Integer, Integer>();
+	private Map<Integer, LRFieldTransfer> fieldsById = new HashMap<Integer, LRFieldTransfer>();
 	
-	private static int fieldID = 1;
+	private static int maxFieldID = 1;
 
-	// DB constants
-
-	/**
-	 * Constructor for this class.
-	 * 
-	 * @param con
-	 *            : The connection set for database access.
-	 * @param params
-	 *            : The connection parameters which define the URL, userId and
-	 *            other details of the connection.
-	 * @param safrLogin
-	 *            : The parameters related to the user who has logged into the
-	 *            workbench.
-	 */
-	public YAMLLRFieldDAO(Connection con, ConnectionParameters params,
-			UserSessionParameters safrlogin) {
+	public YAMLLRFieldDAO(Connection con, ConnectionParameters params, UserSessionParameters safrlogin) {
 		this.con = con;
 		this.params = params;
 		this.safrLogin = safrlogin;
@@ -238,117 +226,19 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
 		YAMLLogicalRecordDAO lrdao = (YAMLLogicalRecordDAO)DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO();
 		YAMLLogicalRecordTransfer lrt = lrdao.getCurrentLRTransfer();
 		List<LRFieldTransfer> result = new ArrayList<>();
+		fieldsById.putAll(lrt.getFields());
 		result.addAll(lrt.getFields().values());
+		Optional<Integer> maxNumber = fieldsById.keySet().stream().max(Comparator.naturalOrder());
+		maxFieldID = maxNumber.get();
+		logger.atInfo().log("Max field ID:%d", maxFieldID);
 		return result;
 	}
 
-	public LRFieldTransfer getLRField(Integer environmentId, Integer lrFieldId,	Boolean retrieveKeyInfo) throws DAOException {
-		LRFieldTransfer result = null;
-
-		try {
-			String schema = params.getSchema();
-
-			String selectString = "Select A.ENVIRONID, A.LRFIELDID, A.LOGRECID, A.NAME, A.DBMSCOLNAME, "
-					+ "A.FIXEDSTARTPOS, A.ORDINALPOS, A.ORDINALOFFSET, A.REDEFINE, A.COMMENTS, "
-                    + "A.CREATEDTIMESTAMP, A.CREATEDUSERID, A.LASTMODTIMESTAMP, A.LASTMODUSERID, "
-					+ "B.FLDFMTCD, B.SIGNEDIND, B.MAXLEN, B.DECIMALCNT, B.ROUNDING, "
-					+ "B.FLDCONTENTCD, B.HDRJUSTIFYCD, B.HDRLINE1, B.HDRLINE2, B.HDRLINE3, "
-					+ "B.SUBTLABEL, B.SORTKEYLABEL, B.INPUTMASK "
-					+ "From "
-					+ schema + ".LRFIELD A, "
-					+ schema + ".LRFIELDATTR B "
-					+ "Where A.ENVIRONID = ? "
-					+ " AND A.LRFIELDID = ? "
-					+ " AND A.ENVIRONID = B.ENVIRONID"
-					+ " AND A.LRFIELDID = B.LRFIELDID "
-					+ "Order By A.ORDINALPOS";
-
-			PreparedStatement pst1 = null;
-			ResultSet rs1 = null;
-			while (true) {
-				try {
-					pst1 = con.prepareStatement(selectString);
-					int i = 1;
-					pst1.setInt(i++, environmentId);
-					pst1.setInt(i++, lrFieldId);
-					rs1 = pst1.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			Integer effStartDateId = 0;
-			Integer effEndDateId = 0;
-			Map<Integer, Integer> keyMap = new HashMap<Integer, Integer>();
-
-	// TODO retrieveKeyInfo is always set to false everywhere this is used, so I
-	// believe this code is dead code. This could probably be removed.
-			if (retrieveKeyInfo) {
-				String selectString1 = "Select B.EFFDATESTARTFLDID, B.EFFDATEENDFLDID, C.FLDSEQNBR,"
-						+ " C.LRFIELDID FROM "
-						+ schema + ".LOGREC A inner join "
-						+ schema + ".LRINDEX B on A.LOGRECID = B.LOGRECID "
-						+ "AND A.ENVIRONID = B.ENVIRONID left join "
-						+ schema + ".LRINDEXFLD C on B.LRINDEXID = C.LRINDEXID "
-						+ "AND B.ENVIRONID = C.ENVIRONID Where (C.LRFIELDID = ? "
-						+ " OR B.EFFDATESTARTFLDID = ? "
-						+ " OR B.EFFDATEENDFLDID = ? "
-						+ ") AND A.ENVIRONID = ? ";
-
-				PreparedStatement pst2 = null;
-				ResultSet rs2 = null;
-				while (true) {
-					try {
-						pst2 = con.prepareStatement(selectString1);
-						int i2 = 1;
-						pst2.setInt(i2++, lrFieldId);
-						pst2.setInt(i2++, lrFieldId);
-						pst2.setInt(i2++, lrFieldId);
-						pst2.setInt(i2++, environmentId);
-						rs2 = pst2.executeQuery();
-						break;
-					} catch (SQLException se) {
-						if (con.isClosed()) {
-							// lost database connection, so reconnect and retry
-							con = DAOFactoryHolder.getDAOFactory().reconnect();
-						} else {
-							throw se;
-						}
-					}
-				}
-				while (rs2.next()) {
-					if (rs2.getInt(COL_EFFDATESTARTFLDID) > 0) {
-						effStartDateId = rs2.getInt(COL_EFFDATESTARTFLDID);
-					}
-					if (rs2.getInt(COL_EFFDATEENDFLDID) > 0) {
-						effEndDateId = rs2.getInt(COL_EFFDATEENDFLDID);
-					}
-					if (rs2.getInt(COL_ID) > 0) {
-						keyMap.put(rs2.getInt(COL_ID), rs2.getInt(COL_FLDSEQNBR));
-					}
-				}
-				pst2.close();
-				rs2.close();
-			}
-			while (rs1.next()) {
-				result = generateTransfer(rs1, effStartDateId, effEndDateId, keyMap);
-			}
-			pst1.close();
-			rs1.close();
-			return result;
-
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving the LR Field with id [" + lrFieldId + "].", e);
-		}
+	public LRFieldTransfer getLRField(Integer environmentId, Integer lrFieldId,	Boolean retrieveKeyInfo) throws DAOException { 
+		return fieldsById.get(lrFieldId);
 	}
 
-	public List<LRFieldTransfer> getLRFields(Integer environmentId,
-			List<Integer> ids) throws DAOException {
+	public List<LRFieldTransfer> getLRFields(Integer environmentId,	List<Integer> ids) throws DAOException {
 
 		List<LRFieldTransfer> result = new ArrayList<LRFieldTransfer>();
 		String sqlInParams = "";
@@ -1062,7 +952,7 @@ public class YAMLLRFieldDAO implements LRFieldDAO {
 //            String msg = "Database error occurred while retrieving LR Field next id";
 //            throw DataUtilities.createDAOException(msg, e);
 //        }
-    	return fieldID++;
+    	return maxFieldID++;
     }
 
 	@Override

@@ -1,5 +1,7 @@
 package com.ibm.safr.we.data.transfer;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
  * 
@@ -18,8 +20,8 @@ package com.ibm.safr.we.data.transfer;
  */
 
 
-public class ViewColumnSourceTransfer extends
-		SAFREnvironmentalComponentTransfer {
+@JsonIgnoreProperties({ "environmentId", "viewId", "id", "viewColumnId", "viewSourceId", "comments", "createTime", "createBy", "modifyTime", "modifyBy"})
+public class ViewColumnSourceTransfer extends SAFREnvironmentalComponentTransfer {
 
 	private Integer viewId; // VIEWID
 	private Integer viewColumnId; // VIEWCOLUMNID

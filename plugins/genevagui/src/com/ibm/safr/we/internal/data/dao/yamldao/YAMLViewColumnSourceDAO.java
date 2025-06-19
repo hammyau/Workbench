@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.google.common.flogger.FluentLogger;
 import com.ibm.safr.we.data.ConnectionParameters;
 import com.ibm.safr.we.data.DAOException;
 import com.ibm.safr.we.data.DAOFactoryHolder;
@@ -38,147 +39,56 @@ import com.ibm.safr.we.data.DataUtilities;
 import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.ViewColumnSourceDAO;
 import com.ibm.safr.we.data.transfer.ViewColumnSourceTransfer;
+import com.ibm.safr.we.data.transfer.ViewColumnTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewColumnTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 import com.ibm.safr.we.model.SAFRApplication;
 
 public class YAMLViewColumnSourceDAO implements ViewColumnSourceDAO {
 
-	static transient Logger logger = Logger
-			.getLogger("com.ibm.safr.we.internal.data.dao.PGViewColumnSourceDAO");
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-    @SuppressWarnings("unused")
-    private static final String TABLE_NAME = "VIEWCOLUMNSOURCE";	
-	private static final String COL_ENVID = "ENVIRONID";
-	private static final String COL_ID = "VIEWCOLUMNSOURCEID";
-	private static final String COL_VIEWID = "VIEWID";
-    private static final String COL_CREATETIME = "CREATEDTIMESTAMP";
-    private static final String COL_CREATEBY = "CREATEDUSERID";
-    private static final String COL_MODIFYTIME = "LASTMODTIMESTAMP";
-    private static final String COL_MODIFYBY = "LASTMODUSERID";
-
-	private Connection con;
+    private Connection con;
 	private ConnectionParameters params;
-	private UserSessionParameters safrLogin;
 	private PGSQLGenerator generator = new PGSQLGenerator();
+	private static int seq;
+	private static int maxid;
 
-	/**
-	 * Constructor for this class.
-	 * 
-	 * @param con
-	 *            : The connection set for database access.
-	 * @param params
-	 *            : The connection parameters which define the URL, userId and
-	 *            other details of the connection.
-	 * @param safrLogin
-	 *            : The parameters related to the user who has logged into the
-	 *            workbench.
-	 */
-	public YAMLViewColumnSourceDAO(Connection con, ConnectionParameters params,
-			UserSessionParameters safrLogin) {
+	public YAMLViewColumnSourceDAO(Connection con, ConnectionParameters params,	UserSessionParameters safrLogin) {
 		this.con = con;
 		this.params = params;
-		this.safrLogin = safrLogin;
 	}
 
-	private ViewColumnSourceTransfer generateTransfer(ResultSet rs)
-			throws SQLException {
-		ViewColumnSourceTransfer vcsTransfer = new ViewColumnSourceTransfer();
-		vcsTransfer.setEnvironmentId(rs.getInt(COL_ENVID));
-		vcsTransfer.setId(rs.getInt(COL_ID));
-		vcsTransfer.setViewColumnId(rs.getInt("VIEWCOLUMNID"));
-		vcsTransfer.setViewSourceId(rs.getInt("VIEWSOURCEID"));
-        vcsTransfer.setViewId(rs.getInt(COL_VIEWID));
-		vcsTransfer.setSourceTypeId(rs.getInt("SOURCETYPEID"));
-        vcsTransfer.setSourceValue(rs.getString("CONSTVAL"));
-        vcsTransfer.setLookupPathId(rs.getInt("LOOKUPID"));
-        if(rs.wasNull()) {
-        	vcsTransfer.setLookupPathId(null);
-        }
-		vcsTransfer.setSourceLRFieldId(rs.getInt("LRFIELDID"));
-        if(rs.wasNull()) {
-        	vcsTransfer.setSourceLRFieldId(null);
-        }
-        vcsTransfer.setEffectiveDateValue(DataUtilities.trimString(rs.getString("EFFDATEVALUE")));
-        vcsTransfer.setEffectiveDateTypeCode(DataUtilities.trimString(rs.getString("EFFDATETYPE")));
-        vcsTransfer.setEffectiveDateLRFieldId(rs.getInt("EFFDATELRFIELDID"));
-        if(rs.wasNull()) {
-        	vcsTransfer.setEffectiveDateLRFieldId(null);
-        }
-        vcsTransfer.setSortKeyTitleLookupPathId(rs.getInt("SORTTITLELOOKUPID"));
-        if(rs.wasNull()) {
-        	vcsTransfer.setSortKeyTitleLookupPathId(null);
-        }
-		vcsTransfer.setSortKeyTitleLRFieldId(rs.getInt("SORTTITLELRFIELDID"));
-        if(rs.wasNull()) {
-        	vcsTransfer.setSortKeyTitleLRFieldId(null);
-        }
-		vcsTransfer.setExtractColumnLogic(rs.getString("EXTRACTCALCLOGIC"));
-		vcsTransfer.setCreateTime(rs.getDate(COL_CREATETIME));
-		vcsTransfer.setCreateBy(DataUtilities.trimString(rs.getString(COL_CREATEBY)));
-		vcsTransfer.setModifyTime(rs.getDate(COL_MODIFYTIME));
-		vcsTransfer.setModifyBy(DataUtilities.trimString(rs.getString(COL_MODIFYBY)));
-		
-		return vcsTransfer;
-	}
-
-	public List<ViewColumnSourceTransfer> getViewColumnSources(Integer viewId,
-			Integer environmentId) throws DAOException {
+	public List<ViewColumnSourceTransfer> getViewColumnSources(Integer viewId, Integer environmentId) throws DAOException {
+		maxid=1;
+        seq = 1;
 		List<ViewColumnSourceTransfer> viewColumnSources = new ArrayList<ViewColumnSourceTransfer>();
-		try {
-
-			String selectString = "Select A.ENVIRONID, A.VIEWCOLUMNSOURCEID, A.VIEWCOLUMNID, A.VIEWSOURCEID, "
-					+ "A.VIEWID, A.SOURCETYPEID, A.CONSTVAL, A.LOOKUPID, A.LRFIELDID, "
-					+ "A.EFFDATEVALUE, A.EFFDATETYPE, A.EFFDATELRFIELDID, "
-					+ "A.SORTTITLELOOKUPID, A.SORTTITLELRFIELDID, A.EXTRACTCALCLOGIC, " 
-                    + "A.CREATEDTIMESTAMP, A.CREATEDUSERID, A.LASTMODTIMESTAMP, A.LASTMODUSERID "                  
-					+ " From "
-					+ params.getSchema() + ".VIEWCOLUMNSOURCE A, " 
-					+ params.getSchema() + ".VIEWSOURCE B, "
-                    + params.getSchema() + ".VIEWCOLUMN C "
-					+ " WHERE A.ENVIRONID = ? AND A.ENVIRONID = B.ENVIRONID";
-					if(viewId > 0) {
-						selectString += " AND A.VIEWID = ? ";
-					}
-					selectString += " AND A.VIEWSOURCEID = B.VIEWSOURCEID"
-                    + " AND A.ENVIRONID = C.ENVIRONID"
-                    + " AND A.VIEWCOLUMNID = C.VIEWCOLUMNID"
-					+ " ORDER BY B.SRCSEQNBR, C.COLUMNNUMBER";
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectString);
-					pst.setInt(1, environmentId);
-					if (viewId > 0) {
-						pst.setInt(2, viewId);
-					}
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rs.next()) {
-				ViewColumnSourceTransfer vcSrcTransfer = new ViewColumnSourceTransfer();
-				vcSrcTransfer = generateTransfer(rs);
-				viewColumnSources.add(vcSrcTransfer);
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-			    "Database error occurred while retrieving View Column Sources for the View with id ["+ viewId + "]", e);
-		}
-		return viewColumnSources;
+		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		vt.getViewColumns().stream().forEach(c -> addToColSources(viewColumnSources, c, vt.getId()));
+		return viewColumnSources; 
 	}
 
-    public int getViewColumnSourceLrId(Integer viewColSrcId, Integer environmentId) throws DAOException {
+    private void addToColSources(List<ViewColumnSourceTransfer> viewColumnSources, YAMLViewColumnTransfer c, Integer viewId) {
+       	c.getColumnSources().stream().forEach(cs -> addColumnSource(viewColumnSources, cs, viewId, c));
+	}
+
+	private void addColumnSource(List<ViewColumnSourceTransfer> viewColumnSources, ViewColumnSourceTransfer cs, int viewId, YAMLViewColumnTransfer c ) {
+		cs.setId(maxid++);
+		cs.setPersistent(false);
+		cs.setViewSourceId(seq);
+		ViewColumnSourceTransfer vcs = c.getColumnSources().get(seq-1);
+		Integer vsid = vcs.getViewSourceId();
+		int srclrid = DAOFactoryHolder.getDAOFactory().getViewSourceDAO().getViewSourceLrId(vsid, null);
+		DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLogicalRecord(srclrid, null);
+		cs.setViewColumnId(c.getColumn().getId());
+		cs.setViewId(viewId);
+		cs.setEnvironmentId(0);
+		logger.atInfo().log("Add Column Source:%d for view:%d and viewsource:%d, column:%d",cs.getId(), cs.getViewId(), cs.getViewSourceId(), cs.getViewColumnId());
+		viewColumnSources.add(cs);
+	}
+
+	public int getViewColumnSourceLrId(Integer viewColSrcId, Integer environmentId) throws DAOException {
         int result = 0;
         try {
     
@@ -224,170 +134,25 @@ public class YAMLViewColumnSourceDAO implements ViewColumnSourceDAO {
 	
 	public List<ViewColumnSourceTransfer> persistViewColumnSources(List<ViewColumnSourceTransfer> viewColSrcTransferList) throws DAOException {
 		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
-		vt.setViewColumnSources(viewColSrcTransferList);
+		//add vcs to each correct column
+		vt.getViewColumns().stream().forEach(c -> addViewSourcesToColumn(c, viewColSrcTransferList));
 		//viewSrcTransferList.stream().forEach(s -> addViewSources(vt, s));
 		YAMLViewDAO.saveView(vt);
 		return viewColSrcTransferList;
 	}
 
-    private void getXml(ViewColumnSourceTransfer srcFld, StringBuffer buf) throws SQLException, DAOException {
-        buf.append("  <VIEWCOLUMNID>"+ srcFld.getViewColumnId() + "</VIEWCOLUMNID>\n");
-        buf.append("  <VIEWSOURCEID>"+ srcFld.getViewSourceId() + "</VIEWSOURCEID>\n");
-        buf.append("  <VIEWID>"+ srcFld.getViewId() + "</VIEWID>\n");
-        buf.append("  <SOURCETYPEID>"+ srcFld.getSourceTypeId() + "</SOURCETYPEID>\n");
-        appendElementToBuffer(buf, "CONSTVAL", srcFld.getSourceValue());
-        if(srcFld.getLookupPathId() != null && srcFld.getLookupPathId() > 0) {
-            appendElementToBuffer(buf, "LOOKUPID", srcFld.getLookupPathId());
-        }
-        if(srcFld.getSourceLRFieldId() != null && srcFld.getSourceLRFieldId() > 0) {
-            appendElementToBuffer(buf, "LRFIELDID", srcFld.getSourceLRFieldId());
-        }
-        if (srcFld.getEffectiveDateValue() != null) {
-            appendElementToBuffer(buf, "EFFDATEVALUE", srcFld.getEffectiveDateValue());
-        }
-        if (srcFld.getEffectiveDateTypeCode() != null) {
-            appendElementToBuffer(buf, "EFFDATETYPE", srcFld.getEffectiveDateTypeCode());
-        }
-        if(srcFld.getEffectiveDateLRFieldId() != null && srcFld.getEffectiveDateLRFieldId() > 0) {
-            appendElementToBuffer(buf, "EFFDATELRFIELDID", srcFld.getEffectiveDateLRFieldId());
-        }
-        if(srcFld.getSortKeyTitleLookupPathId() != null && srcFld.getSortKeyTitleLookupPathId() > 0) {
-            appendElementToBuffer(buf, "SORTTITLELOOKUPID", srcFld.getSortKeyTitleLookupPathId());
-        }
-        if(srcFld.getSortKeyTitleLRFieldId() != null && srcFld.getSortKeyTitleLRFieldId() > 0) {    
-            appendElementToBuffer(buf, "SORTTITLELRFIELDID", srcFld.getSortKeyTitleLRFieldId());
-        }
-        if (srcFld.getExtractColumnLogic() != null) {
-            buf.append("  <EXTRACTCALCLOGIC><![CDATA["+ srcFld.getExtractColumnLogic() + "]]></EXTRACTCALCLOGIC>\n");                                            
-        }        
+    private void addViewSourcesToColumn(YAMLViewColumnTransfer c, List<ViewColumnSourceTransfer> viewColSrcTransferList) {
+		List<ViewColumnSourceTransfer> vcss = new ArrayList<>();
+		c.setColumnSources(vcss);
+		//We can probable make a more efficient way to manage this.... like a view column map?
+    	viewColSrcTransferList.stream().filter(vcs -> vcs.getViewColumnId() == c.getColumn().getId()).forEach(vcst -> addVCSToColumn(c, vcst));
     }
-    
-    private void appendElementToBuffer(StringBuffer buf, String tag, String value) {
-        if (value != null) {
-            buf.append("  <" + tag + ">"+ value + "</" + tag + ">\n");
-        }
-        else {
-            buf.append("  <" + tag + ">" + "</" + tag + ">\n");                                             
-        }                        
-    }
-	
-    private void appendElementToBuffer(StringBuffer buf, String tag, Integer value) {
-        if (value != null) {
-            buf.append("  <" + tag + ">"+ value +"</" + tag + ">\n");                                                
-        }         
-        else {
-            buf.append("  <" + tag + ">" + "</" + tag + ">\n");                                             
-        }                     
-    }
-	
-    private String getCreateXml(List<ViewColumnSourceTransfer> srcFlds) throws SQLException, DAOException {
-        
-        StringBuffer buf = new StringBuffer();
-        buf.append("<Root>\n");
-        for (ViewColumnSourceTransfer srcFld : srcFlds) {
-            buf.append(" <Record>\n");
-            buf.append("  <ENVIRONID>"+ srcFld.getEnvironmentId() + "</ENVIRONID>\n");
-            if (srcFld.isForImportOrMigration()) {
-                buf.append("  <VIEWCOLUMNSOURCEID>"+ srcFld.getId() + "</VIEWCOLUMNSOURCEID>\n");
-            }
-            getXml(srcFld, buf);
-            
-            if (srcFld.isForImportOrMigration()) {
-                buf.append("  <CREATEDTIMESTAMP>"+ generator.genTimeParm(srcFld.getCreateTime()) + "</CREATEDTIMESTAMP>\n");
-                buf.append("  <CREATEDUSERID>"+ srcFld.getCreateBy() + "</CREATEDUSERID>\n");
-                buf.append("  <LASTMODTIMESTAMP>"+ generator.genTimeParm(srcFld.getModifyTime()) + "</LASTMODTIMESTAMP>\n");
-                buf.append("  <LASTMODUSERID>"+ srcFld.getModifyBy() + "</LASTMODUSERID>\n");
-            }
-            else {
-                buf.append("  <CREATEDUSERID>"+ safrLogin.getUserId() + "</CREATEDUSERID>\n");
-                buf.append("  <LASTMODUSERID>"+ safrLogin.getUserId() + "</LASTMODUSERID>\n");
-            }            
-            buf.append(" </Record>\n");            
-        }
-        buf.append("</Root>");
-        return buf.toString();
-    }   
 
-    private String getUpdateXml(List<ViewColumnSourceTransfer> srcFlds) throws SQLException, DAOException {
-        
-        StringBuffer buf = new StringBuffer();
-        buf.append("<Root>\n");
-        for (ViewColumnSourceTransfer srcFld : srcFlds) {
-            buf.append(" <Record>\n");
-            buf.append("  <ENVIRONID>"+ srcFld.getEnvironmentId() + "</ENVIRONID>\n");
-            buf.append("  <VIEWCOLUMNSOURCEID>"+ srcFld.getId() + "</VIEWCOLUMNSOURCEID>\n");
-            getXml(srcFld, buf);
-            
-            if (srcFld.isForImportOrMigration()) {
-                buf.append("  <CREATEDTIMESTAMP>"+ generator.genTimeParm(srcFld.getCreateTime()) + "</CREATEDTIMESTAMP>\n");
-                buf.append("  <CREATEDUSERID>"+ srcFld.getCreateBy() + "</CREATEDUSERID>\n");
-                buf.append("  <LASTMODTIMESTAMP>"+ generator.genTimeParm(srcFld.getModifyTime()) + "</LASTMODTIMESTAMP>\n");
-                buf.append("  <LASTMODUSERID>"+ srcFld.getModifyBy() + "</LASTMODUSERID>\n");
-            }
-            else {
-                buf.append("  <LASTMODUSERID>"+ safrLogin.getUserId() + "</LASTMODUSERID>\n");
-            }            
-            buf.append(" </Record>\n");            
-        }
-        buf.append("</Root>");
-        return buf.toString();
-    }   
-    
-	private List<ViewColumnSourceTransfer> createViewColumnSources(
-			List<ViewColumnSourceTransfer> viewColSrcCreateList)
-			throws DAOException {
-		try {
-            String statement = generator.getSelectFromFunction(params.getSchema(), "insertviewcolumnsourceWithId", 1);
-            if (viewColSrcCreateList.isEmpty() || !viewColSrcCreateList.get(0).isForImportOrMigration()) {
-    			statement = generator.getSelectFromFunction(params.getSchema(),"insertviewcolumnsource", 1);
-            }
-			PreparedStatement proc = null;
-
-            while (true) {
-                try {
-                    proc = con.prepareStatement(statement);
-                    String xml = getCreateXml(viewColSrcCreateList);
-                    proc.setString(1, xml);
-                    proc.executeQuery();
-                    proc.close();
-                    
-                    // break up list into different sources
-                    Map<Integer, List<ViewColumnSourceTransfer>> colSrcMap = new HashMap<Integer, List<ViewColumnSourceTransfer>>();
-                    for (ViewColumnSourceTransfer colSrc : viewColSrcCreateList) {
-                        if (!colSrcMap.containsKey(colSrc.getViewSourceId())) {
-                            colSrcMap.put(colSrc.getViewSourceId(), new ArrayList<ViewColumnSourceTransfer>());                            
-                        }
-                        colSrcMap.get(colSrc.getViewSourceId()).add(colSrc);
-                    }
-                    
-                    // iterate sources
-                    for (Map.Entry<Integer, List<ViewColumnSourceTransfer>> entry : colSrcMap.entrySet()) {
-                        Map<Integer, Integer> colIDMap = getColIDMap(entry.getKey(), entry.getValue());
-                        
-                        for (ViewColumnSourceTransfer colSrc : entry.getValue()) {
-                            colSrc.setPersistent(true);
-                            if (!colSrc.isForImportOrMigration()) {
-                                colSrc.setId(colIDMap.get(colSrc.getViewColumnId()));
-                            }
-                        }                                            
-                    }                    
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while creating new View Column Sources.",e);
-		}
-		
-		return viewColSrcCreateList;
+	private void addVCSToColumn(YAMLViewColumnTransfer c, ViewColumnSourceTransfer vcst) {
+		c.addColumnSource(vcst);
 	}
 
+    
     protected Map<Integer, Integer> getColIDMap(Integer viewSourceId, List<ViewColumnSourceTransfer> viewColCreateList) throws SQLException {
         
         Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
@@ -424,48 +189,6 @@ public class YAMLViewColumnSourceDAO implements ViewColumnSourceDAO {
         return idMap;
     }
 	
-	private List<ViewColumnSourceTransfer> updateViewColumnSources(
-			List<ViewColumnSourceTransfer> viewColSrcUpdateList)
-			throws DAOException {
-		try {
-		    SAFRApplication.getTimingMap().startTiming("PGViewColumnSourceDAO.updateViewColumnSources");
-
-            String statement = generator.getSelectFromFunction(params.getSchema(), "updateViewColumnSourceWithId", 1);
-            if (viewColSrcUpdateList.isEmpty() || !viewColSrcUpdateList.get(0).isForImportOrMigration()) {
-        			statement = generator.getSelectFromFunction(params.getSchema(), "updateViewColumnSource", 1);
-            }
-			CallableStatement proc = null;
-
-            while (true) {
-                try {
-                    proc = con.prepareCall(statement);
-                    String xml = getUpdateXml(viewColSrcUpdateList);
-                    proc.setString(1, xml);
-                    proc.execute();
-                    for (ViewColumnSourceTransfer colSrc : viewColSrcUpdateList) {
-                        colSrc.setPersistent(true);
-                    }
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-			proc.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException(
-			    "Database error occurred while updating View Column Sources.",e);
-		}
-		
-		SAFRApplication.getTimingMap().stopTiming("PGViewColumnSourceDAO.updateViewColumnSources");
-		
-		return viewColSrcUpdateList;
-	}
-
 	public void removeViewColumnSources(List<Integer> vwColumnSrcIds,
 			Integer environmentId) throws DAOException {
 		if (vwColumnSrcIds == null || vwColumnSrcIds.size() == 0) {
