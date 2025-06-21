@@ -1,0 +1,1129 @@
+---
+LRSTATUS:
+  codeCategory: "LRSTATUS"
+  codes:
+  - key: "ACTVE"
+    description: "Active"
+    generalId: 1
+  - key: "INACT"
+    description: "Inactive"
+    generalId: 2
+RDELIMTYPE:
+  codeCategory: "RDELIMTYPE"
+  codes:
+  - key: "CR"
+    description: "CR - Carriage Return"
+    generalId: 1
+  - key: "CRLF"
+    description: "CR/LF - Carriage Return/Line Feed"
+    generalId: 3
+  - key: "LF"
+    description: "LF - Line Feed"
+    generalId: 2
+SORTBRK:
+  codeCategory: "SORTBRK"
+  codes:
+  - key: "BRK"
+    description: "Break"
+    generalId: 2
+  - key: "NOBRK"
+    description: "No Break"
+    generalId: 1
+  - key: "LABEL"
+    description: "Subtotal Label Only"
+    generalId: 4
+  - key: "SUPRS"
+    description: "Suppress Label"
+    generalId: 3
+COLSRCTYPE:
+  codeCategory: "COLSRCTYPE"
+  codes:
+  - key: "CONST"
+    description: "Constant"
+    generalId: 1
+  - key: "FRMLA"
+    description: "Formula"
+    generalId: 4
+  - key: "LKFLD"
+    description: "Lookup Field"
+    generalId: 2
+  - key: "SRCFF"
+    description: "Source File Field"
+    generalId: 3
+CRECTYPE:
+  codeCategory: "CRECTYPE"
+  codes:
+  - key: "NONE"
+    description: "None"
+    generalId: 1
+  - key: "SKIP"
+    description: "Skip"
+    generalId: 2
+  - key: "VERFY"
+    description: "Verify"
+    generalId: 3
+FLDDELIM:
+  codeCategory: "FLDDELIM"
+  codes:
+  - key: "BLASH"
+    description: "Back Slash"
+    generalId: 7
+  - key: "COLON"
+    description: "Colon"
+    generalId: 8
+  - key: "COMMA"
+    description: "Comma"
+    generalId: 1
+  - key: "CTRLA"
+    description: "Ctrl-A"
+    generalId: 4
+  - key: "FIXED"
+    description: "Fixed Width - Position && Length"
+    generalId: 5
+  - key: "PIPE"
+    description: "Pipe"
+    generalId: 3
+  - key: "SCOLN"
+    description: "Semicolon"
+    generalId: 9
+  - key: "SLASH"
+    description: "Slash"
+    generalId: 6
+  - key: "TAB"
+    description: "TAB"
+    generalId: 2
+  - key: "TILDE"
+    description: "Tilde"
+    generalId: 10
+STRDELIM:
+  codeCategory: "STRDELIM"
+  codes:
+  - key: "DBLQT"
+    description: "Double Quote"
+    generalId: 2
+  - key: "NONE"
+    description: "No String Delimiter"
+    generalId: 0
+  - key: "SNGLQ"
+    description: "Single Quote"
+    generalId: 1
+GROUPAGGR:
+  codeCategory: "GROUPAGGR"
+  codes:
+  - key: "FIRST"
+    description: "First"
+    generalId: 5
+  - key: "CALC"
+    description: "Group Calculation"
+    generalId: 7
+  - key: "LAST"
+    description: "Last"
+    generalId: 6
+  - key: "MAX"
+    description: "Maximum"
+    generalId: 4
+  - key: "MIN"
+    description: "Minimum"
+    generalId: 3
+  - key: "NONE"
+    description: "None"
+    generalId: 1
+  - key: "SUM"
+    description: "Sum"
+    generalId: 2
+VSAMORG:
+  codeCategory: "VSAMORG"
+  codes:
+  - key: "ESDS"
+    description: "Entry-Sequenced Data Set"
+    generalId: 2
+  - key: "KSDS"
+    description: "Key-Sequenced Data Set"
+    generalId: 1
+  - key: "LSDS"
+    description: "Linear Data Set"
+    generalId: 4
+  - key: "RRDS"
+    description: "Relative Record Data Set"
+    generalId: 3
+EFFDATEKEY:
+  codeCategory: "EFFDATEKEY"
+  codes:
+  - key: "BDATE"
+    description: "Batch Date"
+    generalId: 2
+  - key: "RDATE"
+    description: "Run Date"
+    generalId: 1
+OUTPUTMED:
+  codeCategory: "OUTPUTMED"
+  codes:
+  - key: "DELIM"
+    description: "Delimited"
+    generalId: 7
+  - key: "FILE"
+    description: "File"
+    generalId: 3
+  - key: "HCOPY"
+    description: "Hardcopy"
+    generalId: 1
+READDISP:
+  codeCategory: "READDISP"
+  codes:
+  - key: "OLD"
+    description: "OLD"
+    generalId: 2
+  - key: "SHR"
+    description: "SHR"
+    generalId: 1
+REGENOPT:
+  codeCategory: "REGENOPT"
+  codes:
+  - key: "ALWYS"
+    description: "Always"
+    generalId: 1
+  - key: "MRGIN"
+    description: "Marginal"
+    generalId: 2
+RECFM:
+  codeCategory: "RECFM"
+  codes:
+  - key: "FB"
+    description: "FB"
+    generalId: 1
+  - key: "FBA"
+    description: "FBA"
+    generalId: 3
+  - key: "VB"
+    description: "VB"
+    generalId: 2
+  - key: "VBA"
+    description: "VBA"
+    generalId: 4
+RELPERIOD:
+  codeCategory: "RELPERIOD"
+  codes:
+  - key: "SPECD"
+    description: "Constant (in CCYYMMDD format)"
+    generalId: 3
+  - key: "CDATE"
+    description: "Run Date"
+    generalId: 1
+  - key: "EDATE"
+    description: "Source File Field"
+    generalId: 2
+CODESET:
+  codeCategory: "CODESET"
+  codes:
+  - key: "ASCII"
+    description: "ASCII"
+    generalId: 2
+  - key: "EBCDI"
+    description: "EBCDIC"
+    generalId: 1
+LRTYPE:
+  codeCategory: "LRTYPE"
+  codes:
+  - key: "FILE"
+    description: "Logical File"
+    generalId: 1
+  - key: "VIEW"
+    description: "View Specific Structure"
+    generalId: 2
+SORTDSP:
+  codeCategory: "SORTDSP"
+  codes:
+  - key: "ASDTA"
+    description: "As Data"
+    generalId: 2
+  - key: "CAT"
+    description: "Categorize"
+    generalId: 1
+EXTRACT:
+  codeCategory: "EXTRACT"
+  codes:
+  - key: "ARECT"
+    description: "CT Area"
+    generalId: 4
+  - key: "AREDT"
+    description: "DT Area"
+    generalId: 3
+  - key: "SORTK"
+    description: "Sort Key"
+    generalId: 1
+  - key: "STTLK"
+    description: "Sort Title Key"
+    generalId: 2
+RECORDAGGR:
+  codeCategory: "RECORDAGGR"
+  codes:
+  - key: "FIRST"
+    description: "First"
+    generalId: 5
+  - key: "CALC"
+    description: "Group Calculation"
+    generalId: 7
+  - key: "LAST"
+    description: "Last"
+    generalId: 6
+  - key: "MAX"
+    description: "Maximum"
+    generalId: 4
+  - key: "MIN"
+    description: "Minimum"
+    generalId: 3
+  - key: "NONE"
+    description: "None"
+    generalId: 1
+  - key: "SUM"
+    description: "Sum"
+    generalId: 2
+FORMATMASK:
+  codeCategory: "FORMATMASK"
+  codes:
+  - key: "LNN0N"
+    description: "-Z"
+    generalId: 2
+  - key: "LY10N"
+    description: "-Z,ZZ9"
+    generalId: 20
+  - key: "LY11Y"
+    description: "-Z,ZZ9.9"
+    generalId: 21
+  - key: "LY12Y"
+    description: "-Z,ZZ9.99"
+    generalId: 22
+  - key: "LY13Y"
+    description: "-Z,ZZ9.999"
+    generalId: 23
+  - key: "LY14Y"
+    description: "-Z,ZZ9.9999"
+    generalId: 24
+  - key: "LY15Y"
+    description: "-Z,ZZ9.99999"
+    generalId: 25
+  - key: "LY16Y"
+    description: "-Z,ZZ9.999999"
+    generalId: 26
+  - key: "LY17Y"
+    description: "-Z,ZZ9.9999999"
+    generalId: 27
+  - key: "LY18Y"
+    description: "-Z,ZZ9.99999999"
+    generalId: 28
+  - key: "LYN0N"
+    description: "-Z,ZZZ"
+    generalId: 19
+  - key: "LN10N"
+    description: "-Z9"
+    generalId: 3
+  - key: "LN11Y"
+    description: "-Z9.9"
+    generalId: 4
+  - key: "LN12Y"
+    description: "-Z9.99"
+    generalId: 5
+  - key: "LN13Y"
+    description: "-Z9.999"
+    generalId: 6
+  - key: "LN14Y"
+    description: "-Z9.9999"
+    generalId: 7
+  - key: "LN15Y"
+    description: "-Z9.99999"
+    generalId: 8
+  - key: "LN16Y"
+    description: "-Z9.999999"
+    generalId: 9
+  - key: "LN17Y"
+    description: "-Z9.9999999"
+    generalId: 10
+  - key: "LN18Y"
+    description: "-Z9.99999999"
+    generalId: 11
+  - key: "LN20N"
+    description: "-Z99"
+    generalId: 12
+  - key: "LN30N"
+    description: "-Z999"
+    generalId: 13
+  - key: "LN40N"
+    description: "-Z9999"
+    generalId: 14
+  - key: "LN50N"
+    description: "-Z99999"
+    generalId: 15
+  - key: "LN60N"
+    description: "-Z999999"
+    generalId: 16
+  - key: "LN70N"
+    description: "-Z9999999"
+    generalId: 17
+  - key: "LN80N"
+    description: "-Z99999999"
+    generalId: 18
+  - key: "PY20N"
+    description: "(Z,Z99)"
+    generalId: 35
+  - key: "PY21Y"
+    description: "(Z,Z99.9)"
+    generalId: 36
+  - key: "PY22Y"
+    description: "(Z,Z99.99)"
+    generalId: 37
+  - key: "PY10N"
+    description: "(Z,ZZ9)"
+    generalId: 32
+  - key: "PY11Y"
+    description: "(Z,ZZ9.9)"
+    generalId: 33
+  - key: "PY12Y"
+    description: "(Z,ZZ9.99)"
+    generalId: 34
+  - key: "PYN0N"
+    description: "(Z,ZZZ)"
+    generalId: 29
+  - key: "PYN1Y"
+    description: "(Z,ZZZ.9)"
+    generalId: 30
+  - key: "PYN2Y"
+    description: "(Z,ZZZ.99)"
+    generalId: 31
+  - key: "LNNAN"
+    description: "No Mask"
+    generalId: 1
+  - key: "UNN0N"
+    description: "Z"
+    generalId: 65
+  - key: "RNN0N"
+    description: "Z-"
+    generalId: 38
+  - key: "UY10N"
+    description: "Z,ZZ9"
+    generalId: 83
+  - key: "RY10N"
+    description: "Z,ZZ9-"
+    generalId: 56
+  - key: "UY11Y"
+    description: "Z,ZZ9.9"
+    generalId: 84
+  - key: "RY11Y"
+    description: "Z,ZZ9.9-"
+    generalId: 57
+  - key: "UY12Y"
+    description: "Z,ZZ9.99"
+    generalId: 85
+  - key: "RY12Y"
+    description: "Z,ZZ9.99-"
+    generalId: 58
+  - key: "UY13Y"
+    description: "Z,ZZ9.999"
+    generalId: 86
+  - key: "RY13Y"
+    description: "Z,ZZ9.999-"
+    generalId: 59
+  - key: "UY14Y"
+    description: "Z,ZZ9.9999"
+    generalId: 87
+  - key: "RY14Y"
+    description: "Z,ZZ9.9999-"
+    generalId: 60
+  - key: "UY15Y"
+    description: "Z,ZZ9.99999"
+    generalId: 88
+  - key: "RY15Y"
+    description: "Z,ZZ9.99999-"
+    generalId: 61
+  - key: "UY16Y"
+    description: "Z,ZZ9.999999"
+    generalId: 89
+  - key: "RY16Y"
+    description: "Z,ZZ9.999999-"
+    generalId: 62
+  - key: "UY17Y"
+    description: "Z,ZZ9.9999999"
+    generalId: 90
+  - key: "RY17Y"
+    description: "Z,ZZ9.9999999-"
+    generalId: 63
+  - key: "UY18Y"
+    description: "Z,ZZ9.99999999"
+    generalId: 91
+  - key: "RY18Y"
+    description: "Z,ZZ9.99999999-"
+    generalId: 64
+  - key: "UYN0N"
+    description: "Z,ZZZ"
+    generalId: 82
+  - key: "RYN0N"
+    description: "Z,ZZZ-"
+    generalId: 55
+  - key: "UN10N"
+    description: "Z9"
+    generalId: 66
+  - key: "RN10N"
+    description: "Z9-"
+    generalId: 39
+  - key: "UN11Y"
+    description: "Z9.9"
+    generalId: 67
+  - key: "RN11Y"
+    description: "Z9.9-"
+    generalId: 40
+  - key: "UN12Y"
+    description: "Z9.99"
+    generalId: 68
+  - key: "RN12Y"
+    description: "Z9.99-"
+    generalId: 41
+  - key: "UN13Y"
+    description: "Z9.999"
+    generalId: 69
+  - key: "RN13Y"
+    description: "Z9.999-"
+    generalId: 42
+  - key: "UN14Y"
+    description: "Z9.9999"
+    generalId: 70
+  - key: "RN14Y"
+    description: "Z9.9999-"
+    generalId: 43
+  - key: "UN15Y"
+    description: "Z9.99999"
+    generalId: 71
+  - key: "RN15Y"
+    description: "Z9.99999-"
+    generalId: 44
+  - key: "UN16Y"
+    description: "Z9.999999"
+    generalId: 72
+  - key: "RN16Y"
+    description: "Z9.999999-"
+    generalId: 45
+  - key: "UN17Y"
+    description: "Z9.9999999"
+    generalId: 73
+  - key: "RN17Y"
+    description: "Z9.9999999-"
+    generalId: 46
+  - key: "UN18Y"
+    description: "Z9.99999999"
+    generalId: 74
+  - key: "RN18Y"
+    description: "Z9.99999999-"
+    generalId: 47
+  - key: "UN20N"
+    description: "Z99"
+    generalId: 75
+  - key: "RN20N"
+    description: "Z99-"
+    generalId: 48
+  - key: "UN30N"
+    description: "Z999"
+    generalId: 76
+  - key: "RN30N"
+    description: "Z999-"
+    generalId: 49
+  - key: "UN40N"
+    description: "Z9999"
+    generalId: 77
+  - key: "RN40N"
+    description: "Z9999-"
+    generalId: 50
+  - key: "UN50N"
+    description: "Z99999"
+    generalId: 78
+  - key: "RN50N"
+    description: "Z99999-"
+    generalId: 51
+  - key: "UN60N"
+    description: "Z999999"
+    generalId: 79
+  - key: "RN60N"
+    description: "Z999999-"
+    generalId: 52
+  - key: "UN70N"
+    description: "Z9999999"
+    generalId: 80
+  - key: "RN70N"
+    description: "Z9999999-"
+    generalId: 53
+  - key: "UN80N"
+    description: "Z99999999"
+    generalId: 81
+  - key: "RN80N"
+    description: "Z99999999-"
+    generalId: 54
+JUSTIFY:
+  codeCategory: "JUSTIFY"
+  codes:
+  - key: "CNTER"
+    description: "Center"
+    generalId: 2
+  - key: "LEFT"
+    description: "Left"
+    generalId: 1
+  - key: "RIGHT"
+    description: "Right"
+    generalId: 3
+SPACEUNIT:
+  codeCategory: "SPACEUNIT"
+  codes:
+  - key: "BLK"
+    description: "Blocks"
+    generalId: 3
+  - key: "CYL"
+    description: "Cylinders"
+    generalId: 1
+  - key: "TRK"
+    description: "Tracks"
+    generalId: 2
+DBMSROWFMT:
+  codeCategory: "DBMSROWFMT"
+  codes:
+  - key: "SQL"
+    description: "SQL Standard"
+    generalId: 1
+FLDCONTENT:
+  codeCategory: "FLDCONTENT"
+  codes:
+  - key: "CCYY"
+    description: "CCYY"
+    generalId: 31
+  - key: "CY-DD"
+    description: "CCYY-DDD"
+    generalId: 38
+  - key: "CY-M"
+    description: "CCYY-MM"
+    generalId: 39
+  - key: "C-M-D"
+    description: "CCYY-MM-DD"
+    generalId: 40
+  - key: "POSIX"
+    description: "CCYY-MM-DD HH:NN:SS.TT"
+    generalId: 34
+  - key: "CY/DD"
+    description: "CCYY/DDD"
+    generalId: 12
+  - key: "CY/M"
+    description: "CCYY/MM"
+    generalId: 41
+  - key: "CY/MD"
+    description: "CCYY/MM/DD"
+    generalId: 4
+  - key: "POS2"
+    description: "CCYY/MM/DD HH:NN:SS.TT"
+    generalId: 42
+  - key: "CYDDD"
+    description: "CCYYDDD"
+    generalId: 11
+  - key: "CYM"
+    description: "CCYYMM"
+    generalId: 30
+  - key: "CYMD"
+    description: "CCYYMMDD"
+    generalId: 3
+  - key: "CYMDH"
+    description: "CCYYMMDDHHNNSS"
+    generalId: 25
+  - key: "CYMDT"
+    description: "CCYYMMDDHHNNSSTT"
+    generalId: 54
+  - key: "DD"
+    description: "DD"
+    generalId: 17
+  - key: "D-M"
+    description: "DD-MM"
+    generalId: 43
+  - key: "D-M-C"
+    description: "DD-MM-CCYY"
+    generalId: 44
+  - key: "D-M-Y"
+    description: "DD-MM-YY"
+    generalId: 45
+  - key: "DMOCY"
+    description: "DD-MMM-CCYY"
+    generalId: 52
+  - key: "EUDAT"
+    description: "DD MMMM CCYY"
+    generalId: 51
+  - key: "DD/MM"
+    description: "DD/MM"
+    generalId: 15
+  - key: "D/MCY"
+    description: "DD/MM/CCYY"
+    generalId: 8
+  - key: "D/M/Y"
+    description: "DD/MM/YY"
+    generalId: 6
+  - key: "DMCY"
+    description: "DDMMCCYY"
+    generalId: 7
+  - key: "DMY"
+    description: "DDMMYY"
+    generalId: 5
+  - key: "HH:MM"
+    description: "HH:NN"
+    generalId: 24
+  - key: "H:M:S"
+    description: "HH:NN:SS"
+    generalId: 22
+  - key: "H:MST"
+    description: "HH:NN:SS.TT"
+    generalId: 20
+  - key: "HHMM"
+    description: "HHNN"
+    generalId: 23
+  - key: "HMS"
+    description: "HHNNSS"
+    generalId: 21
+  - key: "HMST"
+    description: "HHNNSSTT"
+    generalId: 19
+  - key: "M"
+    description: "MM"
+    generalId: 16
+  - key: "M-D"
+    description: "MM-DD"
+    generalId: 46
+  - key: "M-D-C"
+    description: "MM-DD-CCYY"
+    generalId: 47
+  - key: "MM/DD"
+    description: "MM/DD"
+    generalId: 14
+  - key: "MD/CY"
+    description: "MM/DD/CCYY"
+    generalId: 37
+  - key: "MMDD"
+    description: "MMDD"
+    generalId: 13
+  - key: "MDCY"
+    description: "MMDDCCYY"
+    generalId: 36
+  - key: "MDY"
+    description: "MMDDYY"
+    generalId: 35
+  - key: "CYAP"
+    description: "MMM DD CCYY HH:NN:SS.TT AM/PM"
+    generalId: 33
+  - key: "MMMMY"
+    description: "MMMM CCYY"
+    generalId: 53
+  - key: "USDAT"
+    description: "MMMM DD, CCYY"
+    generalId: 50
+  - key: "NONE"
+    description: "Unspecified"
+    generalId: 0
+  - key: "YY"
+    description: "YY"
+    generalId: 32
+  - key: "Y-DD"
+    description: "YY-DDD"
+    generalId: 48
+  - key: "Y-M-D"
+    description: "YY-MM-DD"
+    generalId: 49
+  - key: "Y/DDD"
+    description: "YY/DDD"
+    generalId: 10
+  - key: "Y/M/D"
+    description: "YY/MM/DD"
+    generalId: 2
+  - key: "YYDDD"
+    description: "YYDDD"
+    generalId: 9
+  - key: "YMD"
+    description: "YYMMDD"
+    generalId: 1
+VIEWTYPE:
+  codeCategory: "VIEWTYPE"
+  codes:
+  - key: "COPY"
+    description: "Copy Input"
+    generalId: 4
+  - key: "DETL"
+    description: "Detail"
+    generalId: 2
+  - key: "EXTR"
+    description: "Extract Only"
+    generalId: 5
+  - key: "SUMRY"
+    description: "Summary"
+    generalId: 1
+  - key: "DTMRG"
+    description: "Summary DT Merge"
+    generalId: 3
+SORTBRKFTR:
+  codeCategory: "SORTBRKFTR"
+  codes:
+  - key: "PRINT"
+    description: "Print"
+    generalId: 1
+  - key: "NOPRT"
+    description: "Suppress Print"
+    generalId: 0
+VIEWSTATUS:
+  codeCategory: "VIEWSTATUS"
+  codes:
+  - key: "ACTVE"
+    description: "Active"
+    generalId: 1
+  - key: "INACT"
+    description: "Inactive"
+    generalId: 2
+PAGEBRK:
+  codeCategory: "PAGEBRK"
+  codes:
+  - key: "NEWP"
+    description: "New Page"
+    generalId: 2
+  - key: "SAMEP"
+    description: "Same Page"
+    generalId: 1
+  - key: "SUPRS"
+    description: "Suppress Print"
+    generalId: 3
+  - key: "TTLN1"
+    description: "Title Line 1"
+    generalId: 4
+  - key: "TTLN2"
+    description: "Title Line 2"
+    generalId: 5
+  - key: "TTLN3"
+    description: "Title Line 3"
+    generalId: 6
+ACCMETHOD:
+  codeCategory: "ACCMETHOD"
+  codes:
+  - key: "DB2SQ"
+    description: "Db2 via SQL"
+    generalId: 6
+  - key: "SEQIN"
+    description: "Sequential"
+    generalId: 1
+  - key: "KSDS"
+    description: "VSAM - Ordered"
+    generalId: 3
+FILETYPE:
+  codeCategory: "FILETYPE"
+  codes:
+  - key: "DATAB"
+    description: "Database"
+    generalId: 6
+  - key: "DISK"
+    description: "Disk File"
+    generalId: 2
+  - key: "PIPE"
+    description: "Pipe"
+    generalId: 4
+  - key: "PEXIT"
+    description: "Read User-Exit - Pipe"
+    generalId: 8
+  - key: "REXIT"
+    description: "Read User-Exit Routine"
+    generalId: 7
+  - key: "TAPE"
+    description: "Tape File"
+    generalId: 3
+  - key: "TOKEN"
+    description: "Token"
+    generalId: 5
+FUNCTION:
+  codeCategory: "FUNCTION"
+  codes:
+  - key: "CONAM"
+    description: "CompanyName"
+    generalId: 6
+  - key: "FDATE"
+    description: "FiscalDate"
+    generalId: 503
+  - key: "VWOWN"
+    description: "OwnerUserID"
+    generalId: 8
+  - key: "PGNUM"
+    description: "PageNumber"
+    generalId: 3
+  - key: "PDATE"
+    description: "ProcessDate"
+    generalId: 1
+  - key: "PTIME"
+    description: "ProcessTime"
+    generalId: 2
+  - key: "RDATE"
+    description: "RunDate"
+    generalId: 502
+  - key: "S01LB"
+    description: "SortKey01Label"
+    generalId: 11
+  - key: "S01TT"
+    description: "SortKey01Title"
+    generalId: 13
+  - key: "S01VL"
+    description: "SortKey01Value"
+    generalId: 12
+  - key: "S02LB"
+    description: "SortKey02Label"
+    generalId: 21
+  - key: "S02TT"
+    description: "SortKey02Title"
+    generalId: 23
+  - key: "S02VL"
+    description: "SortKey02Value"
+    generalId: 22
+  - key: "S03LB"
+    description: "SortKey03Label"
+    generalId: 31
+  - key: "S03TT"
+    description: "SortKey03Title"
+    generalId: 33
+  - key: "S03VL"
+    description: "SortKey03Value"
+    generalId: 32
+  - key: "S04LB"
+    description: "SortKey04Label"
+    generalId: 41
+  - key: "S04TT"
+    description: "SortKey04Title"
+    generalId: 43
+  - key: "S04VL"
+    description: "SortKey04Value"
+    generalId: 42
+  - key: "S05LB"
+    description: "SortKey05Label"
+    generalId: 51
+  - key: "S05TT"
+    description: "SortKey05Title"
+    generalId: 53
+  - key: "S05VL"
+    description: "SortKey05Value"
+    generalId: 52
+  - key: "TEXT"
+    description: "Text"
+    generalId: 5
+  - key: "VWID"
+    description: "ViewID"
+    generalId: 4
+  - key: "VWNAM"
+    description: "ViewName"
+    generalId: 7
+WRITEDISP:
+  codeCategory: "WRITEDISP"
+  codes:
+  - key: "MCC"
+    description: "Modify,Catalog,Catalog"
+    generalId: 6
+  - key: "MCD"
+    description: "Modify,Catalog,Delete"
+    generalId: 5
+  - key: "MDD"
+    description: "Modify,Delete,Delete"
+    generalId: 4
+  - key: "NCC"
+    description: "New,Catalog,Catalog"
+    generalId: 3
+  - key: "NCD"
+    description: "New,Catalog,Delete"
+    generalId: 2
+  - key: "NDD"
+    description: "New,Delete,Delete"
+    generalId: 1
+  - key: "OCC"
+    description: "Old,Catalog,Catalog"
+    generalId: 9
+  - key: "OCD"
+    description: "Old,Catalog,Delete"
+    generalId: 8
+  - key: "ODD"
+    description: "Old,Delete,Delete"
+    generalId: 7
+PROGTYPE:
+  codeCategory: "PROGTYPE"
+  codes:
+  - key: "ASMLR"
+    description: "Assembler"
+    generalId: 6
+  - key: "C"
+    description: "C"
+    generalId: 3
+  - key: "COB2"
+    description: "COBOL II"
+    generalId: 2
+  - key: "Java"
+    description: "Java"
+    generalId: 5
+  - key: "LECOB"
+    description: "LE COBOL"
+    generalId: 1
+  - key: "C++"
+    description: "Visual C++"
+    generalId: 4
+DSORG:
+  codeCategory: "DSORG"
+  codes:
+  - key: "DA"
+    description: "Direct Access"
+    generalId: 2
+  - key: "PO"
+    description: "Partitioned"
+    generalId: 4
+  - key: "PS"
+    description: "Physical Sequential"
+    generalId: 1
+  - key: "VSAM"
+    description: "VSAM"
+    generalId: 3
+STDPARM:
+  codeCategory: "STDPARM"
+  codes:
+  - key: "ANCHR"
+    description: "Anchor"
+    generalId: 6
+  - key: "ETDDN"
+    description: "Event DDN"
+    generalId: 4
+  - key: "ETREC"
+    description: "Event Record"
+    generalId: 1
+  - key: "EXTRT"
+    description: "Extract Record"
+    generalId: 2
+  - key: "LKUPK"
+    description: "Lookup Key"
+    generalId: 3
+  - key: "RTCOD"
+    description: "Return Code"
+    generalId: 7
+  - key: "THDNO"
+    description: "Thread Number"
+    generalId: 5
+ENDIAN:
+  codeCategory: "ENDIAN"
+  codes:
+  - key: "BIG"
+    description: "Big"
+    generalId: 1
+  - key: "LITLE"
+    description: "Little"
+    generalId: 2
+DATATYPE:
+  codeCategory: "DATATYPE"
+  codes:
+  - key: "ALNUM"
+    description: "Alphanumeric"
+    generalId: 1
+  - key: "BINRY"
+    description: "Binary"
+    generalId: 6
+  - key: "BCD"
+    description: "Binary Coded Decimal"
+    generalId: 8
+  - key: "BSORT"
+    description: "Binary Sortable"
+    generalId: 7
+  - key: "EDNUM"
+    description: "Edited Numeric"
+    generalId: 10
+  - key: "MSKNM"
+    description: "Masked Numeric"
+    generalId: 9
+  - key: "PACKD"
+    description: "Packed"
+    generalId: 4
+  - key: "PSORT"
+    description: "Packed Sortable"
+    generalId: 5
+  - key: "NUMER"
+    description: "Zoned Decimal"
+    generalId: 3
+EXITTYPE:
+  codeCategory: "EXITTYPE"
+  codes:
+  - key: "FORMT"
+    description: "Format"
+    generalId: 4
+  - key: "LKUP"
+    description: "Lookup"
+    generalId: 3
+  - key: "READ"
+    description: "Read"
+    generalId: 1
+  - key: "WRITE"
+    description: "Write"
+    generalId: 2
+SUBTOT:
+  codeCategory: "SUBTOT"
+  codes:
+  - key: "BCALC"
+    description: "Break Calculation"
+    generalId: 8
+  - key: "DCALC"
+    description: "Detail Calculation"
+    generalId: 7
+  - key: "DFRST"
+    description: "Detail First"
+    generalId: 12
+  - key: "DLAST"
+    description: "Detail Last"
+    generalId: 13
+  - key: "DMAX"
+    description: "Detail Maximum"
+    generalId: 10
+  - key: "DMIN"
+    description: "Detail Minimum"
+    generalId: 11
+  - key: "FIRST"
+    description: "First"
+    generalId: 5
+  - key: "LAST"
+    description: "Last"
+    generalId: 6
+  - key: "MAX"
+    description: "Maximum"
+    generalId: 3
+  - key: "MIN"
+    description: "Minimum"
+    generalId: 4
+  - key: "NONE"
+    description: "None"
+    generalId: 1
+  - key: "SUM"
+    description: "Sum"
+    generalId: 2
+SORTBRKHDR:
+  codeCategory: "SORTBRKHDR"
+  codes:
+  - key: "PNEW"
+    description: "Print on New Page"
+    generalId: 1
+  - key: "PSAME"
+    description: "Print on Same Page"
+    generalId: 0
+  - key: "NOPRT"
+    description: "Suppress Print"
+    generalId: 2
+RECDELIM:
+  codeCategory: "RECDELIM"
+  codes:
+  - key: "FIXED"
+    description: "Fixed Length"
+    generalId: 6
+  - key: "DELIM"
+    description: "Record Delimited"
+    generalId: 1
+  - key: "VAREX"
+    description: "Variable Exclusive"
+    generalId: 5
+  - key: "VARIN"
+    description: "Variable Inclusive"
+    generalId: 4
+SORTSEQ:
+  codeCategory: "SORTSEQ"
+  codes:
+  - key: "ASCND"
+    description: "Ascending"
+    generalId: 1
+  - key: "DSCND"
+    description: "Descending"
+    generalId: 2
