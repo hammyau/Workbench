@@ -99,7 +99,6 @@ public class YAMLViewColumnDAO implements ViewColumnDAO {
 		List<YAMLViewColumnTransfer> ourViewColTransferList = new ArrayList<>(); 
 		viewColTransferList.stream().forEach(c -> addToOurTransferlist(ourViewColTransferList, c));
 		vt.setViewColumns(ourViewColTransferList);
-		YAMLViewDAO.saveView(vt);
 		return viewColTransferList;
 	}
 

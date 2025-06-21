@@ -369,8 +369,7 @@ public class MetadataView extends ViewPart implements ISelectionListener,
 								View view = null;
 								try {
 									view = factory.getView(viewBean.getId());
-									input = new ViewEditorInput(view, viewBean
-											.getRights());
+									input = new ViewEditorInput(view, viewBean.getRights());
 								} catch (SAFRDependencyException de) {
 									DependencyMessageDialog.openDependencyDialog(
 									    getSite().getShell(),"Inactive Dependencies",
@@ -444,12 +443,8 @@ public class MetadataView extends ViewPart implements ISelectionListener,
 										.getFirstElement();
 								LookupPath lookupPath = null;
 								try {
-									lookupPath = factory
-											.getLookupPath(lookupQueryBean
-													.getId());
-									input = new LookupPathEditorInput(
-											lookupPath, lookupQueryBean
-													.getRights());
+									lookupPath = factory.getLookupPath(lookupQueryBean.getId());
+									input = new LookupPathEditorInput(lookupPath, lookupQueryBean.getRights());
 								} catch (SAFRDependencyException de) {
 									DependencyMessageDialog
 											.openDependencyDialog(

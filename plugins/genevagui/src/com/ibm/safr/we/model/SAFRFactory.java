@@ -59,6 +59,7 @@ import com.ibm.safr.we.model.associations.ComponentAssociation;
 import com.ibm.safr.we.model.base.SAFREnvironmentalComponent;
 import com.ibm.safr.we.model.base.SAFRObject;
 import com.ibm.safr.we.model.view.View;
+import com.ibm.safr.we.model.view.WholeView;
 import com.ibm.safr.we.utilities.SAFRLogger;
 
 /**
@@ -210,11 +211,9 @@ public class SAFRFactory extends SAFRObject {
 			throws SAFRException {
 		ViewFolder viewfolder = null;
 		ViewFolderTransfer viewfolderTransfer = null;
-		viewfolderTransfer = DAOFactoryHolder.getDAOFactory()
-				.getViewFolderDAO().getViewFolder(id, environId);
+		viewfolderTransfer = DAOFactoryHolder.getDAOFactory().getViewFolderDAO().getViewFolder(id, environId);
 		if (viewfolderTransfer == null) {
-			throw new SAFRNotFoundException("View Folder '" + id
-					+ "' not found in Environment '" + environId + "'.", id);
+			throw new SAFRNotFoundException("View Folder '" + id + "' not found in Environment '" + environId + "'.", id);
 		} else {
 			viewfolder = new ViewFolder(viewfolderTransfer);
 		}
@@ -246,8 +245,7 @@ public class SAFRFactory extends SAFRObject {
 
 		Group grp = null;
 		GroupTransfer grpTransfer = null;
-		grpTransfer = DAOFactoryHolder.getDAOFactory().getGroupDAO().getGroup(
-				id);
+		grpTransfer = DAOFactoryHolder.getDAOFactory().getGroupDAO().getGroup(id);
 		if (grpTransfer == null) {
 			throw new SAFRNotFoundException("Group '" + id + "' not found.");
 		} else {
@@ -337,8 +335,7 @@ public class SAFRFactory extends SAFRObject {
 			throws SAFRException {
 		ControlRecord controlRecord = null;
 		ControlRecordTransfer controlRecordTransfer = null;
-		controlRecordTransfer = DAOFactoryHolder.getDAOFactory()
-				.getControlRecordDAO().getControlRecord(id, environId);
+		controlRecordTransfer = DAOFactoryHolder.getDAOFactory().getControlRecordDAO().getControlRecord(id, environId);
 		if (controlRecordTransfer == null) {
 			throw new SAFRNotFoundException("Control Record '" + id
 					+ "' not found in Environment '" + environId + "'.", id);
@@ -1104,7 +1101,11 @@ public class SAFRFactory extends SAFRObject {
 	 * @throws SAFRException
 	 */
 	public View createView() {
-		return new View(getCurrentEnvironmentId());
+		if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+			return new WholeView(getCurrentEnvironmentId());			
+		} else {
+			return new View(getCurrentEnvironmentId());
+		}
 	}
 
 	/**
@@ -1153,16 +1154,17 @@ public class SAFRFactory extends SAFRObject {
 	public View getView(Integer id, Integer environId) throws SAFRException	{
 		View view = null;
 		ViewTransfer viewTransfer = null;
-		viewTransfer = DAOFactoryHolder.getDAOFactory().getViewDAO().getView(
-				id, environId);
+		viewTransfer = DAOFactoryHolder.getDAOFactory().getViewDAO().getView(id, environId);
 
 		if (viewTransfer == null) {
-			throw new SAFRNotFoundException("View '" + id
-					+ "' not found in Environment '" + environId + "'.", id);
+			throw new SAFRNotFoundException("View '" + id + "' not found in Environment '" + environId + "'.", id);
 		} else {
-			view = new View(viewTransfer);
+			if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+				view = new WholeView(viewTransfer);
+			} else {
+				view = new View(viewTransfer);
+			}
 		}
-
 		return view;
 	}
 	

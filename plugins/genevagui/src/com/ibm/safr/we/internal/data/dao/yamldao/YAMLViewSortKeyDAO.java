@@ -61,8 +61,8 @@ public class YAMLViewSortKeyDAO implements ViewSortKeyDAO {
 			return;
 		}
 		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		vt.setViewSortKeys(new ArrayList<>());
 		vskTransferList.stream().forEach(s -> addViewSortKeys(vt, s));
-		YAMLViewDAO.saveView(vt);
 	}
 
 	private void addViewSortKeys(YAMLViewTransfer vt, ViewSortKeyTransfer sk) {

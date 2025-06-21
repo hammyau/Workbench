@@ -83,11 +83,9 @@ import com.ibm.safr.we.utilities.SAFRLogger;
 
 public class View extends SAFRActivatedComponent {
 
-    static transient Logger logger = Logger
-    .getLogger("com.ibm.safr.we.model.View");
+    static transient Logger logger = Logger .getLogger("com.ibm.safr.we.model.View");
 
-    static private final String LINEBREAK = System
-    .getProperty("line.separator");
+    static private final String LINEBREAK = System.getProperty("line.separator");
 
     private Code statusCode; // Active,Inactive VIEWSTATUSCD
     private Code typeCode; // Metadata list, VIEWTYPECD

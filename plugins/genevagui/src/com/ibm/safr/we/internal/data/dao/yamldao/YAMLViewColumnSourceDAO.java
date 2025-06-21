@@ -137,7 +137,6 @@ public class YAMLViewColumnSourceDAO implements ViewColumnSourceDAO {
 		//add vcs to each correct column
 		vt.getViewColumns().stream().forEach(c -> addViewSourcesToColumn(c, viewColSrcTransferList));
 		//viewSrcTransferList.stream().forEach(s -> addViewSources(vt, s));
-		YAMLViewDAO.saveView(vt);
 		return viewColSrcTransferList;
 	}
 

@@ -59,19 +59,24 @@ import com.ibm.safr.we.data.dao.ViewDAO;
 import com.ibm.safr.we.data.transfer.ComponentAssociationTransfer;
 import com.ibm.safr.we.data.transfer.DependentComponentTransfer;
 import com.ibm.safr.we.data.transfer.FindTransfer;
+import com.ibm.safr.we.data.transfer.LogicalRecordTransfer;
 import com.ibm.safr.we.data.transfer.LookupPathTransfer;
+import com.ibm.safr.we.data.transfer.ViewColumnSourceTransfer;
 import com.ibm.safr.we.data.transfer.ViewFolderViewAssociationTransfer;
 import com.ibm.safr.we.data.transfer.ViewTransfer;
 import com.ibm.safr.we.exceptions.SAFRNotFoundException;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLogicalRecordTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLLookupTransfer;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewColumnTransfer;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewSourceTransfer;
 import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.model.query.ControlRecordQueryBean;
 import com.ibm.safr.we.model.query.EnvironmentalQueryBean;
 import com.ibm.safr.we.model.query.LogicalFileQueryBean;
 import com.ibm.safr.we.model.query.LogicalRecordQueryBean;
+import com.ibm.safr.we.model.query.LookupQueryBean;
 import com.ibm.safr.we.model.query.UserExitRoutineQueryBean;
 import com.ibm.safr.we.model.query.ViewFolderQueryBean;
 import com.ibm.safr.we.model.query.ViewQueryBean;
@@ -132,8 +137,34 @@ public class YAMLViewDAO implements ViewDAO {
 	}
 
 	public ViewTransfer getView(Integer id, Integer environmentId)	throws DAOException {
-		ourViewTransfer = viewTxfrsByID.get(id); 
+		ourViewTransfer = viewTxfrsByID.get(id);
+		//ensure components from sources and column sources are there. Need to have activated to be able to know dependents
+		getDependents(environmentId);
 		return ourViewTransfer;
+	}
+
+	private void getDependents(Integer environmentId) {
+		DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().queryAllLogicalRecords(environmentId, null);
+		List<LookupQueryBean> lrs = DAOFactoryHolder.getDAOFactory().getLookupDAO().queryAllLookups(environmentId, null);
+		ourViewTransfer.getViewSources().stream().forEach(vs -> getViewSourceComponents(vs, environmentId));
+		ourViewTransfer.getViewColumns().stream().forEach(c -> getColumnSourceComponents(c, environmentId));
+	}
+
+
+	private Object getColumnSourceComponents(YAMLViewColumnTransfer c, Integer environmentId) {
+		c.getColumnSources().stream().forEach(cs -> getLookup(cs, environmentId));
+		return null;
+	}
+
+	private void getLookup(ViewColumnSourceTransfer cs, Integer environmentId) {
+		if(cs.getLookupPathId() != null) {
+			DAOFactoryHolder.getDAOFactory().getLookupDAO().getLookupPath(cs.getLookupPathId(), environmentId);
+		}
+	}
+
+	private void getViewSourceComponents(YAMLViewSourceTransfer vs, Integer environmentId) {
+		LogicalRecordTransfer lrt = YAMLLogicalRecordDAO.getLogicalRecord(vs.getLogicalRecord(), environmentId);
+		DAOFactoryHolder.getDAOFactory().getLRFieldDAO().getLRFields(lrt.getId(), environmentId);
 	}
 
 	public List<ViewTransfer> queryAllLogicBlocks() {
@@ -443,7 +474,6 @@ public class YAMLViewDAO implements ViewDAO {
     }
 
 	public ViewTransfer persistView(ViewTransfer viewTransfer) throws DAOException, SAFRNotFoundException {
-		ourViewTransfer = new YAMLViewTransfer(viewTransfer);
 		if (!viewTransfer.isPersistent()) {
 			return (createView(ourViewTransfer));
 		} else {

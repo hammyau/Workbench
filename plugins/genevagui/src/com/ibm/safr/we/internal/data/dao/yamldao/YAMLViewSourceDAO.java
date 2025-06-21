@@ -118,8 +118,8 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 	public void persistViewSources(List<ViewSourceTransfer> viewSrcTransferList) throws DAOException {
 
 		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		vt.setViewSources(new ArrayList<YAMLViewSourceTransfer>());
 		viewSrcTransferList.stream().forEach(s -> addViewSources(vt, s));
-		YAMLViewDAO.saveView(vt);
 	}
 
 	private void addViewSources(YAMLViewTransfer vt, ViewSourceTransfer s) {

@@ -162,6 +162,7 @@ public class YAMLLookupDAO implements LookupDAO {
 		} else {
 			ourLkTxf.setTargetXLRFileId(lrlfa.getAssociationId());
 		}
+		DAOFactoryHolder.getDAOFactory().getLRFieldDAO().getLRFields(ourLkTxf.getTargetLR(), environmentId);
 		return ourLkTxf;
 	}
 
