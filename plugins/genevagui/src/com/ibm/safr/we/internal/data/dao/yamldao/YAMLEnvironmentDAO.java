@@ -39,7 +39,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import com.google.common.flogger.FluentLogger;
-import com.ibm.db2.jcc.am.en;
 import com.ibm.safr.we.constants.ComponentType;
 import com.ibm.safr.we.constants.SAFRPersistence;
 import com.ibm.safr.we.constants.SortType;

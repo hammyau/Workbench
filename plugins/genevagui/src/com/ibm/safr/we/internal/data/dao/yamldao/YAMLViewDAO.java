@@ -138,8 +138,12 @@ public class YAMLViewDAO implements ViewDAO {
 
 	public ViewTransfer getView(Integer id, Integer environmentId)	throws DAOException {
 		ourViewTransfer = viewTxfrsByID.get(id);
+        if(ourViewTransfer != null) {
 		//ensure components from sources and column sources are there. Need to have activated to be able to know dependents
-		getDependents(environmentId);
+		    getDependents(environmentId);
+        } else {
+            ourViewTransfer = new YAMLViewTransfer();
+        }
 		return ourViewTransfer;
 	}
 
