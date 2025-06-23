@@ -34,6 +34,7 @@ import com.ibm.safr.we.constants.CodeCategories;
 import com.ibm.safr.we.constants.Codes;
 import com.ibm.safr.we.constants.ReportType;
 import com.ibm.safr.we.data.DAOFactoryHolder;
+import com.ibm.safr.we.data.DBType;
 import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.ui.reports.ReportUtils;
 
@@ -75,10 +76,15 @@ public class WBCompilerDataStore {
     public static void initializeWorkbenchCompiler(View view) {
         currentView = view;
         WorkbenchCompiler.reset();
-        WorkbenchCompiler.setSQLConnection(DAOFactoryHolder.getDAOFactory().getConnection());
-        WorkbenchCompiler.setSchema(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getSchema());
+		if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType() == DBType.YAML) {
+			WorkbenchCompiler.useYAMLDatabase();
+	        WorkbenchCompiler.setEnvironmentName(SAFRApplication.getUserSession().getEnvironment().getName());
+		} else {
+	        WorkbenchCompiler.setSQLConnection(DAOFactoryHolder.getDAOFactory().getConnection());
+	        WorkbenchCompiler.setSchema(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getSchema());
+	        WorkbenchCompiler.setEnvironment(view.getEnvironmentId());
+		}
         WorkbenchCompiler.addView(makeView(view));
-        WorkbenchCompiler.setEnvironment(view.getEnvironmentId());
         setView(view);
         setupWorkbenchCompilerViewColumnSources(view);
     }

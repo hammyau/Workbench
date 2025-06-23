@@ -29,6 +29,7 @@ public class WECompilerDataProvider implements CompilerDataProvider {
 	private DAOFactory DAOFact;
 	private Integer environID;
 	private Integer sourceLRID;
+	private String environmentName;
 
 	public WECompilerDataProvider() {
 		DAOFact = DAOFactoryHolder.getDAOFactory();
@@ -97,4 +98,15 @@ public class WECompilerDataProvider implements CompilerDataProvider {
 		
 	}
 
+    @Override
+    public void setEnvironmentName(String n) {
+        environmentName = n;
+    }
+
+    @Override
+    public String getEnvironmentName() {
+        return environmentName;
+    }
+
+	
 }
