@@ -170,58 +170,58 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 			throws DAOException {
 		Map<Integer, List<LookupPathSourceFieldTransfer>> lookupPathSymbolicFields = new HashMap<Integer, List<LookupPathSourceFieldTransfer>>();
 		List<LookupPathSourceFieldTransfer> innerList = null;
-		if (lkupPathIds == null || lkupPathIds.size() == 0) {
-			return lookupPathSymbolicFields;
-		}
-		try {
-			String placeholders = generator.getPlaceholders(lkupPathIds.size());
-			String selectQuery = "SELECT ENVIRONID ,LOOKUPSTEPID, LOOKUPID, SYMBOLICNAME FROM "
-					+ params.getSchema() + ".LOOKUPSRCKEY WHERE LOOKUPID IN (" + placeholders +")"
-					+ " AND ENVIRONID = ? "
-					+ " AND FLDTYPE = 3 AND SYMBOLICNAME IS NOT NULL";
-			PreparedStatement pst = null;
-			ResultSet rs = null;
-			while (true) {
-				try {
-					pst = con.prepareStatement(selectQuery);
-					int ndx = 1;
-					for(int i =0; i<lkupPathIds.size(); i++) {
-						pst.setInt(ndx++,  lkupPathIds.get(i));
-					}
-					pst.setInt(ndx, environmentId);
-					rs = pst.executeQuery();
-					break;
-				} catch (SQLException se) {
-					if (con.isClosed()) {
-						// lost database connection, so reconnect and retry
-						con = DAOFactoryHolder.getDAOFactory().reconnect();
-					} else {
-						throw se;
-					}
-				}
-			}
-			while (rs.next()) {
-
-				LookupPathSourceFieldTransfer srcFldTrans = new LookupPathSourceFieldTransfer();
-				srcFldTrans.setEnvironmentId(rs.getInt("ENVIRONID"));
-				srcFldTrans.setId(rs.getInt("LOOKUPSTEPID"));
-				srcFldTrans.setSymbolicName(DataUtilities.trimString(rs.getString("SYMBOLICNAME")));
-				Integer lookupPathId = rs.getInt("LOOKUPID");
-
-				if (lookupPathSymbolicFields.containsKey(lookupPathId)) {
-					lookupPathSymbolicFields.get(lookupPathId).add(srcFldTrans);
-
-				} else {
-					innerList = new ArrayList<LookupPathSourceFieldTransfer>();
-					innerList.add(srcFldTrans);
-					lookupPathSymbolicFields.put(lookupPathId, innerList);
-				}
-			}
-			pst.close();
-			rs.close();
-		} catch (SQLException e) {
-			throw DataUtilities.createDAOException("Database error occurred while retrieving all the source fields of the Lookup Paths which are of type Symbolic.",e);
-		}
+//		if (lkupPathIds == null || lkupPathIds.size() == 0) {
+//			return lookupPathSymbolicFields;
+//		}
+//		try {
+//			String placeholders = generator.getPlaceholders(lkupPathIds.size());
+//			String selectQuery = "SELECT ENVIRONID ,LOOKUPSTEPID, LOOKUPID, SYMBOLICNAME FROM "
+//					+ params.getSchema() + ".LOOKUPSRCKEY WHERE LOOKUPID IN (" + placeholders +")"
+//					+ " AND ENVIRONID = ? "
+//					+ " AND FLDTYPE = 3 AND SYMBOLICNAME IS NOT NULL";
+//			PreparedStatement pst = null;
+//			ResultSet rs = null;
+//			while (true) {
+//				try {
+//					pst = con.prepareStatement(selectQuery);
+//					int ndx = 1;
+//					for(int i =0; i<lkupPathIds.size(); i++) {
+//						pst.setInt(ndx++,  lkupPathIds.get(i));
+//					}
+//					pst.setInt(ndx, environmentId);
+//					rs = pst.executeQuery();
+//					break;
+//				} catch (SQLException se) {
+//					if (con.isClosed()) {
+//						// lost database connection, so reconnect and retry
+//						con = DAOFactoryHolder.getDAOFactory().reconnect();
+//					} else {
+//						throw se;
+//					}
+//				}
+//			}
+//			while (rs.next()) {
+//
+//				LookupPathSourceFieldTransfer srcFldTrans = new LookupPathSourceFieldTransfer();
+//				srcFldTrans.setEnvironmentId(rs.getInt("ENVIRONID"));
+//				srcFldTrans.setId(rs.getInt("LOOKUPSTEPID"));
+//				srcFldTrans.setSymbolicName(DataUtilities.trimString(rs.getString("SYMBOLICNAME")));
+//				Integer lookupPathId = rs.getInt("LOOKUPID");
+//
+//				if (lookupPathSymbolicFields.containsKey(lookupPathId)) {
+//					lookupPathSymbolicFields.get(lookupPathId).add(srcFldTrans);
+//
+//				} else {
+//					innerList = new ArrayList<LookupPathSourceFieldTransfer>();
+//					innerList.add(srcFldTrans);
+//					lookupPathSymbolicFields.put(lookupPathId, innerList);
+//				}
+//			}
+//			pst.close();
+//			rs.close();
+//		} catch (SQLException e) {
+//			throw DataUtilities.createDAOException("Database error occurred while retrieving all the source fields of the Lookup Paths which are of type Symbolic.",e);
+//		}
 		return lookupPathSymbolicFields;
 	}
 

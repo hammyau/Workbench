@@ -62,6 +62,7 @@ public class YAMLDAOFactory implements DAOFactory {
 	UserSessionParameters _safrLogin;
 	private static Path gersHome;
 	private YAMLDAOUOW _uow;
+	private static LookupDAO lkDao;
 	private static YAMLLogicalRecordDAO ourLRDAO;
 	private static PhysicalFileDAO pfDao;
 	private static LogicalFileDAO lfDao;
@@ -195,7 +196,10 @@ public class YAMLDAOFactory implements DAOFactory {
 
 	@Override
 	public LookupDAO getLookupDAO() throws DAOException {
-		return new YAMLLookupDAO(getConnection(), _params, _safrLogin);
+		if(lkDao == null) {
+			lkDao =  new YAMLLookupDAO(getConnection(), _params, _safrLogin);
+		}
+		return lkDao;
 	}
 
 	@Override
