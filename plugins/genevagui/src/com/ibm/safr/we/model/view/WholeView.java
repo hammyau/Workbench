@@ -184,19 +184,18 @@ public class WholeView extends View {
 //                    }
                     
                     // save view dependencies
-//                    if (this.statusCode.getGeneralId() == Codes.INACTIVE || isImportOrMigrate){
-//                        viewLogicDependencies = null; // dependency not applicable
-//                    }
-//                    List<ViewLogicDependencyTransfer> logicDependenciesTransfers = new ArrayList<ViewLogicDependencyTransfer>();
-//                    if (viewLogicDependencies != null) {
-//                        for (ViewLogicDependency viewLogicDepend : viewLogicDependencies) {
-//                            ViewLogicDependencyTransfer trans = new ViewLogicDependencyTransfer();
-//                            viewLogicDepend.setTransferData(trans);
-//                            logicDependenciesTransfers.add(trans);
-//                        }
-//                    }
-//                    DAOFactoryHolder.getDAOFactory().getViewLogicDependencyDAO()
-//                        .persistViewLogicDependencies(logicDependenciesTransfers, getId(),getEnvironmentId());
+                    if (this.statusCode.getGeneralId() == Codes.INACTIVE ){
+                        viewLogicDependencies = null; // dependency not applicable
+                    }
+                    List<ViewLogicDependencyTransfer> logicDependenciesTransfers = new ArrayList<ViewLogicDependencyTransfer>();
+                    if (viewLogicDependencies != null) {
+                        for (ViewLogicDependency viewLogicDepend : viewLogicDependencies) {
+                            ViewLogicDependencyTransfer trans = new ViewLogicDependencyTransfer();
+                            viewLogicDepend.setTransferData(trans);
+                            logicDependenciesTransfers.add(trans);
+                        }
+                    }
+                    DAOFactoryHolder.getDAOFactory().getViewLogicDependencyDAO().persistViewLogicDependencies(logicDependenciesTransfers, getId(),getEnvironmentId());
                     
 //                    if (!existsAllViewsAssociation()) {
 //                        DAOFactoryHolder.getDAOFactory().getViewFolderDAO().

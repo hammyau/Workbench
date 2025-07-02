@@ -547,13 +547,9 @@ public class ExportUtility extends SAFRObject {
         writeComponentData(compDataMap);
     }
 	
-    private void exportView(Integer environmentId, List<Integer> componentIds)
-			throws DAOException, IOException {
-		Map<ExportElementType, Map<Integer, List<XMLTableDataTransfer>>> compDataMap = DAOFactoryHolder
-				.getDAOFactory().getExportDAO().getViewData(environmentId,
-						componentIds);
+    private void exportView(Integer environmentId, List<Integer> componentIds) throws DAOException, IOException {
+		Map<ExportElementType, Map<Integer, List<XMLTableDataTransfer>>> compDataMap = DAOFactoryHolder.getDAOFactory().getExportDAO().getViewData(environmentId, componentIds);
 		writeComponentData(compDataMap);
-
 	}
 
 	private void exportLookupPath(Integer environmentId,

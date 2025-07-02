@@ -1,5 +1,8 @@
 package com.ibm.safr.we.ui.editors;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2023
  * 
@@ -84,6 +87,8 @@ import com.ibm.safr.we.constants.SAFRValidationType;
 import com.ibm.safr.we.constants.SortType;
 import com.ibm.safr.we.constants.UserPreferencesNodes;
 import com.ibm.safr.we.data.DAOException;
+import com.ibm.safr.we.data.DAOFactoryHolder;
+import com.ibm.safr.we.data.DBType;
 import com.ibm.safr.we.exceptions.SAFRException;
 import com.ibm.safr.we.exceptions.SAFRFatalException;
 import com.ibm.safr.we.exceptions.SAFRValidationException;
@@ -1120,28 +1125,36 @@ public class ExportUtilityEditor extends SAFREditorPart implements ISearchablePa
                 }
 
                 shell = getSite().getShell();
-                String outputDir = textLocation.getText();
-                String rcaReportDir = null;
+                Path outputDir = Paths.get(textLocation.getText());
+                Path rcaReportDir = null;
                 
                 if(checkPass.getSelection()) {
-                    outputDir += "\\RCAReport";
+                    outputDir = outputDir.resolve("RCAReport");
                     rcaReportDir = outputDir;
-                    PassGenerator.clearOutputDirectory(outputDir);
-                    outputDir += "\\WBXMLI";
+                    PassGenerator.clearOutputDirectory(outputDir.toString());
+                    outputDir.toFile().mkdirs();
+                    outputDir = outputDir.resolve("WBXMLI");
                 }
-                exportUtility = new ExportUtility(currentEnvironment, outputDir, textFilename.getText(),
+                exportUtility = new ExportUtility(currentEnvironment, outputDir.toString(), textFilename.getText(),
                         componentType, formatvid.getSelection(), formatvnamevid.getSelection(),
                         formatfid.getSelection(), formatfnamefid.getSelection(), multiple);
 
                 try {
                     ApplicationMediator.getAppMediator().waitCursor();
-                    exportUtility.export(list, Display.getDefault().getActiveShell());
-                    getMsgManager().removeAllMessages();
-                    if(checkPass.getSelection()) {
-                        String t = comboRCAType.getText();
-                        PassGenerator.runFromXML(rcaReportDir, t);
-                        String url = rcaReportDir + "/" + PassGenerator.getReportHtmlFile();
-                        Program.launch(url);
+                    if(checkPass.getSelection() && DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+                    		String t = comboRCAType.getText();
+                        	PassGenerator.runFromYAML(list, currentEnvironment, rcaReportDir.toString(), t);                        	
+                            String url = rcaReportDir + "/" + PassGenerator.getReportHtmlFile();
+                            Program.launch(url);
+                    } else {
+	                    exportUtility.export(list, Display.getDefault().getActiveShell());
+	                    getMsgManager().removeAllMessages();
+	                    if(checkPass.getSelection()) {
+	                        String t = comboRCAType.getText();
+	                       	PassGenerator.runFromXML(rcaReportDir.toString(), t);
+	                        String url = rcaReportDir + "/" + PassGenerator.getReportHtmlFile();
+	                        Program.launch(url);
+	                    }
                     }
                     getSite().getShell().setCursor(null);
 

@@ -1,5 +1,7 @@
 package com.ibm.safr.we.data.transfer;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
  * 
@@ -20,8 +22,8 @@ package com.ibm.safr.we.data.transfer;
 
 import com.ibm.safr.we.constants.LogicTextType;
 
-public class ViewLogicDependencyTransfer extends
-		SAFREnvironmentalComponentTransfer {
+@JsonIgnoreProperties({"environmentId", "viewId", "id"})
+public class ViewLogicDependencyTransfer extends SAFREnvironmentalComponentTransfer {
 
 	private Integer viewId; // VIEWID
 	private LogicTextType logicTextType; // PARENTTYPECD

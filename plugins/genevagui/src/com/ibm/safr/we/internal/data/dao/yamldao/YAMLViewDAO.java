@@ -399,81 +399,9 @@ public class YAMLViewDAO implements ViewDAO {
 		}
 	}
 
-    public List<ViewQueryBean> queryAllViews(SortType sortType,
-        Integer environmentId, boolean admin)
-        throws DAOException {
+    public List<ViewQueryBean> queryAllViews(SortType sortType, Integer environmentId, boolean admin)  throws DAOException {
         List<ViewQueryBean> result = new ArrayList<ViewQueryBean>();
-        try {
-            String selectString = "";
-            String orderBy = "";
-            if (sortType.equals(SortType.SORT_BY_ID)) {
-                orderBy = " ORDER BY A.VIEWID";
-            } else {
-                orderBy = " ORDER BY UPPER(A.NAME)";
-            }
-    
-            if (admin) {
-                selectString = "SELECT A.VIEWID, A.NAME AS VIEWNAME, A.VIEWSTATUSCD, A.OUTPUTMEDIACD, "
-                    + "A.VIEWTYPECD, A.CREATEDTIMESTAMP, A.CREATEDUSERID, "
-                    + "A.LASTMODTIMESTAMP,A.LASTMODUSERID,A.COMPILER,A.LASTACTTIMESTAMP,A.LASTACTUSERID FROM "
-                    + params.getSchema() + ".VIEW A "
-                    + "WHERE A.VIEWID > 0 AND A.ENVIRONID = ? " + orderBy;
-            } else {
-                selectString = "SELECT A.VIEWID, A.NAME AS VIEWNAME, A.VIEWSTATUSCD, A.OUTPUTMEDIACD, "
-                    + "A.VIEWTYPECD, C.RIGHTS, A.CREATEDTIMESTAMP, A.CREATEDUSERID, "
-                    + "A.LASTMODTIMESTAMP,A.LASTMODUSERID,A.COMPILER,A.LASTACTTIMESTAMP,A.LASTACTUSERID FROM "
-                    + params.getSchema() + ".VIEW A LEFT OUTER JOIN "
-                    + params.getSchema() + ".SECVIEW C ON C.ENVIRONID=A.ENVIRONID AND A.VIEWID=C.VIEWID "
-                    + "AND C.GROUPID = ?"
-                    + " WHERE A.VIEWID > 0 AND A.ENVIRONID = ? " + orderBy;           
-            }
-    
-            PreparedStatement pst = null;
-            ResultSet rs = null;
-            while (true) {
-                try {
-                    pst = con.prepareStatement(selectString);
-                    if(admin) {
-                    	pst.setInt(1, environmentId);
-                    } else {
-                    	pst.setInt(1,  SAFRApplication.getUserSession().getGroup().getId());
-                    	pst.setInt(2, environmentId);                    	
-                    }
-                    rs = pst.executeQuery();
-                    break;
-                } catch (SQLException se) {
-                    if (con.isClosed()) {
-                        // lost database connection, so reconnect and retry
-                        con = DAOFactoryHolder.getDAOFactory().reconnect();
-                    } else {
-                        throw se;
-                    }
-                }
-            }
-            while (rs.next()) {
-                ViewQueryBean viewQueryBean = new ViewQueryBean(environmentId,
-                    rs.getInt(COL_ID), 
-                    DataUtilities.trimString(rs.getString("VIEWNAME")), 
-                    DataUtilities.trimString(rs.getString(COL_STATUS)),
-                    DataUtilities.trimString(rs.getString(COL_OUTPUTFORMAT)),
-                    DataUtilities.trimString(rs.getString(COL_TYPE)), 
-                    admin ? EditRights.ReadModifyDelete : SAFRApplication.getUserSession().getEditRights(
-                        rs.getInt("RIGHTS"), ComponentType.View, environmentId), 
-                    rs.getDate(COL_CREATETIME), 
-                    DataUtilities.trimString(rs.getString(COL_CREATEBY)), 
-                    rs.getDate(COL_MODIFYTIME), 
-                    DataUtilities.trimString(rs.getString(COL_MODIFYBY)),
-                    DataUtilities.trimString(rs.getString(COL_COMPILER)),
-                    rs.getDate(COL_ACTIVATETIME), 
-                    DataUtilities.trimString(rs.getString(COL_ACTIVATEBY)));
-                result.add(viewQueryBean);
-            }
-            pst.close();
-            rs.close();
-        } catch (SQLException e) {
-            throw DataUtilities.createDAOException(
-                    "Database error occurred while querying all Views.", e);
-        }
+        result.addAll(viewBeans.values());
         return result;
     }
 

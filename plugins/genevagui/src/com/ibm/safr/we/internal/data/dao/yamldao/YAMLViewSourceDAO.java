@@ -225,8 +225,7 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 		return lookupPathSymbolicFields;
 	}
 
-	public void removeViewSources(List<Integer> vwSrcIds, Integer environmentId)
-			throws DAOException {
+	public void removeViewSources(List<Integer> vwSrcIds, Integer environmentId) throws DAOException {
 		if (vwSrcIds == null || vwSrcIds.size() == 0) {
 			return;
 		}

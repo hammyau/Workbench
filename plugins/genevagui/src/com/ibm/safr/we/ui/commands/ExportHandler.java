@@ -22,9 +22,12 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.ibm.safr.we.data.DAOFactoryHolder;
+import com.ibm.safr.we.data.DBType;
 import com.ibm.safr.we.ui.editors.ExportUtilityEditor;
 import com.ibm.safr.we.ui.editors.ExportUtilityEditorInput;
 import com.ibm.safr.we.ui.utilities.UIUtilities;
@@ -32,13 +35,18 @@ import com.ibm.safr.we.ui.utilities.UIUtilities;
 public class ExportHandler extends AbstractHandler implements IHandler {
 
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		ExportUtilityEditorInput input = new ExportUtilityEditorInput();
-		try {
-			HandlerUtil.getActiveWorkbenchWindow(event).getActivePage()
-					.openEditor(input, ExportUtilityEditor.ID);
-		} catch (PartInitException e) {
-			UIUtilities.handleWEExceptions(e,"Unexpected error occurred while opening export utility editor.",null);
-		}
+//		if(DAOFactoryHolder.getDAOFactory().getConnectionParameters().getType()== DBType.YAML) {
+//			MessageBox mb = new MessageBox(HandlerUtil.getActiveWorkbenchWindow(event).getShell());
+//			mb.setMessage("Something new coming soon");
+//			mb.open();
+//		} else {
+			ExportUtilityEditorInput input = new ExportUtilityEditorInput();
+			try {
+				HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().openEditor(input, ExportUtilityEditor.ID);
+			} catch (PartInitException e) {
+				UIUtilities.handleWEExceptions(e,"Unexpected error occurred while opening export utility editor.",null);
+			}
+//		}
 		return null;
 	}
 

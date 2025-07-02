@@ -87,7 +87,7 @@ public class View extends SAFRActivatedComponent {
 
     static private final String LINEBREAK = System.getProperty("line.separator");
 
-    private Code statusCode; // Active,Inactive VIEWSTATUSCD
+    protected Code statusCode; // Active,Inactive VIEWSTATUSCD
     private Code typeCode; // Metadata list, VIEWTYPECD
     private Integer extractWorkFileNo; // Extr Phase, EXTRACTFILEPARTNBR
     private Code outputFormatCode; // General, OUTPUTMEDIACD
@@ -133,7 +133,7 @@ public class View extends SAFRActivatedComponent {
     private View.HeaderFooterItems header;
     private View.HeaderFooterItems footer;
 
-    private List<ViewLogicDependency> viewLogicDependencies;
+    protected List<ViewLogicDependency> viewLogicDependencies;
 
     private SAFRAssociationList<ViewFolderViewAssociation> vfAssociations = new SAFRAssociationList<ViewFolderViewAssociation>();
     
@@ -2406,10 +2406,7 @@ public class View extends SAFRActivatedComponent {
                             DAOFactoryHolder
                                     .getDAOFactory()
                                     .getHeaderFooterDAO()
-                                    .persistHeaderFooter(
-                                            viewHeaderFooterItemsTransfers,
-                                            this.getId(),
-                                            this.getEnvironmentId());
+                                    .persistHeaderFooter(viewHeaderFooterItemsTransfers, this.getId(), this.getEnvironmentId());
                         }
                     }
                     
@@ -2425,12 +2422,10 @@ public class View extends SAFRActivatedComponent {
                             logicDependenciesTransfers.add(trans);
                         }
                     }
-                    DAOFactoryHolder.getDAOFactory().getViewLogicDependencyDAO()
-                        .persistViewLogicDependencies(logicDependenciesTransfers, getId(),getEnvironmentId());
+                    DAOFactoryHolder.getDAOFactory().getViewLogicDependencyDAO().persistViewLogicDependencies(logicDependenciesTransfers, getId(), getEnvironmentId());
                     
                     if (!existsAllViewsAssociation()) {
-                        DAOFactoryHolder.getDAOFactory().getViewFolderDAO().
-                            addAllViewsAssociation(getId(),getEnvironmentId());
+                        DAOFactoryHolder.getDAOFactory().getViewFolderDAO().addAllViewsAssociation(getId(),getEnvironmentId());
                         vfAssociations = SAFRAssociationFactory.getViewToViewFolderAssociations(this,false);
                     }
                     success = true;

@@ -37,6 +37,8 @@ import com.ibm.safr.we.data.UserSessionParameters;
 import com.ibm.safr.we.data.dao.ViewLogicDependencyDAO;
 import com.ibm.safr.we.data.transfer.ViewLogicDependencyTransfer;
 import com.ibm.safr.we.internal.data.PGSQLGenerator;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewSourceTransfer;
+import com.ibm.safr.we.internal.data.dao.yamldao.transfers.YAMLViewTransfer;
 
 /**
  * This class implements the database access for ViewLogicDependency.
@@ -80,8 +82,7 @@ public class YAMLViewLogicDependencyDAO implements ViewLogicDependencyDAO {
 	 *            : The parameters related to the user who has logged into the
 	 *            workbench.
 	 */
-	public YAMLViewLogicDependencyDAO(Connection con,
-			ConnectionParameters params, UserSessionParameters safrLogin) {
+	public YAMLViewLogicDependencyDAO(Connection con, ConnectionParameters params, UserSessionParameters safrLogin) {
 		this.con = con;
 		this.params = params;
 		this.safrLogin = safrLogin;
@@ -111,6 +112,8 @@ public class YAMLViewLogicDependencyDAO implements ViewLogicDependencyDAO {
 	}
 
 	public void persistViewLogicDependencies(List<ViewLogicDependencyTransfer> viewLogicDepTfrList,	Integer viewId, Integer environmentId) throws DAOException {
+		YAMLViewTransfer vt = YAMLViewDAO.getCurrentView();
+		vt.setViewDepenencies(viewLogicDepTfrList);
 //		try {
 //
 //			// First delete any entry in VIEWLOGICDEPEND table for this view

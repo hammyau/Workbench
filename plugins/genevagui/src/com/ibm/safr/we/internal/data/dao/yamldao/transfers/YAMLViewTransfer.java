@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.ibm.safr.we.data.transfer.ViewColumnTransfer;
 import com.ibm.safr.we.data.transfer.ViewColumnSourceTransfer;
+import com.ibm.safr.we.data.transfer.ViewLogicDependencyTransfer;
 import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 import com.ibm.safr.we.data.transfer.ViewSortKeyTransfer;
 import com.ibm.safr.we.data.transfer.ViewTransfer;
@@ -14,6 +15,7 @@ public class YAMLViewTransfer extends ViewTransfer {
 	private List<YAMLViewSourceTransfer> viewSources = new ArrayList<>();
 	private List<YAMLViewColumnTransfer> viewColumns = new ArrayList<>();
 	private List<ViewSortKeyTransfer> viewSortKeys = new ArrayList<>();
+	private List<ViewLogicDependencyTransfer> viewDepenencies = new ArrayList<>();
 	
 	public YAMLViewTransfer() {
 		super();
@@ -96,6 +98,12 @@ public class YAMLViewTransfer extends ViewTransfer {
 		viewSortKeys.add(vskt);
 	}
 
+	public void setViewDepenencies(List<ViewLogicDependencyTransfer> viewDepenencies) {
+		this.viewDepenencies = viewDepenencies;
+	}
 	
+	public List<ViewLogicDependencyTransfer> getViewDepenencies() {
+		return viewDepenencies;
+	}
 
 }

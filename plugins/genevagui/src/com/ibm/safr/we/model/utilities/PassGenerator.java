@@ -1,6 +1,8 @@
 package com.ibm.safr.we.model.utilities;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * Copyright Contributors to the GenevaERS Project. SPDX-License-Identifier: Apache-2.0 (c) Copyright IBM Corporation 2008.
@@ -25,6 +27,8 @@ import java.util.logging.Logger;
 import org.genevaers.rcapps.RCDriver;
 
 import com.ibm.safr.we.exceptions.SAFRException;
+import com.ibm.safr.we.model.query.EnvironmentQueryBean;
+import com.ibm.safr.we.model.utilities.export.ExportComponent;
 
 public class PassGenerator {
 
@@ -34,6 +38,18 @@ public class PassGenerator {
         RCDriver.setInputType("WBXML");
         RCDriver.setOutputPath(Paths.get(exportPath));
         RCDriver.setRCATextType(textType);
+        logger.log(Level.INFO, "runFromXML from path " + exportPath);	
+        RCDriver.runRCA(exportPath);
+    }
+    
+    public static void runFromYAML(List<ExportComponent> views, EnvironmentQueryBean currentEnvironment, String exportPath, String textType) throws SAFRException {
+    	List<String> viewNames = new ArrayList<String>();
+    	views.stream().forEach(v -> viewNames.add(v.getComponent().getName()));
+        RCDriver.setInputType("YAML");
+        RCDriver.setOutputPath(Paths.get(exportPath));
+        RCDriver.setRCATextType(textType);
+        RCDriver.setViewNames(viewNames);
+        RCDriver.setEnvironmentName(currentEnvironment.getName());
         logger.log(Level.INFO, "runFromXML from path " + exportPath);	
         RCDriver.runRCA(exportPath);
     }
