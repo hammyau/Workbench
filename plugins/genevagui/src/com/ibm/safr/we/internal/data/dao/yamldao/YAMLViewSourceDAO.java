@@ -123,11 +123,11 @@ public class YAMLViewSourceDAO implements ViewSourceDAO {
 	}
 
 	private void addViewSources(YAMLViewTransfer vt, ViewSourceTransfer s) {
-		ourViewSource =new YAMLViewSourceTransfer(s);
-		ComponentAssociationTransfer lrlf = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(s.getLRFileAssocId(), s.getEnvironmentId());
-		ourViewSource.setLogicalFile(lrlf.getAssociatedComponentName());
-		ourViewSource.setLogicalRecord(lrlf.getAssociatingComponentName());
-		vt.addViewSource(ourViewSource);
+		//ourViewSource =new YAMLViewSourceTransfer(s);
+//		ComponentAssociationTransfer lrlf = DAOFactoryHolder.getDAOFactory().getLogicalRecordDAO().getLRLFAssociation(s.getLRFileAssocId(), s.getEnvironmentId());
+//		ourViewSource.setLogicalFile(lrlf.getAssociatedComponentName());
+//		ourViewSource.setLogicalRecord(lrlf.getAssociatingComponentName());
+		vt.addViewSource((YAMLViewSourceTransfer)s);
 	}
 
 	public Map<Integer, List<EnvironmentalQueryBean>> getViewSourceLookupPathDetails(Integer srcLRID, Integer environmentId) throws DAOException {

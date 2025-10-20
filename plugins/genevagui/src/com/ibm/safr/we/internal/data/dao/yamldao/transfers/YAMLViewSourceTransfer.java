@@ -22,7 +22,7 @@ import com.ibm.safr.we.data.transfer.ViewSourceTransfer;
 
 
 
-public class YAMLViewSourceTransfer {
+public class YAMLViewSourceTransfer extends ViewSourceTransfer{
 
 	private int sequenceNumber;
     private String logicalRecord;

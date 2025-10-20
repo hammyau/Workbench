@@ -234,7 +234,7 @@ public class DAOFactoryHolder {
 
     }
 
-    static void genDAOFactory(ConnectionParameters params) throws DAOException {
+    public static void genDAOFactory(ConnectionParameters params) throws DAOException {
 		if (daoFactory != null) {
 			if (params.getType() == DBType.Db2) {
 				((DB2DAOFactory) daoFactory).reconnect();			

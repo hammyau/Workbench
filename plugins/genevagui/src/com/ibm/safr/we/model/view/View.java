@@ -91,13 +91,13 @@ public class View extends SAFRActivatedComponent {
     private Code typeCode; // Metadata list, VIEWTYPECD
     private Integer extractWorkFileNo; // Extr Phase, EXTRACTFILEPARTNBR
     private Code outputFormatCode; // General, OUTPUTMEDIACD
-    private Integer outputLRId; // General (new view), OUTPUTLRID
+    protected Integer outputLRId; // General (new view), OUTPUTLRID
     private Integer extractFileAssociationId; // Extr Output File, LFPFASSOCID
     private FileAssociation extractFileAssociation;
     private Integer linesPerPage; // General, PAGESIZE
     private Integer reportWidth; // General, LINESIZE
-    private Boolean suppressZeroRecords; // Format Phase, ZEROSUPPRESSIND
-    private Boolean headerRow; //Delimiter Phase, DELIMHEADERROWIND
+    protected Boolean suppressZeroRecords; // Format Phase, ZEROSUPPRESSIND
+    protected Boolean headerRow; //Delimiter Phase, DELIMHEADERROWIND
     private Integer extractMaxRecords; // Extract Output, EXTRACTMAXRECCNT
     private Boolean aggregateBySortKey; // Extract Aggr, EXTRACTSUMMARYIND
     private Integer aggregateBufferSize; // Extract Aggr, EXTRACTSUMMARYBUF
@@ -115,8 +115,8 @@ public class View extends SAFRActivatedComponent {
     private Boolean isFormatPhaseRecordAggregationOn;
     private OutputPhase outputPhase;
     private OutputFormat outputFormat;
-    private Boolean extractPhaseOutputLimit;
-    private Boolean formatPhaseOutputLimit;
+    protected Boolean extractPhaseOutputLimit;
+    protected Boolean formatPhaseOutputLimit;
     private Date effectiveDate;
 
     private String compilerVersion;
@@ -125,8 +125,8 @@ public class View extends SAFRActivatedComponent {
 	// converting to blobs using SAFRBlobs.dll
 	private byte[] compiledFormatRecordFilter;
 
-    private final SAFRList<ViewSource> viewSources = new SAFRList<ViewSource>();
-    private final SAFRList<ViewColumn> viewColumns = new SAFRList<ViewColumn>();
+    protected final SAFRList<ViewSource> viewSources = new SAFRList<ViewSource>();
+    protected final SAFRList<ViewColumn> viewColumns = new SAFRList<ViewColumn>();
     private final SAFRList<ViewColumnSource> viewColumnSources = new SAFRList<ViewColumnSource>();
     private final SAFRList<ViewSortKey> viewSortKeys = new SAFRList<ViewSortKey>();
 
@@ -2884,6 +2884,8 @@ public class View extends SAFRActivatedComponent {
             }
 
             viewCopy.validate();
+            //Want the view sources LR and LF names not assoc ids
+            
             viewCopy.store();
             return viewCopy;
         } else {

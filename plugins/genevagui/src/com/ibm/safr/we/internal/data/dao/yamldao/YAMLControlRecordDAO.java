@@ -106,6 +106,9 @@ public class YAMLControlRecordDAO implements ControlRecordDAO {
 		Path defaultPath = YAMLDAOFactory.getGersHome()
 				.resolve(SAFRApplication.getUserSession().getEnvironment().getName()).resolve("crs");
 		defaultPath.toFile().mkdirs();
+		if(crsBeans.isEmpty()) {
+			queryAllControlRecords(environmentId, null);
+		}
 		Path crPath = defaultPath.resolve(crsBeans.get(id).getName() + ".yaml");
 		ControlRecordTransfer result = (ControlRecordTransfer) YAMLizer.readYaml(crPath, ComponentType.ControlRecord);
 		return result;

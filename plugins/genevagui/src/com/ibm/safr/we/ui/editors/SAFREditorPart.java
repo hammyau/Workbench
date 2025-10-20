@@ -17,7 +17,6 @@ package com.ibm.safr.we.ui.editors;
  * under the License.
  */
 
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,10 +46,15 @@ import org.eclipse.ui.part.EditorPart;
 import com.ibm.safr.we.SAFRUtilities;
 import com.ibm.safr.we.constants.ComponentType;
 import com.ibm.safr.we.constants.Permissions;
+import com.ibm.safr.we.data.ConnectionParameters;
 import com.ibm.safr.we.data.DAOException;
+import com.ibm.safr.we.data.DAOFactory;
+import com.ibm.safr.we.data.DAOFactoryHolder;
+import com.ibm.safr.we.data.DBType;
 import com.ibm.safr.we.exceptions.SAFRCancelException;
 import com.ibm.safr.we.exceptions.SAFRException;
 import com.ibm.safr.we.exceptions.SAFRValidationException;
+import com.ibm.safr.we.internal.data.YAMLDAOFactory;
 import com.ibm.safr.we.model.SAFRApplication;
 import com.ibm.safr.we.model.ViewFolder;
 import com.ibm.safr.we.model.base.SAFRComponent;
@@ -65,16 +69,15 @@ import com.ibm.safr.we.ui.utilities.UIUtilities;
  * editors should extend this class and not IEditor part directly.
  * 
  */
-public abstract class SAFREditorPart extends EditorPart implements
-		ModifyListener, ISaveablePart2 {
+public abstract class SAFREditorPart extends EditorPart implements ModifyListener, ISaveablePart2 {
 
-    static final Logger logger = Logger
-    .getLogger("com.ibm.safr.we.ui.editors.SAFREditorPart");
-    
+	static final Logger logger = Logger.getLogger("com.ibm.safr.we.ui.editors.SAFREditorPart");
+
 	boolean saveAsEnabled = true;
-	
+
 	boolean dirty = false;
 	String copyName = null;
+	boolean asYAML = false;
 	/**
 	 * This flag is used in refreshControls() method to check whether
 	 * refreshControls() is called from createPartControl() or from doSave().It
@@ -83,7 +86,7 @@ public abstract class SAFREditorPart extends EditorPart implements
 	 */
 	private boolean initializing;
 	private IMessageManager msgManager;
-	
+
 	public void setMsgManager(IMessageManager msgManager) {
 		this.msgManager = msgManager;
 	}
@@ -121,19 +124,16 @@ public abstract class SAFREditorPart extends EditorPart implements
 				String ctx = e.getContextMessage();
 				ctx = (ctx != null ? ctx.replaceAll("&", "&&") : "");
 				String msg = e.getMessageString().replaceAll("&", "&&");
-				MessageDialog.openError(getSite().getShell(), "Error saving "
-						+ getModelName(), ctx + msg);
+				MessageDialog.openError(getSite().getShell(), "Error saving " + getModelName(), ctx + msg);
 			}
 		} catch (SAFRCancelException e) {
-			//no-op, just cancel this operation
+			// no-op, just cancel this operation
 		} catch (SAFRException e) {
-            logger.log(Level.SEVERE, "Error saving " + getModelName(), e);
+			logger.log(Level.SEVERE, "Error saving " + getModelName(), e);
 			String msg = e.getMessage().replaceAll("&", "&&");
-			MessageDialog.openError(getSite().getShell(), "Error saving "
-					+ getModelName(), msg);
+			MessageDialog.openError(getSite().getShell(), "Error saving " + getModelName(), msg);
 
-		} 
-		finally {
+		} finally {
 			monitor.worked(100);
 			monitor.done();
 		}
@@ -147,10 +147,8 @@ public abstract class SAFREditorPart extends EditorPart implements
 	 * object should suffice.
 	 * </p>
 	 * 
-	 * @throws DAOException
-	 *             if a data access error occurs.
-	 * @throws SAFRException
-	 *             if an application error occurs.
+	 * @throws DAOException if a data access error occurs.
+	 * @throws SAFRException if an application error occurs.
 	 */
 	public abstract void storeModel() throws DAOException, SAFRException;
 
@@ -161,10 +159,8 @@ public abstract class SAFREditorPart extends EditorPart implements
 	 * object should suffice.
 	 * </p>
 	 * 
-	 * @throws DAOException
-	 *             if a data access error occurs
-	 * @throws SAFRException
-	 *             if a validation fails
+	 * @throws DAOException if a data access error occurs
+	 * @throws SAFRException if a validation fails
 	 */
 	public abstract void validate() throws DAOException, SAFRException;
 
@@ -198,17 +194,14 @@ public abstract class SAFREditorPart extends EditorPart implements
 			doRefreshControls();
 			initializing = false;
 		} catch (SAFRException e) {
-            logger.log(Level.SEVERE, "Unexpected Workbench Error", e);
+			logger.log(Level.SEVERE, "Unexpected Workbench Error", e);
 			if (initializing) {
-				MessageDialog.openError(getSite().getShell(),
-						"Unexpected Workbench Error",
-						"An unexpected error occurred while opening this editor : "
-								+ e.getMessage()
+				MessageDialog.openError(getSite().getShell(), "Unexpected Workbench Error",
+						"An unexpected error occurred while opening this editor : " + e.getMessage()
 								+ SAFRUtilities.LINEBREAK + SAFRUtilities.LINEBREAK + "This Editor will be closed.");
 				getSite().getPage().closeEditor(this, false);
 			} else {
-				MessageDialog.openError(getSite().getShell(),
-						"Unexpected Workbench Error",
+				MessageDialog.openError(getSite().getShell(), "Unexpected Workbench Error",
 						"An unexpected error occurred : " + e.getMessage());
 			}
 		}
@@ -236,28 +229,40 @@ public abstract class SAFREditorPart extends EditorPart implements
 	 * @throws SAFRValidationException
 	 * @throws SAFRException
 	 */
-	public SAFRPersistentObject saveComponentCopy()
-			throws SAFRValidationException, SAFRException {
+	public SAFRPersistentObject saveComponentCopy() throws SAFRValidationException, SAFRException {
 		SAFRPersistentObject copy = null;
 		SaveAsDialog saveAsDialog;
+		DAOFactory fact = null;
 		// open the save as dialog with the last name entered by the user.
 		if (copyName == null) {
-			saveAsDialog = new SaveAsDialog(this.getSite().getShell(),
-					getComponentNameForSaveAs());
+			saveAsDialog = new SaveAsDialog(this.getSite().getShell(), getComponentNameForSaveAs());
 		} else {
 			saveAsDialog = new SaveAsDialog(this.getSite().getShell(), copyName);
 		}
 		int returnCode = saveAsDialog.open();
 		if (returnCode == IDialogConstants.OK_ID) {
 			try {
-				getSite().getShell().setCursor(
-						getSite().getShell().getDisplay().getSystemCursor(
-								SWT.CURSOR_WAIT));
+				getSite().getShell().setCursor(getSite().getShell().getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 				copyName = saveAsDialog.getNewName();
+				if (saveAsDialog.asYAML()) {
+					fact = DAOFactoryHolder.getDAOFactory();
+					ConnectionParameters cp = new ConnectionParameters();
+					cp.setType(DBType.YAML);
+					YAMLDAOFactory yf = new YAMLDAOFactory(cp);
+					//DAOFactoryHolder.genDAOFactory(cp);
+					DAOFactoryHolder.setDaoFactory(yf);
+				}
 				copy = ((SAFRComponent) getModel()).saveAs(copyName);
 				UIUtilities.enableDisableMenuAsPerUserRights();
+				if (saveAsDialog.asYAML()) {
+					DAOFactoryHolder.setDaoFactory(fact);
+					copy = null;
+				}
 			} finally {
 				getSite().getShell().setCursor(null);
+				if (saveAsDialog.asYAML()) {
+					DAOFactoryHolder.setDaoFactory(fact);
+				}
 			}
 		}
 		// set the name as null once the save as is done.
@@ -296,9 +301,9 @@ public abstract class SAFREditorPart extends EditorPart implements
 				if (copy != null) {
 					refreshMetadataView();
 					UIUtilities.openEditor(copy, getEditorCompType());
-	                if (copy instanceof ViewFolder) {
-	                    ApplicationMediator.getAppMediator().refreshNavigator();
-	                }
+					if (copy instanceof ViewFolder) {
+						ApplicationMediator.getAppMediator().refreshNavigator();
+					}
 				}
 				saveAsDone = true;
 
@@ -309,32 +314,29 @@ public abstract class SAFREditorPart extends EditorPart implements
 					String ctx = e.getContextMessage();
 					ctx = (ctx != null ? ctx.replaceAll("&", "&&") : "");
 					String msg = e.getMessageString().replaceAll("&", "&&");
-					MessageDialog.openError(getSite().getShell(),
-							"Error saving a copy of this " + getModelName(),
+					MessageDialog.openError(getSite().getShell(), "Error saving a copy of this " + getModelName(),
 							ctx + msg);
 					if (retrySaveAs(e)) {
 						saveAsDone = false;
 					}
 				}
 			} catch (SAFRCancelException e) {
-				//no-op, just cancel this operation
+				// no-op, just cancel this operation
 			} catch (SAFRException e) {
-                logger.log(Level.SEVERE, "Error saving a copy of this " + getModelName(), e);
+				logger.log(Level.SEVERE, "Error saving a copy of this " + getModelName(), e);
 				String msg = e.getMessage().replaceAll("&", "&&");
-				MessageDialog.openError(getSite().getShell(),
-						"Error saving a copy of this " + getModelName(), msg);
+				MessageDialog.openError(getSite().getShell(), "Error saving a copy of this " + getModelName(), msg);
 				saveAsDone = true; // no need to retry for this error
 
 			} catch (PartInitException e) {
-                logger.log(Level.SEVERE, "Error saving a copy of this " + getModelName(), e);
+				logger.log(Level.SEVERE, "Error saving a copy of this " + getModelName(), e);
 				saveAsDone = true;// no need to retry for this error
 			}
 		}
 	}
 
 	@Override
-	public void init(IEditorSite site, IEditorInput input)
-			throws PartInitException {
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setSite(site);
 		setInput(input);
 		setPartName(getEditorInput().getName());
@@ -348,32 +350,30 @@ public abstract class SAFREditorPart extends EditorPart implements
 
 	@Override
 	public abstract boolean isSaveAsAllowed();
-	
+
 	protected boolean isSaveAsAllowed(Permissions permissionRequired) {
 		boolean permitted = false;
 		try {
-		        if (permissionRequired == null) {
-		            permitted = SAFRApplication.getUserSession().isSystemAdminOrEnvAdmin();
-		        }
-		        else if (SAFRApplication.getUserSession().hasPermission( permissionRequired )) {
-			        permitted = true;
-			    }
-			
+			if (permissionRequired == null) {
+				permitted = SAFRApplication.getUserSession().isSystemAdminOrEnvAdmin();
+			} else if (SAFRApplication.getUserSession().hasPermission(permissionRequired)) {
+				permitted = true;
+			}
+
 		} catch (SAFRException e) {
-			UIUtilities.handleWEExceptions(e,
-				"Error occurred while getting permissions for user",
-				UIUtilities.titleStringDbException);
+			UIUtilities.handleWEExceptions(e, "Error occurred while getting permissions for user",
+					UIUtilities.titleStringDbException);
 		}
 		return (saveAsEnabled && permitted);
 	}
-	
+
 	public void disableSaveAs() {
 		saveAsEnabled = false;
 	}
 
 	@Override
-	public abstract void createPartControl(Composite parent) ;
-	
+	public abstract void createPartControl(Composite parent);
+
 	@Override
 	public void setFocus() {
 		saveAsEnabled = true;
@@ -389,15 +389,13 @@ public abstract class SAFREditorPart extends EditorPart implements
 	public int promptToSaveOnClose() {
 		// Implemented to allow users to modify data and try re-save if an error
 		// occurs while saving the dirty editor on close.
-		MessageDialog dialog = new MessageDialog(getSite().getShell(),
-				"Save Changes?", null, "Do you want to save changes made to "
-						+ getPartName() + "?", MessageDialog.QUESTION,
+		MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Changes?", null,
+				"Do you want to save changes made to " + getPartName() + "?", MessageDialog.QUESTION,
 				new String[] { "&Yes", "&No", "&Cancel" }, 0);
 		int returnVal = dialog.open();
 		// Display an hour glass till editor is closed.
-		Display.getCurrent().getActiveShell().setCursor(
-				Display.getCurrent().getActiveShell().getDisplay()
-						.getSystemCursor(SWT.CURSOR_WAIT));
+		Display.getCurrent().getActiveShell()
+				.setCursor(Display.getCurrent().getActiveShell().getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 		if (returnVal == 0) {
 			// 'Yes' pressed, try to validate and save
 			try {
@@ -410,19 +408,17 @@ public abstract class SAFREditorPart extends EditorPart implements
 				// continue with other editors.
 			} catch (SAFRValidationException e) {
 				if (!(e.getMessageString().equals(""))) {
-					MessageDialog.openError(getSite().getShell(),
-							"Error saving " + getModelName() + ".", e
-									.getMessageString());
+					MessageDialog.openError(getSite().getShell(), "Error saving " + getModelName() + ".",
+							e.getMessageString());
 					setDirty(false);
 				}
 				returnVal = ISaveablePart2.CANCEL; // allow users to modify data
 			} catch (SAFRCancelException e) {
-				//no-op, just cancel this operation
+				// no-op, just cancel this operation
 			} catch (SAFRException e) {
 				setDirty(false);
-	            logger.log(Level.SEVERE, "Error saving " + getModelName(), e);
-				MessageDialog.openError(getSite().getShell(), "Error saving "
-						+ getModelName(), e.getMessage());
+				logger.log(Level.SEVERE, "Error saving " + getModelName(), e);
+				MessageDialog.openError(getSite().getShell(), "Error saving " + getModelName(), e.getMessage());
 				returnVal = ISaveablePart2.CANCEL; // allow users to modify data
 			}
 		} else if (returnVal == 1) {
@@ -441,8 +437,7 @@ public abstract class SAFREditorPart extends EditorPart implements
 	 * Sets the dirty flag of the editor to true or false and fires the
 	 * PROP_DIRTY event.
 	 * 
-	 * @param dirty
-	 *            flag to be set.
+	 * @param dirty flag to be set.
 	 */
 	public void setDirty(Boolean dirty) {
 		this.dirty = dirty;
@@ -455,36 +450,34 @@ public abstract class SAFREditorPart extends EditorPart implements
 	 * focus to the first property having error and to decorate the eclipse form
 	 * with markers.
 	 * 
-	 * @param e
-	 *            the {@link SAFRValidationException} thrown by the model class.
+	 * @param e the {@link SAFRValidationException} thrown by the model class.
 	 */
 	public void decorateEditor(SAFRValidationException e) {
 		msgManager.removeAllMessages();
 		for (Object property : e.getErrorMessageMap().keySet()) {
 			for (String errorMesg : e.getErrorMessageMap().get(property)) {
 				String msg = errorMesg.replace("&", "&&");
-                Control ctrl = getControlFromProperty(property); 
-                if (ctrl == null || ctrl.isDisposed()) { 
-                        msgManager.addMessage(msg, msg, null, 
-                                        IMessageProvider.ERROR); 
-                } else { 
-                        msgManager.addMessage(msg, msg, null, 
-                                        IMessageProvider.ERROR, ctrl); 
-                        msgManager.setDecorationPosition(SWT.TOP); 
-                } 
-            }
+				Control ctrl = getControlFromProperty(property);
+				if (ctrl == null || ctrl.isDisposed()) {
+					msgManager.addMessage(msg, msg, null, IMessageProvider.ERROR);
+				} else {
+					msgManager.addMessage(msg, msg, null, IMessageProvider.ERROR, ctrl);
+					msgManager.setDecorationPosition(SWT.TOP);
+				}
+			}
 		}
 	}
-	
-	public void removeDecorate(SAFRValidationException e){
+
+	public void removeDecorate(SAFRValidationException e) {
 		msgManager.removeAllMessages();
 	}
+
 	/**
-	 * Declared here to allow the base to call derived class methods
-	 * in decorateEditor
+	 * Declared here to allow the base to call derived class methods in
+	 * decorateEditor
 	 * 
-	 * Not not all derived classes currently implement this function
-	 * hence it is not abstract.
+	 * Not not all derived classes currently implement this function hence it is
+	 * not abstract.
 	 * 
 	 * @param property
 	 * @return
@@ -502,7 +495,7 @@ public abstract class SAFREditorPart extends EditorPart implements
 	}
 
 	public abstract Boolean retrySaveAs(SAFRValidationException sve);
-	
+
 	protected void spaceToUnderscore(Text textName, KeyEvent e) {
 		int caret = textName.getCaretPosition();
 		String sData = textName.getText();
@@ -510,11 +503,11 @@ public abstract class SAFREditorPart extends EditorPart implements
 		textName.setText(sData);
 		textName.setSelection(caret);
 	}
-	
-	protected void closeEditor(){
+
+	protected void closeEditor() {
 		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-    	IWorkbenchPage page = workbenchWindow.getActivePage();
-    	page.closeEditor(this,true);
+		IWorkbenchPage page = workbenchWindow.getActivePage();
+		page.closeEditor(this, true);
 	}
-	
+
 }

@@ -53,20 +53,21 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 	private Text textExecutableName;
 	private Label labelExecutableName;
 	private Boolean user;
+	private Button yamlCheckbox;
 	private static final int MAX_EXECUTABLE = 18;
+	
+	private boolean asYAML = false;
 
 	public SaveAsDialog(Shell parentShell, String oldName) {
 		super(parentShell);
-		setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER
-				| SWT.APPLICATION_MODAL | SWT.RESIZE);
+		setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		safrGUIToolkit = new SAFRGUIToolkit();
 		this.oldName = oldName;
 	}
 
 	public SaveAsDialog(Shell parentShell, String oldName, String executableName) {
 		super(parentShell);
-		setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER
-				| SWT.APPLICATION_MODAL | SWT.RESIZE);
+		setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		safrGUIToolkit = new SAFRGUIToolkit();
 		this.oldName = oldName;
 		this.executableName = executableName;
@@ -74,8 +75,7 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 
 	public SaveAsDialog(Shell parentShell, String oldName, Boolean user) {
 		super(parentShell);
-		setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER
-				| SWT.APPLICATION_MODAL | SWT.RESIZE);
+		setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		safrGUIToolkit = new SAFRGUIToolkit();
 		this.oldName = oldName;
 		this.user = user;
@@ -93,18 +93,15 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 		compositeSaveAs.setLayout(new GridLayout(2, false));
 		compositeSaveAs.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		labelNewName = safrGUIToolkit.createLabel(compositeSaveAs, SWT.NONE,
-				"New Name:");
+		labelNewName = safrGUIToolkit.createLabel(compositeSaveAs, SWT.NONE, "New Name:");
 		textNewName = safrGUIToolkit.createNameTextBox(compositeSaveAs, SWT.BORDER);
 		textNewName.setText(oldName);
 		textNewName.setTextLimit(UIUtilities.MAXNAMECHAR);
 		textNewName.setData(SAFRLogger.USER, "Enter a new name to use for the copied component");
 		textNewName.addListener(SWT.FocusIn, this);
 
-		labelExecutableName = safrGUIToolkit.createLabel(compositeSaveAs,
-				SWT.NONE, "Executable Name:");
-		textExecutableName = safrGUIToolkit.createTextBox(compositeSaveAs,
-				SWT.BORDER);
+		labelExecutableName = safrGUIToolkit.createLabel(compositeSaveAs, SWT.NONE, "Executable Name:");
+		textExecutableName = safrGUIToolkit.createTextBox(compositeSaveAs, SWT.BORDER);
 		// If the component to be copied is an User then set the label to New
 		// User ID and set the text limit to 8.
 		if (user != null) {
@@ -120,8 +117,7 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 
 			textExecutableName.setText(executableName);
 			textExecutableName.setTextLimit(MAX_EXECUTABLE);
-			textExecutableName
-					.setData(SAFRLogger.USER, "Enter a new executable name to use for the copied component");
+			textExecutableName.setData(SAFRLogger.USER, "Enter a new executable name to use for the copied component");
 			textExecutableName.addListener(SWT.FocusIn, this);
 
 		} else {
@@ -132,6 +128,13 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 		textNewName.setLayoutData(gridc2);
 		textExecutableName.setLayoutData(gridc2);
 
+		//yamlName = safrGUIToolkit.createLabel(compositeSaveAs, SWT.NONE, "New Name:");
+		yamlCheckbox = safrGUIToolkit.createCheckBox(compositeSaveAs, "As YAML");
+		yamlCheckbox.setLayoutData(gridc2);
+//		textNewName.setText(oldName);
+//		textNewName.setTextLimit(UIUtilities.MAXNAMECHAR);
+//		textNewName.setData(SAFRLogger.USER, "Enter a new name to use for the copied component");
+//		textNewName.addListener(SWT.FocusIn, this);
 	}
 
 	protected Control createContents(Composite parent) {
@@ -139,8 +142,7 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 
 		setTitle("Save As");
 
-		setMessage("Enter a new name to use for the copied component",
-				IMessageProvider.INFORMATION);
+		setMessage("Enter a new name to use for the copied component", IMessageProvider.INFORMATION);
 		getShell().setText("Save As");
 
 		return contents;
@@ -148,8 +150,7 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 
 	protected void createButtonsForButtonBar(Composite parent) {
 
-		final Button saveAs = createButton(parent, IDialogConstants.CLOSE_ID,
-				"&Save", true);
+		final Button saveAs = createButton(parent, IDialogConstants.CLOSE_ID, "&Save", true);
 
 		textNewName.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
@@ -183,6 +184,7 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 		saveAs.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 
+				asYAML = yamlCheckbox.getSelection();
 				newName = textNewName.getText();
 				if (textExecutableName.getVisible()) {
 					executableName = textExecutableName.getText();
@@ -191,8 +193,7 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 			}
 		});
 
-		final Button cancel = createButton(parent, IDialogConstants.CANCEL_ID,
-				"&Cancel", false);
+		final Button cancel = createButton(parent, IDialogConstants.CANCEL_ID, "&Cancel", false);
 		cancel.addListener(SWT.FocusIn, this);
 
 	}
@@ -223,5 +224,9 @@ public class SaveAsDialog extends TitleAreaDialog implements Listener {
 						IMessageProvider.INFORMATION);
 			}
 		}
+	}
+	
+	public boolean asYAML() {
+		return asYAML;
 	}
 }
